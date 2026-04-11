@@ -1,0 +1,2676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compare Char Data</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f0f2f5; }
+    h1 { color: #333; margin-bottom: 24px; }
+
+    #app-layout { display: flex; align-items: flex-start; height: 100vh; overflow: hidden; }
+
+    /* ── Right settings blade ── */
+    #blade {
+      position: sticky; top: 0;
+      width: 220px; min-width: 220px;
+      height: 100vh;
+      background: #fff;
+      box-shadow: -3px 0 8px rgba(0,0,0,0.18), -1px 0 3px rgba(0,0,0,0.12);
+      transition: width 0.2s, min-width 0.2s;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+    }
+    #blade.collapsed { width: 38px; min-width: 38px; }
+    #blade-content {
+      flex: 1; padding: 24px 16px; overflow: hidden;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    #blade.collapsed #blade-content { display: none; }
+    #blade-toggle {
+      width: 38px; height: 34px; flex-shrink: 0;
+      background: linear-gradient(to bottom, #f5f5f5, #e0e0e0);
+      border: 1px solid #bbb; border-bottom: 3px solid #999;
+      border-radius: 5px; cursor: pointer;
+      font-size: 16px; color: #666; padding: 0;
+      display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 2px;
+      align-self: flex-start; margin-top: 20px;
+      box-shadow: 0 2px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+      transition: all 0.08s ease;
+    }
+    #blade-toggle:hover { background: linear-gradient(to bottom, #fff, #e8e8e8); color: #4a90e2; }
+    #blade-toggle:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); transform: translateY(1px); }
+    #blade-toggle .blade-arrow { font-size: 14px; line-height: 1; }
+    #blade-toggle .blade-icon { font-size: 16px; line-height: 1; color: #6aabd8; }
+    #scroll-top-btn {
+      position: fixed; top: 12px; right: 220px; z-index: 900;
+      padding: 4px 10px; border-radius: 5px;
+      background: linear-gradient(to bottom, #c8e6fb, #a0cfef);
+      color: #1a5a8a; font-size: 13px; font-weight: bold;
+      border: 1px solid #7ab0d4; border-bottom: 3px solid #5a90b4;
+      cursor: pointer;
+      box-shadow: 0 2px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.7);
+      transition: right 0.2s, background 0.15s;
+      white-space: nowrap;
+    }
+    #scroll-top-btn:hover { background: linear-gradient(to bottom, #d8effe, #b8daf5); }
+    #scroll-top-btn:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); transform: translateY(1px); }
+
+    .blade-section { display: flex; flex-direction: column; gap: 8px; }
+    .blade-label { font-size: 12px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 0.04em; }
+    .blade-select {
+      padding: 6px 10px; border: 1px solid #bbb; border-bottom: 3px solid #999;
+      border-radius: 6px; font-size: 13px; color: #333; width: 100%;
+      background: linear-gradient(to bottom, #f8f9fa, #e8eaed);
+      box-shadow: 0 2px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
+      cursor: pointer; appearance: auto;
+      transition: all 0.08s ease;
+    }
+    .blade-select:hover { background: linear-gradient(to bottom, #fff, #eef0f4); }
+    .blade-select:focus { outline: none; border-color: #4a90e2; border-bottom-color: #2a6ab5; box-shadow: 0 0 0 2px rgba(74,144,226,0.2), inset 0 1px 0 rgba(255,255,255,0.8); }
+    .blade-select:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.12); transform: translateY(1px); }
+    .blade-radio { display: flex; gap: 12px; font-size: 13px; color: #333; }
+    .blade-radio label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+
+    /* ── Main content ── */
+    #main-content { flex: 1; min-width: 0; padding: 32px 16px; height: 100vh; overflow-y: auto; }
+
+    .panels {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      flex: 1;
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border: 2px solid transparent;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .panel.dragover { border-color: #4a90e2; background: #e8f0fe; }
+    .panel h2 { font-size: 15px; color: #555; margin-bottom: 12px; }
+
+    .file-label {
+      display: inline-block;
+      padding: 7px 16px;
+      background: linear-gradient(to bottom, #6aa8f0, #3a7fd5);
+      color: #fff;
+      border: 1px solid #2a6ab5;
+      border-bottom: 3px solid #1f52a0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.2);
+      transition: all 0.08s ease;
+      user-select: none;
+    }
+    .file-label:hover { background: linear-gradient(to bottom, #7ab5f5, #4a8fe5); }
+    .file-label:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); transform: translateY(1px); }
+    input[type="file"] { display: none; }
+
+    .file-info {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #555;
+      min-height: 18px;
+    }
+    .file-name { font-weight: bold; word-break: break-all; }
+    .row-count { color: #888; font-size: 12px; margin-top: 2px; }
+
+    .validation {
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: bold;
+      min-height: 18px;
+    }
+    .valid   { color: #27ae60; }
+    .invalid { color: #e74c3c; }
+    .cgats-warn { color: #e6a817; font-weight: bold; font-size: 12px; }
+
+    .colorants {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #888;
+      min-height: 16px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    #compare-btn {
+      padding: 8px 24px;
+      background: linear-gradient(to bottom, #6aa8f0, #3a7fd5);
+      color: #fff;
+      border: 1px solid #2a6ab5;
+      border-bottom: 3px solid #1f52a0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: auto;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.2);
+      transition: all 0.08s ease;
+    }
+    #compare-btn:hover:not(:disabled) { background: linear-gradient(to bottom, #7ab5f5, #4a8fe5); }
+    #compare-btn:active:not(:disabled) { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); transform: translateY(1px); }
+    #compare-btn:disabled { background: linear-gradient(to bottom, #c8c8c8, #aaa); border-color: #999; border-bottom-color: #777; box-shadow: none; cursor: not-allowed; color: #eee; }
+
+    .validate-btn {
+      padding: 6px 18px;
+      background: linear-gradient(to bottom, #6aa8f0, #3a7fd5);
+      color: #fff;
+      border: 1px solid #2a6ab5;
+      border-bottom: 3px solid #1f52a0;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.2);
+      transition: all 0.08s ease;
+    }
+    .validate-btn:hover { background: linear-gradient(to bottom, #7ab5f5, #4a8fe5); }
+    .validate-btn:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); transform: translateY(1px); }
+
+    /* Segmented control 3D */
+    .seg-btn { padding: 7px 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.08s ease; }
+    .seg-btn-active {
+      background: linear-gradient(to bottom, #2e6dbf, #4a90e2);
+      color: #fff;
+      border: 1px solid #1f52a0;
+      border-bottom: 1px solid #3a7fd5;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(0,0,0,0.05);
+    }
+    .seg-btn-inactive {
+      background: linear-gradient(to bottom, #f8f9fa, #e8eaed);
+      color: #555;
+      border: 1px solid #c8cdd5;
+      border-bottom: 3px solid #b0b5bc;
+      box-shadow: 0 2px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+    .seg-btn-inactive:hover { background: linear-gradient(to bottom, #eef0f4, #dde0e5); }
+
+    .file-type { font-size: 11px; font-weight: bold; color: #4a90e2; margin-top: 2px; }
+
+    #result {
+      font-size: 13px;
+      color: #555;
+      margin-top: 4px;
+      min-height: 18px;
+    }
+
+    /* ── Left file-select blade ── */
+    #file-select-blade {
+      position: sticky; top: 0;
+      width: 220px; min-width: 220px;
+      height: 100vh;
+      background: #fff;
+      box-shadow: 3px 0 8px rgba(0,0,0,0.18), 1px 0 3px rgba(0,0,0,0.12);
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: row;
+      overflow: hidden;
+      transition: width 0.2s, min-width 0.2s;
+    }
+    #file-select-blade.collapsed { width: 38px; min-width: 38px; }
+    #file-select-blade-content {
+      flex: 1; display: flex; flex-direction: column; overflow: hidden;
+    }
+    #file-select-blade.collapsed #file-select-blade-content { display: none; }
+    #fs-blade-toggle {
+      width: 38px; height: 34px; flex-shrink: 0;
+      background: linear-gradient(to bottom, #f5f5f5, #e0e0e0);
+      border: 1px solid #bbb; border-bottom: 3px solid #999;
+      border-radius: 5px; cursor: pointer;
+      font-size: 16px; color: #666; padding: 0;
+      display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 3px;
+      align-self: flex-start; margin-top: 20px;
+      box-shadow: 0 2px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+      transition: all 0.08s ease;
+    }
+    #fs-blade-toggle:hover { background: linear-gradient(to bottom, #fff, #e8e8e8); color: #4a90e2; }
+    #fs-blade-toggle:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); transform: translateY(1px); }
+    #fs-blade-toggle .fs-icon { line-height: 1; display: flex; align-items: center; }
+    #fs-blade-toggle .fs-arrow { font-size: 14px; line-height: 1; }
+    #file-select-blade-header {
+      padding: 24px 8px 8px;
+      font-size: 15px; font-weight: bold; color: #333;
+      flex-shrink: 0;
+    }
+    #file-select-add-btn-wrap {
+      padding: 0 8px 10px; flex-shrink: 0;
+    }
+    #file-select-dropzone {
+      flex: 1; display: flex; flex-direction: column;
+      overflow-y: auto; padding: 0 8px 10px;
+    }
+    #file-select-dropzone.dragover-blade {
+      background: #e8f0fe;
+      outline: 2px dashed #4a90e2; outline-offset: -4px;
+    }
+    .file-card {
+      background: #fafafa;
+      border-top: 1px solid #e8e8e8;
+      border-bottom: 1px solid #e8e8e8;
+      border-left: 2px solid #c8cdd5;
+      border-right: 2px solid #c8cdd5;
+      border-radius: 0;
+      padding: 7px 28px 7px 9px;
+      margin-bottom: 2px;
+      cursor: pointer; font-size: 12px; color: #444;
+      position: relative; user-select: none;
+      transition: background 0.1s;
+    }
+    .file-card:hover:not(.assigned-a):not(.assigned-b):not(.active-explore) {
+      background: #f0f4ff;
+    }
+    .file-card.active-explore,
+    .file-card.assigned-a {
+      background: linear-gradient(to bottom, #ffffff, #ddeeff);
+      border: 1px solid #5a9ee8;
+      border-bottom: 3px solid #2a6ab5;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(74,144,226,0.25), inset 0 1px 0 rgba(255,255,255,0.9);
+      color: #1a3a6a;
+      margin-bottom: 4px;
+    }
+    .file-card.assigned-b {
+      background: linear-gradient(to bottom, #ffffff, #ffeedd);
+      border: 1px solid #d88040;
+      border-bottom: 3px solid #a85e1a;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(226,146,74,0.25), inset 0 1px 0 rgba(255,255,255,0.9);
+      color: #6a2a00;
+      margin-bottom: 4px;
+    }
+    .file-card.assigned-a.assigned-b {
+      background: linear-gradient(to bottom, #ffffff, #eef4ff);
+      border: 1px solid #5a9ee8;
+      border-bottom: 3px solid #2a6ab5;
+      border-right: 3px solid #a85e1a;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(74,144,226,0.2), inset 0 1px 0 rgba(255,255,255,0.9);
+      color: #333;
+      margin-bottom: 4px;
+    }
+    .file-card-badges { display: flex; gap: 4px; margin-bottom: 4px; }
+    .file-card-badge {
+      display: inline-block; padding: 1px 6px; border-radius: 4px;
+      font-size: 10px; font-weight: bold; color: #fff; line-height: 1.5;
+    }
+    .file-card-badge.badge-a { background: #4a90e2; }
+    .file-card-badge.badge-b { background: #e2924a; }
+    .file-card-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #file-select-empty {
+      font-size: 12px; color: #bbb; text-align: center;
+      margin-top: 16px; pointer-events: none;
+    }
+    .file-card-delete {
+      position: absolute; top: 6px; right: 6px;
+      display: none; align-items: center; justify-content: center;
+      width: 18px; height: 18px;
+      background: none; border: none; padding: 0;
+      color: #aaa; cursor: pointer; border-radius: 3px;
+      transition: color 0.1s, background 0.1s;
+    }
+    .file-card:hover .file-card-delete { display: flex; }
+    .file-card-delete:hover { color: #e74c3c; background: #fdecea; }
+  </style>
+</head>
+<body>
+<div id="app-layout">
+
+  <!-- Left file-select blade -->
+  <div id="file-select-blade">
+    <div id="file-select-blade-content">
+      <div id="file-select-blade-header">File Select</div>
+      <div id="file-select-add-btn-wrap" style="display:flex;align-items:flex-start;gap:6px;">
+        <label class="file-label" for="file-select-input"
+               style="display:block;text-align:center;font-size:12px;padding:6px 10px;flex:1;">
+          <span style="white-space:nowrap">Choose char data file</span><br><span style="white-space:nowrap">(CGATS or CSV)</span>
+        </label>
+        <button id="file-sort-btn" onclick="toggleFileSort()" title="Sort files alphabetically"
+                style="padding:5px 7px;font-size:13px;line-height:1;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;cursor:pointer;color:#555;box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);transition:all 0.08s ease;flex-shrink:0;">&#8597;</button>
+        <input type="file" id="file-select-input" accept=".cgt,.csv,.txt" multiple>
+      </div>
+      <div id="file-select-dropzone">
+        <div id="file-select-empty">Drop files here<br>or use button above</div>
+      </div>
+    </div>
+    <button id="fs-blade-toggle" title="File Select"><span class="fs-icon"><svg width="13" height="16" viewBox="0 0 13 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1.5C1 1.22 1.22 1 1.5 1H8L12 5V14.5C12 14.78 11.78 15 11.5 15H1.5C1.22 15 1 14.78 1 14.5V1.5Z" fill="#a8d4f0" stroke="#6aabd8" stroke-width="1"/><path d="M8 1V5H12" fill="#c8e8f8" stroke="#6aabd8" stroke-width="1" stroke-linejoin="round"/></svg></span><span class="fs-arrow">&#8250;</span></button>
+  </div>
+
+  <!-- Main content -->
+  <div id="main-content">
+  <div style="display:inline-flex;gap:6px;margin-bottom:24px;">
+    <button id="seg-explore" onclick="setMode('explore')" class="seg-btn seg-btn-active" style="border-radius:6px 6px 6px 6px;">Explore Char Data</button>
+    <button id="seg-compare" onclick="setMode('compare')" class="seg-btn seg-btn-inactive" style="border-radius:6px 6px 6px 6px;">Compare Char Data</button>
+  </div>
+
+  <div class="panels">
+    <div class="panel" id="panel-a">
+      <h2>File A</h2>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <button class="validate-btn" id="show-file-a" onclick="showFile('a')" disabled>Show file</button>
+      </div>
+      <div class="file-info" id="info-a">
+        <div class="file-name" id="name-a"></div>
+        <div class="file-type" id="type-a"></div>
+        <div class="row-count" id="rows-a"></div>
+      </div>
+      <div class="validation" id="valid-a"></div>
+      <div class="colorants" id="colorants-a"></div>
+    </div>
+
+    <div class="panel" id="panel-b">
+      <h2>File B</h2>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <button class="validate-btn" id="show-file-b" onclick="showFile('b')" disabled>Show file</button>
+      </div>
+      <div class="file-info" id="info-b">
+        <div class="file-name" id="name-b"></div>
+        <div class="file-type" id="type-b"></div>
+        <div class="row-count" id="rows-b"></div>
+      </div>
+      <div class="validation" id="valid-b"></div>
+      <div class="colorants" id="colorants-b"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="compare-btn" disabled>Compare</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="plot-section" style="margin-top:24px;display:none;">
+    <div onclick="togglePlot()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+      <span id="plot-tab-label">3D Plot</span><span id="plot-arrow">▼</span>
+    </div>
+    <div id="plot-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;">
+      <div style="padding:6px 12px;border-bottom:1px solid #eee;display:flex;gap:18px;align-items:center;font-size:12px;color:#555;">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
+          <input type="checkbox" id="plot-opt-circles" onchange="renderPlot()"> Circles
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
+          <input type="checkbox" id="plot-opt-hue-color" onchange="onPlotColorChange('hue')"> Color by hue angle
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
+          <input type="checkbox" id="plot-opt-value-color" onchange="onPlotColorChange('value')" checked> Color by value
+        </label>
+        <label id="plot-opt-spectral-label" style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
+          <input type="checkbox" id="plot-opt-spectral"> Show spectral data when point selected
+        </label>
+      </div>
+      <div id="plot" style="width:100%;height:600px;"></div>
+    </div>
+  </div>
+
+  </div><!-- /main-content -->
+
+  <!-- Right settings blade -->
+  <div id="blade">
+    <button id="blade-toggle" title="Settings"><span class="blade-arrow">&#8250;</span><span class="blade-icon">&#9881;&#xFE0E;</span></button>
+    <div id="blade-content">
+      <div style="font-size:15px;font-weight:bold;color:#333;">Settings</div>
+
+      <div class="blade-section">
+        <div class="blade-label">ΔE Method</div>
+        <select id="de-method" class="blade-select">
+          <option value="dEab">dEab</option>
+          <option value="dE94">dE94</option>
+          <option value="dE00">dE00</option>
+        </select>
+      </div>
+
+      <div class="blade-section">
+        <div class="blade-label">Filter Duplicates</div>
+        <select id="dedup" class="blade-select">
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+
+      <div class="blade-section" id="dedup-method-section">
+        <div class="blade-label">Filter Method</div>
+        <select id="dedup-method" class="blade-select">
+          <option value="median">Median</option>
+          <option value="mean">Mean</option>
+        </select>
+      </div>
+
+      <div style="border-top:1px solid #eee;margin:4px 0;"></div>
+      <div style="font-size:11px;font-weight:bold;color:#aaa;text-transform:uppercase;letter-spacing:0.04em;">Spectral → LAB</div>
+
+      <div class="blade-section">
+        <div class="blade-label">Illuminant</div>
+        <select id="illuminant" class="blade-select">
+          <option value="D50">D50</option>
+          <option value="D65">D65</option>
+        </select>
+      </div>
+
+      <div class="blade-section">
+        <div class="blade-label">Standard Observer</div>
+        <select id="observer" class="blade-select">
+          <option value="2deg">2°</option>
+          <option value="10deg">10°</option>
+        </select>
+      </div>
+
+      <div class="blade-section">
+        <div class="blade-label">M-Condition</div>
+        <select id="m-cond" class="blade-select">
+          <option value="M0">M0</option>
+          <option value="M1">M1 (force D50)</option>
+          <option value="M2">M2 (UV cut)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app-layout -->
+
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <script>
+    const REQUIRED = ['CYAN', 'MAGENTA', 'YELLOW', 'BLACK', 'LAB_L', 'LAB_A', 'LAB_B'];
+
+    // ── Spectral tables: 380–780 nm, 10 nm intervals (41 entries) ─────────────
+    // CIE 1931 2° Standard Observer CMFs
+    const CMF2_X = [0.001368,0.004243,0.014310,0.043510,0.134380,0.283900,0.348280,0.336200,0.290800,0.195360,0.095640,0.032010,0.004900,0.009300,0.063270,0.165500,0.290400,0.433450,0.594500,0.762100,0.916300,1.026300,1.062200,1.002600,0.854450,0.642400,0.447900,0.283500,0.164900,0.087400,0.046770,0.022700,0.011359,0.005790,0.002899,0.001440,0.000690,0.000332,0.000166,0.000083,0.000042];
+    const CMF2_Y = [0.000039,0.000120,0.000396,0.001210,0.004000,0.011600,0.023000,0.038000,0.060000,0.090980,0.139020,0.208020,0.323000,0.503000,0.710000,0.862000,0.954000,0.994950,0.995000,0.952000,0.870000,0.757000,0.631000,0.503000,0.381000,0.265000,0.175000,0.107000,0.061000,0.032000,0.017000,0.008210,0.004102,0.002091,0.001047,0.000520,0.000249,0.000120,0.000060,0.000030,0.000015];
+    const CMF2_Z = [0.006450,0.020050,0.067850,0.207400,0.645600,1.385600,1.747060,1.772110,1.669200,1.287640,0.812950,0.465180,0.272000,0.158200,0.078250,0.042160,0.020300,0.008750,0.003900,0.002100,0.001650,0.001100,0.000800,0.000340,0.000190,0.000050,0.000020,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000];
+    // CIE 1964 10° Standard Observer CMFs
+    const CMF10_X = [0.002952,0.010712,0.037118,0.099827,0.228190,0.430620,0.624700,0.750470,0.823840,0.793210,0.653400,0.440800,0.219330,0.044490,0.008928,0.088120,0.222600,0.416800,0.614300,0.791500,0.930700,1.023900,1.059800,1.030800,0.921700,0.754200,0.564100,0.373200,0.214400,0.109600,0.048900,0.019300,0.007213,0.002675,0.001132,0.000418,0.000147,0.000050,0.000017,0.000005,0.000002];
+    const CMF10_Y = [0.000300,0.001086,0.003768,0.010840,0.028570,0.069490,0.131700,0.207700,0.316300,0.444600,0.572800,0.700800,0.801300,0.907700,0.958600,0.984200,0.999700,0.999000,0.997800,0.982500,0.955200,0.914300,0.869900,0.827100,0.757900,0.674500,0.583600,0.481100,0.369700,0.271600,0.187600,0.124100,0.079810,0.050000,0.031060,0.018800,0.011400,0.006780,0.004000,0.002300,0.001400];
+    const CMF10_Z = [0.013670,0.049276,0.171570,0.461700,1.072720,2.073760,3.117480,3.842350,4.147390,4.076540,3.451350,2.295890,1.292400,0.626500,0.315600,0.168900,0.081000,0.034000,0.013000,0.003600,0.001000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000];
+    // Illuminant SPDs (relative)
+    const SPD_D50 = [23.94,34.74,49.28,62.43,74.77,87.32,100.00,109.06,116.60,122.49,125.79,128.52,131.00,130.83,132.67,128.53,130.30,133.48,129.60,130.23,126.93,123.11,121.38,121.77,117.93,114.40,113.37,113.90,114.13,109.87,111.05,107.34,121.78,117.66,111.97,107.92,114.51,117.29,89.66,111.57,118.61];
+    const SPD_D65 = [49.98,54.65,82.78,91.49,93.43,86.68,104.86,117.01,117.81,114.86,115.92,108.81,109.35,107.80,104.79,107.69,107.68,106.65,105.00,105.38,102.05,98.62,97.97,102.11,98.75,95.17,97.67,99.35,99.61,95.67,96.74,92.64,105.35,101.44,96.36,92.23,97.59,99.76,75.09,94.17,99.92];
+
+    // ── P2P Target Patch Values  (IDEAlliance G7 System ADS, Appendix A) ────────
+    // Tables 3 (column 4, K-only) and 4 (column 5, CMY-only).
+    // 25 patches each; index 0 = paper white (all zeros).
+    // Values are device tone percentages (0–100).
+    const P2P_PATCHES = [
+      //    K-only (col 4)               CMY-only (col 5)
+      //    C      M      Y      K        C       M       Y       K
+      { k: { C:0,   M:0,   Y:0,   K:0    }, cmy: { C:0,    M:0,     Y:0,     K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:1.96 }, cmy: { C:1.96, M:1.18,  Y:1.18,  K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:3.92 }, cmy: { C:3.92, M:2.77,  Y:2.77,  K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:5.88 }, cmy: { C:5.88, M:4.15,  Y:4.15,  K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:7.84 }, cmy: { C:7.84, M:5.61,  Y:5.61,  K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:10.2 }, cmy: { C:10.2, M:7.41,  Y:7.41,  K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:14.9 }, cmy: { C:14.9, M:11,    Y:11,    K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:20   }, cmy: { C:20,   M:14.9,  Y:14.9,  K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:25.1 }, cmy: { C:25.1, M:18.8,  Y:18.8,  K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:30.2 }, cmy: { C:30.2, M:22.91, Y:22.91, K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:34.9 }, cmy: { C:34.9, M:26.78, Y:26.78, K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:40   }, cmy: { C:40,   M:30.98, Y:30.98, K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:45.1 }, cmy: { C:45.1, M:35.48, Y:35.48, K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:49.8 }, cmy: { C:49.8, M:39.82, Y:39.89, K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:54.9 }, cmy: { C:54.9, M:44.71, Y:44.71, K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:60   }, cmy: { C:60,   M:49.8,  Y:49.8,  K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:65.1 }, cmy: { C:65.1, M:54.9,  Y:54.9,  K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:69.8 }, cmy: { C:69.8, M:60.16, Y:60.16, K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:74.9 }, cmy: { C:74.9, M:66.07, Y:66.07, K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:80   }, cmy: { C:80,   M:71.77, Y:71.77, K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:85.1 }, cmy: { C:85.1, M:78.06, Y:78.06, K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:89.8 }, cmy: { C:89.8, M:84.61, Y:84.61, K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:94.9 }, cmy: { C:94.9, M:92.2,  Y:92.2,  K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:98.04}, cmy: { C:98.04,M:96.86, Y:96.86, K:0 } },
+      { k: { C:0,   M:0,   Y:0,   K:100  }, cmy: { C:100,  M:100,   Y:100,   K:0 } },
+    ];
+
+    const state = { a: null, b: null };
+    const _rawFileData = { a: null, b: null };
+    let _cmpSortCol = null, _cmpSortDir = 'asc', _cmpData = null, _cmpSortedIdx = null;
+    let _expSortCol = null, _expSortDir = 'asc', _expData = null, _expSortedIdx = null;
+    let _spectralPopupData = [];
+    let _plotRowMap = [];        // _plotRowMap[curveNumber][pointIndex] → row index in state[slot].rows
+    let _plotClickHandler = null;
+    let _plotLegendHandler = null;
+    let _plotVisible = [];       // per-trace visibility, preserved across re-renders
+    let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
+    let _suppressDismiss = false;
+
+    let _fileList = [];          // [{ id, name, text }, ...]
+    let _nextFileId = 0;
+    let _cardAssignments = { a: null, b: null }; // fileId currently in each slot
+    let _fileListSort = null; // null = insertion order, 'asc' = A→Z, 'desc' = Z→A
+    let _pendingColorantDeletes = new Set();
+    let _exportDirHandle = null;
+
+    let _mode = 'explore';
+
+    function setMode(mode) {
+      _mode = mode;
+      applyMode();
+    }
+
+    function applyMode() {
+      const isExplore = _mode === 'explore';
+      document.getElementById('seg-explore').className = 'seg-btn ' + (isExplore ? 'seg-btn-active' : 'seg-btn-inactive');
+      document.getElementById('seg-compare').className = 'seg-btn ' + (isExplore ? 'seg-btn-inactive' : 'seg-btn-active');
+      document.getElementById('panel-b').style.display = isExplore ? 'none' : '';
+      document.getElementById('compare-btn').style.display = isExplore ? 'none' : '';
+      document.querySelector('#panel-a h2').textContent = 'File A';
+      document.getElementById('result').innerHTML = '';
+      document.getElementById('plot-section').style.display = 'none';
+
+      renderFileList();
+      updateCompareBtn();
+      if (isExplore && state.a) renderExplore();
+    }
+
+    // Blade toggle
+    const blade = document.getElementById('blade');
+    const bladeToggle = document.getElementById('blade-toggle');
+    if (localStorage.getItem('bladeCollapsed') === '1') blade.classList.add('collapsed');
+    const bladeArrow = bladeToggle.querySelector('.blade-arrow');
+    bladeArrow.textContent = blade.classList.contains('collapsed') ? '\u2039' : '\u203a';
+    const BLADE_W_OPEN = 220, BLADE_W_CLOSED = 38;
+    function syncScrollBtnRight() {
+      const btn = document.getElementById('scroll-top-btn');
+      if (btn) btn.style.right = (blade.classList.contains('collapsed') ? BLADE_W_CLOSED : BLADE_W_OPEN) + 'px';
+    }
+    bladeToggle.addEventListener('click', () => {
+      blade.classList.toggle('collapsed');
+      const collapsed = blade.classList.contains('collapsed');
+      bladeArrow.textContent = collapsed ? '\u2039' : '\u203a';
+      localStorage.setItem('bladeCollapsed', collapsed ? '1' : '0');
+      syncScrollBtnRight();
+    });
+    document.addEventListener('DOMContentLoaded', syncScrollBtnRight);
+
+    // Dismiss spectral popup on outside click
+    document.addEventListener('click', () => {
+      if (_suppressDismiss) { _suppressDismiss = false; return; }
+      document.getElementById('spectral-popup').style.display = 'none';
+    });
+
+    // Show/hide filter method when dedup toggled
+    const dedupMethodSection = document.getElementById('dedup-method-section');
+    document.getElementById('dedup').addEventListener('change', function() {
+      dedupMethodSection.style.display = this.value === 'yes' ? '' : 'none';
+    });
+
+    // Reprocess any slot that used spectral LAB when illuminant/observer/M-cond changes
+    function reprocessSpectral() {
+      ['a', 'b'].forEach(slot => {
+        if (_rawFileData[slot] && state[slot] && state[slot].usedSpectralLab) {
+          document.getElementById('name-' + slot).textContent = _rawFileData[slot].fileName;
+          processFileText(slot, _rawFileData[slot].text, _rawFileData[slot].fileName);
+        }
+      });
+    }
+    ['illuminant', 'observer', 'm-cond'].forEach(id =>
+      document.getElementById(id).addEventListener('change', reprocessSpectral)
+    );
+
+    // Apply initial mode (explore is default)
+    applyMode();
+
+    // Persist ΔE method
+    const deMethod = document.getElementById('de-method');
+    const saved = localStorage.getItem('deMethod');
+    if (saved) deMethod.value = saved;
+    deMethod.addEventListener('change', () => localStorage.setItem('deMethod', deMethod.value));
+
+    function standardizeHeaders(headers) {
+      const RENAMES = { CMYK_C: 'CYAN', CMYK_M: 'MAGENTA', CMYK_Y: 'YELLOW', CMYK_K: 'BLACK' };
+      return headers.map(h => {
+        const nm = h.match(/^nm(\d+)$/i) || h.match(/^NM_(\d+)$/i);
+        if (nm) return nm[1] + '_NM';
+        return RENAMES[h.toUpperCase()] || h;
+      });
+    }
+
+    function standardizeData({ headers, rows }) {
+      const keep = headers.map((h, i) => {
+        const u = h.toUpperCase();
+        if (u === 'COLOR_INDEX') return false;
+        if (u.startsWith('D_')) return false;
+        if (u.startsWith('XYZ_')) return false;
+        return true;
+      });
+      const keptIdx = keep.reduce((a, v, i) => { if (v) a.push(i); return a; }, []);
+      return {
+        headers: keptIdx.map(i => headers[i]),
+        rows: rows.map(row => keptIdx.map(i => row[i]))
+      };
+    }
+
+    function parseCSV(text) {
+      const lines = text.split(/\r\n|\r|\n/).filter(l => l.trim().length > 0);
+      if (lines.length === 0) return { headers: [], rows: [] };
+      const headers = standardizeHeaders(
+        lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''))
+      );
+      const rows = lines.slice(1).map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g, '')));
+      return { headers, rows };
+    }
+
+    function parseCGATS(text) {
+      const lines = text.split(/\r\n|\r|\n/);
+
+      // Extract headers from between BEGIN_DATA_FORMAT and END_DATA_FORMAT
+      const fmtStart = lines.findIndex(l => l.trim().toUpperCase() === 'BEGIN_DATA_FORMAT');
+      const fmtEnd   = lines.findIndex(l => l.trim().toUpperCase() === 'END_DATA_FORMAT');
+      const rawHeaders = lines.slice(fmtStart + 1, fmtEnd)
+        .flatMap(l => l.trim().split(/\s+/)).filter(t => t.length > 0);
+      const headers = standardizeHeaders(rawHeaders);
+
+      // Extract data rows from between BEGIN_DATA and END_DATA
+      const dataStart = lines.findIndex(l => l.trim().toUpperCase() === 'BEGIN_DATA');
+      const dataEnd   = lines.findIndex(l => l.trim().toUpperCase() === 'END_DATA');
+      const dataLines = lines.slice(dataStart + 1, dataEnd).filter(l => l.trim().length > 0);
+
+      // Detect delimiter from first data line
+      const firstData = dataLines[0] || '';
+      const split = /\t/.test(firstData) ? (l => l.split('\t')) : (l => l.trim().split(/\s+/));
+
+      const rows = dataLines.map(l => split(l).map(c => c.trim()));
+      return { headers, rows };
+    }
+
+    function median(vals) {
+      if (vals.length === 0) return NaN;
+      const sorted = [...vals].sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+      return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+    }
+
+    function mean(vals) {
+      if (vals.length === 0) return NaN;
+      return vals.reduce((s, v) => s + v, 0) / vals.length;
+    }
+
+    function deduplicateRows(headers, rows, colorants, filterType) {
+      const agg = filterType === 'mean' ? mean : median;
+      const colorantIdx  = colorants.map(c => headers.indexOf(c));
+      const measureIdx   = headers.map((_, i) => i).filter(i => !colorantIdx.includes(i));
+      const groups = new Map(), order = [];
+      for (const row of rows) {
+        const key = colorantIdx.map(i => (row[i] || '').trim()).join('\x00');
+        if (!groups.has(key)) {
+          groups.set(key, { deviceCells: colorantIdx.map(i => row[i] || ''), measureVals: measureIdx.map(() => []) });
+          order.push(key);
+        }
+        const g = groups.get(key);
+        measureIdx.forEach((mi, ci) => { const v = parseFloat(row[mi]); if (!isNaN(v)) g.measureVals[ci].push(v); });
+      }
+      const out = [];
+      for (const key of order) {
+        const { deviceCells, measureVals } = groups.get(key);
+        const row = new Array(headers.length).fill('');
+        colorantIdx.forEach((di, i) => { row[di] = deviceCells[i]; });
+        measureIdx.forEach((mi, ci) => {
+          const m = agg(measureVals[ci]);
+          if (!isNaN(m)) row[mi] = String(Math.round(m * 10000) / 10000);
+        });
+        out.push(row);
+      }
+      return out;
+    }
+
+    function validateCGATS(text) {
+      const lines = text.split(/\r\n|\r|\n/);
+      const errors = [], warnings = [];
+
+      // Check 1 — CGATS header: warning only, does not block processing
+      if (!lines[0] || !lines[0].toUpperCase().includes('CGATS')) {
+        warnings.push('File header is not standard CGATS (first line does not contain "CGATS")');
+      }
+
+      // Check 2 — single BEGIN_DATA_FORMAT / END_DATA_FORMAT pair
+      const fmtBeginIdx = lines.reduce((a, l, i) => l.trim().toUpperCase() === 'BEGIN_DATA_FORMAT' ? [...a, i] : a, []);
+      const fmtEndIdx   = lines.reduce((a, l, i) => l.trim().toUpperCase() === 'END_DATA_FORMAT'   ? [...a, i] : a, []);
+      const validFmt = fmtBeginIdx.length === 1 && fmtEndIdx.length === 1 && fmtBeginIdx[0] < fmtEndIdx[0];
+      if (!validFmt) {
+        errors.push('Missing or duplicate BEGIN_DATA_FORMAT / END_DATA_FORMAT');
+      }
+
+      // Check 3 — field count matches NUMBER_OF_FIELDS
+      if (validFmt) {
+        const formatTokens = lines.slice(fmtBeginIdx[0] + 1, fmtEndIdx[0])
+          .flatMap(l => l.trim().split(/\s+/)).filter(t => t.length > 0);
+        const nofLine = lines.find(l => /^NUMBER_OF_FIELDS\s+\d+/i.test(l.trim()));
+        if (!nofLine) {
+          errors.push('NUMBER_OF_FIELDS declaration not found');
+        } else {
+          const declared = parseInt(nofLine.trim().split(/\s+/)[1], 10);
+          if (formatTokens.length !== declared) {
+            errors.push(`NUMBER_OF_FIELDS is ${declared} but found ${formatTokens.length} column headers`);
+          }
+        }
+      }
+
+      // Check 4 — single BEGIN_DATA / END_DATA pair, after END_DATA_FORMAT
+      const afterFmt = validFmt ? fmtEndIdx[0] : 0;
+      const dataBeginIdx = lines.reduce((a, l, i) => l.trim().toUpperCase() === 'BEGIN_DATA' && i > afterFmt ? [...a, i] : a, []);
+      const dataEndIdx   = lines.reduce((a, l, i) => l.trim().toUpperCase() === 'END_DATA'   && i > afterFmt ? [...a, i] : a, []);
+      const validData = dataBeginIdx.length === 1 && dataEndIdx.length === 1 && dataBeginIdx[0] < dataEndIdx[0];
+      if (!validData) {
+        errors.push('Missing or duplicate BEGIN_DATA / END_DATA');
+      }
+
+      // Check 5 — row count matches NUMBER_OF_SETS
+      if (validData) {
+        const dataRows = lines.slice(dataBeginIdx[0] + 1, dataEndIdx[0]).filter(l => l.trim().length > 0);
+        const nosLine = lines.find(l => /^NUMBER_OF_SETS\s+\d+/i.test(l.trim()));
+        if (!nosLine) {
+          errors.push('NUMBER_OF_SETS declaration not found');
+        } else {
+          const declared = parseInt(nosLine.trim().split(/\s+/)[1], 10);
+          if (dataRows.length !== declared) {
+            errors.push(`NUMBER_OF_SETS is ${declared} but found ${dataRows.length} data rows`);
+          }
+        }
+      }
+
+      return { ok: errors.length === 0, errors, warnings };
+    }
+
+    function isDeviceColorant(col) {
+      const h = col.toUpperCase();
+      return !h.startsWith('LAB') && !/_NM$/.test(h) && !h.startsWith('SAMPLE');
+    }
+
+    function validateCSV(headers) {
+      const upper = headers.map(h => h.toUpperCase());
+      const missing = REQUIRED.filter(r => !upper.includes(r));
+      return { ok: missing.length === 0, missing };
+    }
+
+    function injectSpectralLab(headers, rows) {
+      const illuminantId = document.getElementById('illuminant').value;
+      const observerId   = document.getElementById('observer').value;
+      const mCondId      = document.getElementById('m-cond').value;
+
+      // Collect and sort spectral columns
+      const spectralCols = [];
+      headers.forEach((h, i) => {
+        const m = h.match(/^(\d+)_NM$/i);
+        if (m) spectralCols.push({ nm: parseInt(m[1]), idx: i });
+      });
+      spectralCols.sort((a, b) => a.nm - b.nm);
+      if (spectralCols.length === 0) return { headers, rows };
+
+      const cmfX = observerId === '10deg' ? CMF10_X : CMF2_X;
+      const cmfY = observerId === '10deg' ? CMF10_Y : CMF2_Y;
+      const cmfZ = observerId === '10deg' ? CMF10_Z : CMF2_Z;
+      const spd  = (mCondId === 'M1' ? 'D50' : illuminantId) === 'D65' ? SPD_D65 : SPD_D50;
+
+      // Pre-compute illuminant × CMF weights at each spectral wavelength
+      const W = spectralCols.map(({ nm }) => {
+        const i = (nm - 380) / 10;
+        if (i < 0 || i > 40 || !Number.isInteger(i)) return { x: 0, y: 0, z: 0 };
+        const e = (mCondId === 'M2' && nm <= 400) ? 0 : spd[i];
+        return { x: e * cmfX[i], y: e * cmfY[i], z: e * cmfZ[i] };
+      });
+
+      // White point (perfect reflector R=1)
+      const Xn = W.reduce((s, w) => s + w.x, 0);
+      const Yn = W.reduce((s, w) => s + w.y, 0);
+      const Zn = W.reduce((s, w) => s + w.z, 0);
+
+      const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+
+      const newRows = rows.map(row => {
+        let X = 0, Y = 0, Z = 0;
+        spectralCols.forEach(({ idx }, i) => {
+          const R = parseFloat(row[idx]);
+          if (!isNaN(R)) { X += W[i].x * R; Y += W[i].y * R; Z += W[i].z * R; }
+        });
+        const L = 116 * f(Y / Yn) - 16;
+        const A = 500 * (f(X / Xn) - f(Y / Yn));
+        const B = 200 * (f(Y / Yn) - f(Z / Zn));
+        return [...row, L.toFixed(4), A.toFixed(4), B.toFixed(4)];
+      });
+
+      return { headers: [...headers, 'LAB_L', 'LAB_A', 'LAB_B'], rows: newRows };
+    }
+
+    function loadFile(slot, file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        _rawFileData[slot] = { text: e.target.result, fileName: file.name };
+        document.getElementById('name-' + slot).textContent = file.name;
+        processFileText(slot, e.target.result, file.name);
+      };
+      reader.readAsText(file);
+    }
+
+    function processFileText(slot, text, fileName) {
+      // Reset display for this slot
+      document.getElementById('valid-' + slot).textContent = '';
+      document.getElementById('valid-' + slot).className = 'validation';
+      document.getElementById('type-' + slot).textContent = '';
+      document.getElementById('rows-' + slot).textContent = '';
+      document.getElementById('colorants-' + slot).textContent = '';
+
+      const lines = text.split(/\r\n|\r|\n/);
+      const firstLine = lines[0] || '';
+      const isCGATS = lines.some(l => l.trim().toUpperCase() === 'BEGIN_DATA_FORMAT');
+      const isCSV   = firstLine.includes(',') && !isCGATS;
+      const validEl = document.getElementById('valid-' + slot);
+      const typeEl  = document.getElementById('type-' + slot);
+
+      if (!isCSV && !isCGATS) {
+        validEl.textContent = 'File is neither CSV nor CGATS format';
+        validEl.className = 'validation invalid';
+        state[slot] = null;
+        document.getElementById('show-file-' + slot).disabled = true;
+        updateCompareBtn();
+        document.getElementById('result').innerHTML = '';
+        document.getElementById('plot-section').style.display = 'none';
+        return;
+      }
+
+      typeEl.textContent = isCSV ? 'CSV' : 'CGATS';
+
+      if (isCGATS) {
+        const cgats = validateCGATS(text);
+        if (!cgats.ok) {
+          validEl.innerHTML = cgats.warnings.map(w => `<div class="cgats-warn">${w}</div>`).join('')
+                            + cgats.errors.map(e => `<div>${e}</div>`).join('');
+          validEl.className = 'validation invalid';
+          state[slot] = null;
+          document.getElementById('show-file-' + slot).disabled = true;
+          updateCompareBtn();
+          document.getElementById('result').innerHTML = '';
+          document.getElementById('plot-section').style.display = 'none';
+          return;
+        }
+        if (cgats.warnings.length > 0) {
+          validEl.innerHTML = cgats.warnings.map(w => `<div class="cgats-warn">${w}</div>`).join('');
+          validEl.className = 'validation';
+        }
+      }
+
+      let { headers, rows } = standardizeData(isCSV ? parseCSV(text) : parseCGATS(text));
+
+      // Compute LAB from spectral if LAB columns are absent
+      const hasLab = ['LAB_L', 'LAB_A', 'LAB_B'].every(c => headers.includes(c));
+      const hasSpectral = headers.some(h => /_NM$/i.test(h));
+      let usedSpectralLab = false;
+      if (!hasLab && hasSpectral) {
+        ({ headers, rows } = injectSpectralLab(headers, rows));
+        usedSpectralLab = true;
+      }
+
+      const { ok, missing } = validateCSV(headers);
+
+      const colorants = headers.filter(isDeviceColorant);
+      const colorantIdx = colorants.map(c => headers.indexOf(c));
+
+      // Scale device colorants ×100 if all values are in [0, 1]
+      const allInRange = rows.length > 0 && rows.every(row =>
+        colorantIdx.every(i => { const v = parseFloat(row[i]); return !isNaN(v) && v >= 0 && v <= 1; })
+      );
+      if (allInRange) {
+        rows.forEach(row => colorantIdx.forEach(i => {
+          row[i] = String(Math.round(parseFloat(row[i]) * 10000) / 100);
+        }));
+      }
+
+      const rowsBefore = rows.length;
+      const dedupEnabled = document.getElementById('dedup').value === 'yes';
+      const filterType   = document.getElementById('dedup-method').value;
+      const dedupedRows  = dedupEnabled ? deduplicateRows(headers, rows, colorants, filterType) : rows;
+      const rowsAfter    = dedupedRows.length;
+
+      if (ok) {
+        validEl.innerHTML += '<div class="valid">✓ Valid</div>';
+        if (usedSpectralLab) {
+          const ill = document.getElementById('illuminant').value;
+          const obs = document.getElementById('observer').value;
+          const mc  = document.getElementById('m-cond').value;
+          validEl.innerHTML += `<div class="cgats-warn">LAB computed from spectral (${ill} / ${obs} / ${mc})</div>`;
+        }
+        validEl.className = 'validation';
+        state[slot] = { headers, rows: dedupedRows, colorants, name: fileName, usedSpectralLab, hasSpectral };
+        document.getElementById('show-file-' + slot).disabled = false;
+      } else {
+        validEl.innerHTML += `<div>Missing: ${missing.join(', ')}</div>`;
+        validEl.className = 'validation invalid';
+        state[slot] = null;
+        document.getElementById('show-file-' + slot).disabled = true;
+      }
+
+      document.getElementById('rows-' + slot).textContent = (dedupEnabled && rowsBefore !== rowsAfter)
+        ? `Loaded ${rowsBefore} rows, reduced to ${rowsAfter} rows by filtering duplicates (${filterType}).`
+        : `Loaded ${rowsBefore} rows.`;
+
+      const colorantsEl = document.getElementById('colorants-' + slot);
+      let colorantsHtml = colorants.length
+        ? 'Device colorants: ' + colorants.join(', ')
+        : 'Device colorants: none';
+      if (hasSpectral) {
+        colorantsHtml += '<br><span style="color:#4a90e2;">File contains spectral data. Click on data points to display spectral graph.</span>';
+      } else {
+        colorantsHtml += '<br><span style="color:#888;">Colorimetric only. No spectral data found in file.</span>';
+      }
+      colorantsEl.innerHTML = colorantsHtml;
+
+      updateCompareBtn();
+      updateValidateFileLabel();
+      if (!state[slot]) {
+        document.getElementById('result').innerHTML = '';
+        document.getElementById('plot-section').style.display = 'none';
+      } else if (_mode === 'explore' && slot === 'a') {
+        renderExplore();
+      }
+    }
+
+    function showFile(slot) {
+      const raw = _rawFileData[slot];
+      if (!raw) return;
+      document.getElementById('file-viewer-title').textContent = raw.fileName;
+      document.getElementById('file-viewer-content').textContent = raw.text;
+      document.getElementById('file-viewer-overlay').style.display = '';
+    }
+
+    function closeFileViewer() {
+      document.getElementById('file-viewer-overlay').style.display = 'none';
+    }
+
+    function updateValidateFileLabel() {
+      const sel = document.getElementById('validate-file-select');
+      if (!sel) return;
+      const prev = sel.value;
+      sel.innerHTML = '';
+      if (state.a) { const o = document.createElement('option'); o.value = 'a'; o.textContent = 'File A: ' + state.a.name; sel.appendChild(o); }
+      if (state.b) { const o = document.createElement('option'); o.value = 'b'; o.textContent = 'File B: ' + state.b.name; sel.appendChild(o); }
+      if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+    }
+
+    function updateCompareBtn() {
+      document.getElementById('compare-btn').disabled = !(state.a && state.b);
+    }
+
+    function addFileToList(file, thenAssignSlot) {
+      const fileKey = file.name + '|' + file.size + '|' + file.lastModified;
+      if (_fileList.some(f => f.key === fileKey)) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const entry = { id: _nextFileId++, name: file.name, key: fileKey, text: e.target.result };
+        _fileList.push(entry);
+        if (thenAssignSlot) {
+          assignFile(entry.id, thenAssignSlot);
+        } else {
+          renderFileList();
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function assignFile(fileId, slot) {
+      const entry = _fileList.find(f => f.id === fileId);
+      if (!entry) return;
+      if (slot === 'a') _pendingColorantDeletes.clear();
+      _rawFileData[slot] = { text: entry.text, fileName: entry.name };
+      document.getElementById('name-' + slot).textContent = entry.name;
+      processFileText(slot, entry.text, entry.name);
+      _cardAssignments[slot] = fileId;
+      renderFileList();
+    }
+
+    function handleCardClick(fileId) {
+      if (_mode === 'explore') {
+        assignFile(fileId, 'a');
+      } else {
+        if (_cardAssignments.a === null) {
+          assignFile(fileId, 'a');
+        } else if (_cardAssignments.b === null) {
+          assignFile(fileId, 'b');
+        } else {
+          assignFile(fileId, 'a');
+        }
+      }
+    }
+
+    function deleteFile(fileId) {
+      const entry = _fileList.find(f => f.id === fileId);
+      if (!entry) return;
+      if (!confirm(`Remove "${entry.name}" from the file list?`)) return;
+      _fileList = _fileList.filter(f => f.id !== fileId);
+      ['a', 'b'].forEach(slot => {
+        if (_cardAssignments[slot] === fileId) {
+          _cardAssignments[slot] = null;
+          state[slot] = null;
+          _rawFileData[slot] = null;
+          document.getElementById('name-' + slot).textContent = '';
+          document.getElementById('type-' + slot).textContent = '';
+          document.getElementById('rows-' + slot).textContent = '';
+          document.getElementById('valid-' + slot).textContent = '';
+          document.getElementById('valid-' + slot).className = 'validation';
+          document.getElementById('colorants-' + slot).textContent = '';
+          document.getElementById('show-file-' + slot).disabled = true;
+          document.getElementById('result').innerHTML = '';
+          document.getElementById('plot-section').style.display = 'none';
+        }
+      });
+      updateCompareBtn();
+      renderFileList();
+    }
+
+    function toggleFileSort() {
+      _fileListSort = _fileListSort === 'asc' ? 'desc' : 'asc';
+      const btn = document.getElementById('file-sort-btn');
+      btn.textContent = _fileListSort === 'asc' ? '\u2191' : '\u2193';
+      btn.style.borderBottomWidth = '3px';
+      btn.style.color = '#4a90e2';
+      renderFileList();
+    }
+
+    function renderFileList() {
+      const zone = document.getElementById('file-select-dropzone');
+      const empty = document.getElementById('file-select-empty');
+      Array.from(zone.querySelectorAll('.file-card')).forEach(el => el.remove());
+
+      if (_fileList.length === 0) { empty.style.display = ''; return; }
+      empty.style.display = 'none';
+
+      const entries = _fileListSort
+        ? [..._fileList].sort((a, b) => _fileListSort === 'asc'
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name))
+        : _fileList;
+
+      for (const entry of entries) {
+        const card = document.createElement('div');
+        card.className = 'file-card';
+        card.dataset.fileId = entry.id;
+
+        const isA = _cardAssignments.a === entry.id;
+        const isB = _cardAssignments.b === entry.id;
+        if (isA) card.classList.add('assigned-a');
+        if (isB) card.classList.add('assigned-b');
+        if (_mode === 'explore' && isA) card.classList.add('active-explore');
+
+        if (isA || isB) {
+          const badges = document.createElement('div');
+          badges.className = 'file-card-badges';
+          if (isA) { const b = document.createElement('span'); b.className = 'file-card-badge badge-a'; b.textContent = 'A'; badges.appendChild(b); }
+          if (isB) { const b = document.createElement('span'); b.className = 'file-card-badge badge-b'; b.textContent = 'B'; badges.appendChild(b); }
+          card.appendChild(badges);
+        }
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'file-card-name';
+        nameEl.textContent = entry.name;
+        card.appendChild(nameEl);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'file-card-delete';
+        delBtn.title = 'Remove file';
+        delBtn.innerHTML = '<svg width="11" height="13" viewBox="0 0 11 13" fill="currentColor"><rect x="1" y="2.5" width="9" height="1.2" rx="0.5"/><rect x="3.5" y="0.5" width="4" height="2" rx="0.5"/><path d="M2 4.2l.55 7.3h5.9l.55-7.3z"/></svg>';
+        delBtn.addEventListener('click', e => { e.stopPropagation(); deleteFile(entry.id); });
+        card.appendChild(delBtn);
+
+        card.addEventListener('click', () => handleCardClick(entry.id));
+        card.setAttribute('draggable', 'true');
+        card.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('filecard-id', String(entry.id));
+          e.dataTransfer.effectAllowed = 'copy';
+        });
+
+        zone.appendChild(card);
+      }
+    }
+
+    ['a', 'b'].forEach(slot => {
+      const panel = document.getElementById('panel-' + slot);
+      panel.addEventListener('dragover', e => { e.preventDefault(); panel.classList.add('dragover'); });
+      panel.addEventListener('dragleave', e => { if (!panel.contains(e.relatedTarget)) panel.classList.remove('dragover'); });
+      panel.addEventListener('drop', e => {
+        e.preventDefault();
+        panel.classList.remove('dragover');
+        const cardId = e.dataTransfer.getData('filecard-id');
+        if (cardId !== '') { assignFile(parseInt(cardId, 10), slot); return; }
+        // OS file dropped directly on panel — add to list and assign
+        const file = e.dataTransfer.files[0];
+        if (file) addFileToList(file, slot);
+      });
+    });
+
+    // Sidebar file input
+    document.getElementById('file-select-input').addEventListener('change', e => {
+      // Auto-activate ascending sort when loading via file picker
+      _fileListSort = 'asc';
+      const sortBtn = document.getElementById('file-sort-btn');
+      if (sortBtn) { sortBtn.textContent = '\u2191'; sortBtn.style.color = '#4a90e2'; }
+      Array.from(e.target.files).forEach(f => addFileToList(f));
+      e.target.value = '';
+    });
+
+    // File-select blade toggle
+    const fsBlade = document.getElementById('file-select-blade');
+    const fsToggle = document.getElementById('fs-blade-toggle');
+    if (localStorage.getItem('fsBladeCollapsed') === '1') fsBlade.classList.add('collapsed');
+    const fsArrow = fsToggle.querySelector('.fs-arrow');
+    fsArrow.textContent = fsBlade.classList.contains('collapsed') ? '\u203a' : '\u2039';
+    fsToggle.addEventListener('click', () => {
+      fsBlade.classList.toggle('collapsed');
+      const collapsed = fsBlade.classList.contains('collapsed');
+      fsArrow.textContent = collapsed ? '\u203a' : '\u2039';
+      localStorage.setItem('fsBladeCollapsed', collapsed ? '1' : '0');
+    });
+
+    // Blade OS drag-drop
+    const _fsBlade = document.getElementById('file-select-blade');
+    const _fsDropzone = document.getElementById('file-select-dropzone');
+    _fsBlade.addEventListener('dragover', e => {
+      if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); _fsDropzone.classList.add('dragover-blade'); }
+    });
+    _fsBlade.addEventListener('dragleave', e => {
+      if (!_fsBlade.contains(e.relatedTarget)) _fsDropzone.classList.remove('dragover-blade');
+    });
+    _fsBlade.addEventListener('drop', e => {
+      e.preventDefault(); _fsDropzone.classList.remove('dragover-blade');
+      Array.from(e.dataTransfer.files).forEach(f => addFileToList(f));
+    });
+
+    function colorantKey(row, headers, colorants) {
+      return colorants.map(c => (row[headers.indexOf(c)] || '').trim()).join('\x00');
+    }
+
+    function deltaEab(L1, a1, b1, L2, a2, b2) {
+      return Math.sqrt((L2-L1)**2 + (a2-a1)**2 + (b2-b1)**2);
+    }
+
+    function deltaE94(L1, a1, b1, L2, a2, b2) {
+      const dL = L1 - L2;
+      const C1 = Math.sqrt(a1*a1 + b1*b1);
+      const C2 = Math.sqrt(a2*a2 + b2*b2);
+      const dC = C1 - C2;
+      const dH = Math.sqrt(Math.max(0, (a1-a2)**2 + (b1-b2)**2 - dC**2));
+      const SC = 1 + 0.045 * C1;
+      const SH = 1 + 0.015 * C1;
+      return Math.sqrt(dL**2 + (dC/SC)**2 + (dH/SH)**2);
+    }
+
+    function deltaE00(L1, a1, b1, L2, a2, b2) {
+      const deg = Math.PI / 180;
+      const C1ab = Math.sqrt(a1**2 + b1**2);
+      const C2ab = Math.sqrt(a2**2 + b2**2);
+      const Cavg7 = ((C1ab + C2ab) / 2) ** 7;
+      const G = 0.5 * (1 - Math.sqrt(Cavg7 / (Cavg7 + 25**7)));
+      const a1p = a1 * (1 + G), a2p = a2 * (1 + G);
+      const C1p = Math.sqrt(a1p**2 + b1**2);
+      const C2p = Math.sqrt(a2p**2 + b2**2);
+      const h1p = (Math.atan2(b1, a1p) * 180 / Math.PI + 360) % 360;
+      const h2p = (Math.atan2(b2, a2p) * 180 / Math.PI + 360) % 360;
+      const dLp = L2 - L1;
+      const dCp = C2p - C1p;
+      const hdiff = h2p - h1p;
+      const dhp = C1p * C2p === 0 ? 0 : Math.abs(hdiff) <= 180 ? hdiff : hdiff > 180 ? hdiff - 360 : hdiff + 360;
+      const dHp = 2 * Math.sqrt(C1p * C2p) * Math.sin(dhp * deg / 2);
+      const Lpavg = (L1 + L2) / 2;
+      const Cpavg = (C1p + C2p) / 2;
+      const hsum = h1p + h2p;
+      const hpavg = C1p * C2p === 0 ? hsum
+        : Math.abs(h1p - h2p) <= 180 ? hsum / 2
+        : hsum < 360 ? (hsum + 360) / 2 : (hsum - 360) / 2;
+      const T = 1
+        - 0.17 * Math.cos((hpavg - 30) * deg)
+        + 0.24 * Math.cos(2 * hpavg * deg)
+        + 0.32 * Math.cos((3 * hpavg + 6) * deg)
+        - 0.20 * Math.cos((4 * hpavg - 63) * deg);
+      const SL = 1 + 0.015 * (Lpavg - 50)**2 / Math.sqrt(20 + (Lpavg - 50)**2);
+      const SC = 1 + 0.045 * Cpavg;
+      const SH = 1 + 0.015 * Cpavg * T;
+      const Cpavg7 = Cpavg ** 7;
+      const RC = 2 * Math.sqrt(Cpavg7 / (Cpavg7 + 25**7));
+      const RT = -Math.sin(2 * 30 * Math.exp(-(((hpavg - 275) / 25)**2)) * deg) * RC;
+      return Math.sqrt((dLp/SL)**2 + (dCp/SC)**2 + (dHp/SH)**2 + RT * (dCp/SC) * (dHp/SH));
+    }
+
+    function calcDeltaE(method, L1, a1, b1, L2, a2, b2) {
+      if (method === 'dE94') return deltaE94(L1, a1, b1, L2, a2, b2);
+      if (method === 'dE00') return deltaE00(L1, a1, b1, L2, a2, b2);
+      return deltaEab(L1, a1, b1, L2, a2, b2);
+    }
+
+    function alignDecimals(values) {
+      let maxDec = 0;
+      for (const v of values) {
+        if (v === '—') continue;
+        const dot = String(v).indexOf('.');
+        if (dot !== -1) maxDec = Math.max(maxDec, String(v).length - dot - 1);
+      }
+      return values.map(v => {
+        if (v === '—') return v;
+        const n = parseFloat(v);
+        return isNaN(n) ? v : n.toFixed(maxDec);
+      });
+    }
+
+    function sortExpTable(colIdx) {
+      if (_expSortCol === colIdx) {
+        _expSortDir = _expSortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        _expSortCol = colIdx;
+        _expSortDir = 'asc';
+      }
+      renderExpTable();
+    }
+
+    function renderExpTable() {
+      if (!_expData) return;
+      const { a, aColIdx, aLabIdx, PR, TH, VL } = _expData;
+      const LAB_LABELS = ['L*', 'a*', 'b*'];
+      const colorantCount = a.colorants.length;
+
+      // Build spectral lookup for each display row
+      _spectralPopupData = _expSortedIdx.map(ri => {
+        const { wavelengths, values } = extractSpectral(a.headers, a.rows[ri]);
+        return { wavelengths, values, label: buildSpectralLabel(a.name, a.headers, a.rows[ri], a.colorants), color: '#4a90e2' };
+      });
+
+      if (_expSortCol !== null) {
+        _expSortedIdx.sort((ii, jj) => {
+          const vi = getExpSortVal(ii), vj = getExpSortVal(jj);
+          return _expSortDir === 'asc' ? vi - vj : vj - vi;
+        });
+      }
+
+      const CH_LABELS = ['C*', 'h*(deg)'];
+
+      function getExpSortVal(rowIdx) {
+        const col = _expSortCol;
+        if (col < colorantCount) {
+          const v = parseFloat(a.rows[rowIdx][aColIdx[col]]);
+          return isNaN(v) ? Infinity : v;
+        }
+        const rel = col - colorantCount;
+        if (rel < 3) {
+          const v = parseFloat(a.rows[rowIdx][aLabIdx[rel]]);
+          return isNaN(v) ? Infinity : v;
+        }
+        // C* or h*
+        const aIdx = aLabIdx[1], bIdx = aLabIdx[2];
+        const av = parseFloat(a.rows[rowIdx][aIdx]), bv = parseFloat(a.rows[rowIdx][bIdx]);
+        if (isNaN(av) || isNaN(bIdx)) return Infinity;
+        if (rel === 3) return Math.sqrt(av * av + bv * bv);
+        return (Math.atan2(bv, av) * 180 / Math.PI + 360) % 360;
+      }
+
+      const arrow = i => _expSortCol === i ? (_expSortDir === 'asc' ? ' ↑' : ' ↓') : '';
+      const colHeaderCells = [
+        ...a.colorants.map((c, i) => `<th onclick="sortExpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
+        ...LAB_LABELS.map((l, i) => `<th onclick="sortExpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
+        ...CH_LABELS.map((l, i) => `<th onclick="sortExpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`)
+      ].join('');
+      document.getElementById('exp-col-headers').innerHTML = colHeaderCells;
+
+      const fmtLab = v => { const n = parseFloat(v); return isNaN(n) ? '—' : n.toFixed(3); };
+      const colorantCols = aColIdx.map(i => alignDecimals(_expSortedIdx.map(ri => a.rows[ri][i] ?? '')));
+      const labCols = aLabIdx.map(i => _expSortedIdx.map(ri => i !== -1 ? fmtLab(a.rows[ri][i]) : '—'));
+      const chCols = _expSortedIdx.map(ri => {
+        const ai = aLabIdx[1], bi = aLabIdx[2];
+        if (ai === -1 || bi === -1) return { c: '—', h: '—' };
+        const av = parseFloat(a.rows[ri][ai]), bv = parseFloat(a.rows[ri][bi]);
+        if (isNaN(av) || isNaN(bv)) return { c: '—', h: '—' };
+        return {
+          c: Math.sqrt(av * av + bv * bv).toFixed(2),
+          h: ((Math.atan2(bv, av) * 180 / Math.PI + 360) % 360).toFixed(1)
+        };
+      });
+
+      document.getElementById('exp-table-body').innerHTML = _expSortedIdx.map((_, ri) => {
+        const colorantCells = colorantCols.map(col => `<td style="${PR}">${col[ri]}</td>`).join('');
+        const labCells = labCols.map((col, i) =>
+          `<td onclick="showSpectral(event,${ri})" style="${PR}${i === 0 ? VL : ''}cursor:pointer;" title="Click to view spectral">${col[ri]}</td>`
+        ).join('');
+        const chCells = `<td style="${PR}">${chCols[ri].c}</td><td style="${PR}">${chCols[ri].h}</td>`;
+        return `<tr>${colorantCells}${labCells}${chCells}</tr>`;
+      }).join('');
+    }
+
+    function extractSpectral(headers, row) {
+      const cols = [];
+      headers.forEach((h, i) => {
+        const m = h.match(/^(\d+)_NM$/i);
+        if (m) cols.push({ nm: parseInt(m[1]), idx: i });
+      });
+      cols.sort((a, b) => a.nm - b.nm);
+      return {
+        wavelengths: cols.map(c => c.nm),
+        values: cols.map(c => { const v = parseFloat(row[c.idx]); return isNaN(v) ? null : v; })
+      };
+    }
+
+    function buildSpectralLabel(fileName, headers, row, colorants) {
+      const SHORT = { CYAN: 'C', MAGENTA: 'M', YELLOW: 'Y', BLACK: 'K' };
+      const fmtVal = v => isNaN(v) ? '?' : (Number.isInteger(v) ? String(v) : v.toFixed(1));
+      const parts = [fileName];
+      if (colorants && colorants.length > 0) {
+        parts.push(colorants.map(c => {
+          const idx = headers.indexOf(c);
+          const v = idx !== -1 ? parseFloat(row[idx]) : NaN;
+          return (SHORT[c.toUpperCase()] || c) + '=' + fmtVal(v);
+        }).join(' '));
+      }
+      const lIdx = headers.indexOf('LAB_L'), aIdx = headers.indexOf('LAB_A'), bIdx = headers.indexOf('LAB_B');
+      if (lIdx !== -1 && aIdx !== -1 && bIdx !== -1) {
+        const L = parseFloat(row[lIdx]), A = parseFloat(row[aIdx]), B = parseFloat(row[bIdx]);
+        if (!isNaN(L) && !isNaN(A) && !isNaN(B))
+          parts.push('L*=' + L.toFixed(2) + '  a*=' + A.toFixed(2) + '  b*=' + B.toFixed(2));
+      }
+      return parts.join('<br>');
+    }
+
+    function showSpectralPopup(clientX, clientY, d) {
+      if (!d || d.wavelengths.length === 0) return;
+      const popup = document.getElementById('spectral-popup');
+      const x = Math.min(clientX + 12, window.innerWidth  - 450);
+      const y = Math.min(clientY + 12, window.innerHeight - 290);
+      popup.style.left = x + 'px';
+      popup.style.top  = y + 'px';
+      popup.style.display = 'block';
+      Plotly.react('spectral-plot-div', [{
+        x: d.wavelengths, y: d.values,
+        type: 'scatter', mode: 'lines+markers',
+        marker: { size: 4, color: d.color },
+        line:   { color: d.color },
+        name: d.label
+      }], {
+        margin: { t: 65, r: 10, b: 45, l: 55 },
+        title:  { text: d.label, font: { size: 11 } },
+        xaxis:  { title: { text: '\u03bb (nm)', font: { size: 12 } } },
+        yaxis:  { title: 'Reflectance', rangemode: 'tozero' },
+        paper_bgcolor: '#fff', plot_bgcolor: '#f8f9fa'
+      }, { responsive: false });
+    }
+
+    function showSpectral(event, idx) {
+      event.stopPropagation();
+      showSpectralPopup(event.clientX, event.clientY, _spectralPopupData[idx]);
+    }
+
+    function toggleValidate() {
+      const wrap = document.getElementById('validate-wrap');
+      const arrow = document.getElementById('validate-arrow');
+      if (!wrap) return;
+      const hidden = wrap.style.display === 'none';
+      wrap.style.display = hidden ? '' : 'none';
+      arrow.textContent = hidden ? '▼' : '▶';
+      if (hidden) updateValidateFileLabel();
+    }
+
+    function validateISO12647(dataA, dataB) {
+      // TODO: inject ISO 12647-7 validation logic
+    }
+
+    // ── TR015-2022 Helper Functions ─────────────────────────────────────────────
+    //
+    // Source: CGATS/Idealliance TR 015-2022, Section 5
+    // All tone values (TV, C, M, Y) are in percent (0–100).
+    // All reflectance factors (YD, YL, YR, YC, RA) are in the range 0–1.
+    // NPDC (Neutral Print Density Curve) values are positive density units.
+    //
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Function 1: CMY Gray Ramp Device Value Relationship  [TR015 §5.2, Eq. 1]
+    //
+    // Defines the relationship between C, M, and Y device tone values for the
+    // G7/TR015 3-color near-neutral gray ramp. K (Black) = 0 throughout.
+    //
+    // Given a cyan tone value C (0–100), returns the corresponding M and Y
+    // tone values that produce a near-neutral gray. The traditional 10% cyan
+    // bias at 50% is preserved for compatibility with legacy datasets.
+    //
+    //   M = Y = 0.7470·C − 4.100×10⁻⁴·C² + 2.940×10⁻⁵·C³
+    //
+    // @param  {number} C  Cyan tone value (0–100)
+    // @return {object}    { C, M, Y, K } device tone values for the gray ramp
+    // ─────────────────────────────────────────────────────────────────────────────
+    function tr015CmyGrayRamp(C) {
+      const M_Y = 0.7470 * C
+               - 4.100e-4 * C * C
+               + 2.940e-5 * C * C * C;
+      return { C, M: M_Y, Y: M_Y, K: 0 };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Function 2: 3-Color Near-Neutral Scale Color Aims  [TR015 §5.3, Eqs. 2–5]
+    //
+    // Returns the CIELAB a* and b* targets for a gray ramp patch at cyan tone
+    // value TVC. The L* target is derived separately from the NPDC (Function 3).
+    //
+    // When the three-color solid (100C 100M 100Y 0K) is neutral (|a*|, |b*| ≈ 0):
+    //   a*(TVC) = a*_sub × (1 − TVC/100)                            [Eq. 2]
+    //   b*(TVC) = b*_sub × (1 − TVC/100)                            [Eq. 3]
+    //
+    // When the three-color solid is NOT neutral and TVC ∈ [50, 100]:
+    //   a*(TVC) = a*_sub × (1 − TVC/100) + a*_solid × ((TVC−50)/50)⁴  [Eq. 4]
+    //   b*(TVC) = b*_sub × (1 − TVC/100) + b*_solid × ((TVC−50)/50)⁴  [Eq. 5]
+    // For TVC < 50 with a non-neutral solid, Eqs. 2 & 3 still apply.
+    //
+    // @param {number} TVC             Cyan tone value (0–100)
+    // @param {number} aSub            Substrate CIELAB a*
+    // @param {number} bSub            Substrate CIELAB b*
+    // @param {number} aSolid          a* of the 3-color solid (100C 100M 100Y 0K)
+    // @param {number} bSolid          b* of the 3-color solid (100C 100M 100Y 0K)
+    // @param {number} [neutralThr=1]  Max |a*| or |b*| to consider solid neutral
+    // @return {object}  { aStar, bStar }
+    // ─────────────────────────────────────────────────────────────────────────────
+    function tr015GrayScaleColorAims(TVC, aSub, bSub, aSolid, bSolid, neutralThr = 1.0) {
+      const solidIsNeutral = Math.abs(aSolid) <= neutralThr && Math.abs(bSolid) <= neutralThr;
+      if (solidIsNeutral || TVC < 50) {
+        // Eqs. 2 & 3: linear fade from substrate color to neutral
+        return {
+          aStar: aSub * (1 - TVC / 100),
+          bStar: bSub * (1 - TVC / 100)
+        };
+      }
+      // Eqs. 4 & 5: blend toward non-neutral solid for TVC ∈ [50, 100]
+      const blend = Math.pow((TVC - 50) / 50, 4);
+      return {
+        aStar: aSub * (1 - TVC / 100) + aSolid * blend,
+        bStar: bSub * (1 - TVC / 100) + bSolid * blend
+      };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Function 3: 3-Color Near-Neutral Scale NPDC Tone Value Aims  [TR015 §5.4]
+    //
+    // Computes the Neutral Print Density Curve (NPDC) aim value for the CMY
+    // gray ramp at a given cyan tone value TV, parameterised by the actual
+    // reflectance factors of the dark and light ends of the scale.
+    //
+    // NPDC is the substrate-relative colorimetric Y density (≈ ISO 5 visual
+    // density). It is 0 at the paper/substrate and increases toward the solid.
+    //
+    // Inputs:
+    //   TV  — Cyan tone value (0–100)
+    //   YD  — Luminous reflectance factor of the 3-color CMY solid (0–1)
+    //   YL  — Luminous reflectance factor of the substrate (0–1)
+    //
+    //   Both can be estimated from visual density D via: Y = 10^(−D)
+    //   YD and YL are the ONLY press-condition inputs needed.
+    //
+    // Reference TVI polynomial [Eq. 12], coefficients a=24.321, b=2.246, c=0.670:
+    //   TVI(TV) = 1.31587·TV − 2.21633×10⁻²·TV² + 1.32926×10⁻⁴·TV³ − 4.288×10⁻⁷·TV⁴
+    //
+    // Reference reflectance [Eq. 8]:   YR(TV) = 1 − Rg × (TV + TVI(TV)) / 100
+    // Fixed ratio               [Eq. 11]:  Rg = 0.956649
+    // Control-point reflectance [Eq. 9]:   YC = (0.7·YD^(1/3) + 0.3·YL^(1/3))³
+    // Actual reflectance range  [Eq. 10]:  RA = 1 − YD/YL
+    //
+    // NPDC computation [Eqs. 6 & 7]:
+    //   If YR(TV) > YC:  NPDC = −log₁₀(YR)
+    //   Else:            NPDC = −log₁₀(YR − (RA − Rg) × ((YC − YR) / (YC − 1 + Rg))²)
+    //
+    // @param  {number} TV   Cyan tone value (0–100)
+    // @param  {number} YD   Reflectance factor of the CMY dark-end solid (0–1)
+    // @param  {number} YL   Reflectance factor of the substrate (0–1)
+    // @return {number}      NPDC aim value (positive density units)
+    // ─────────────────────────────────────────────────────────────────────────────
+    function tr015NpdcCmy(TV, YD, YL) {
+      // Eq. 12: CMY reference TVI polynomial  (a=24.321, b=2.246, c=0.670)
+      const TVI = 1.31587   * TV
+               - 2.21633e-2 * TV * TV
+               + 1.32926e-4 * TV * TV * TV
+               - 4.288e-7   * TV * TV * TV * TV;
+
+      // Eq. 11: Fixed reference reflectance ratio for the CMY scale
+      const Rg = 0.956649;
+
+      // Eq. 8: Reference reflectance factor at this TV
+      //   YR = 1 at TV=0 (substrate), YR = 1−Rg at TV=100 (reference solid)
+      const YR = 1 - Rg * (TV + TVI) / 100;
+
+      // Eq. 9: Control-point reflectance (~30% of L* range above the dark end)
+      const YC = Math.pow(0.7 * Math.pow(YD, 1/3) + 0.3 * Math.pow(YL, 1/3), 3);
+
+      // Eq. 10: Actual reflectance range of the printing condition
+      const RA = 1 - YD / YL;
+
+      if (YR > YC) {
+        // Eq. 6: Lighter tones — NPDC equals density of the reference reflectance
+        return -Math.log10(YR);
+      } else {
+        // Eq. 7: Darker tones — scaled to the actual printing condition range
+        //   At YR = YC:       NPDC = −log₁₀(YC)          (continuous with Eq. 6)
+        //   At YR = 1−Rg:     NPDC = log₁₀(YL/YD)        (actual solid density)
+        const ratio = (YC - YR) / (YC - 1 + Rg);
+        const arg   = YR - (RA - Rg) * ratio * ratio;
+        return -Math.log10(arg);
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Black Tone Scale NPDC  [TR015 §5.5, Eqs. 13–18]
+    //
+    // Identical structure to tr015NpdcCmy but uses Black-specific TVI coefficients
+    // (a=19.421, b=0.967, c=0.555) and reference ratio Rg = 0.978223.
+    //
+    // @param  {number} TV   Black tone value (0–100)
+    // @param  {number} YD   Reflectance factor of the 100K solid (0–1)
+    // @param  {number} YL   Reflectance factor of the substrate (0–1)
+    // @return {number}      NPDC aim value (positive density units)
+    // ─────────────────────────────────────────────────────────────────────────────
+    function tr015NpdcK(TV, YD, YL) {
+      // Eq. 18: Black reference TVI polynomial  (a=19.421, b=0.967, c=0.555)
+      const TVI = 0.967175    * TV
+               - 1.525445e-2  * TV * TV
+               + 9.1347e-5    * TV * TV * TV
+               - 3.552e-7     * TV * TV * TV * TV;
+
+      // Eq. 17: Fixed reference reflectance ratio for the Black scale
+      const Rg = 0.978223;
+
+      // Eq. 15: Reference reflectance factor at this TV
+      const YR = 1 - Rg * (TV + TVI) / 100;
+
+      // Eq. 16: Control-point reflectance (same formula as Eq. 9 for CMY)
+      const YC = Math.pow(0.7 * Math.pow(YD, 1/3) + 0.3 * Math.pow(YL, 1/3), 3);
+
+      // Eq. 10 (equivalent): Actual reflectance range
+      const RA = 1 - YD / YL;
+
+      if (YR > YC) {
+        // Eq. 13: Lighter tones
+        return -Math.log10(YR);
+      } else {
+        // Eq. 14: Darker tones — scaled to actual printing condition range
+        const ratio = (YC - YR) / (YC - 1 + Rg);
+        const arg   = YR - (RA - Rg) * ratio * ratio;
+        return -Math.log10(arg);
+      }
+    }
+
+    // ── G7 Validation Helper Functions  (IDEAlliance G7 System ADS, Appendix B) ─
+
+    // Convert neutral density to CIE L* (Appendix B formula)
+    // ND = -log₁₀(Y) where Y is luminous reflectance factor (0–1)
+    function g7NdToL(ND) {
+      const Y = Math.pow(10, -ND);
+      const k = Math.pow(6 / 29, 3); // ≈ 0.008856
+      return (Y > k)
+        ? 116 * Math.pow(Y, 1 / 3) - 16
+        : 116 * (841 / 108 * Y + 4 / 29) - 16;
+    }
+
+    // Convert CIE L* back to luminous reflectance factor Y (0–1)
+    function g7LToY(L) {
+      return (L > 8)
+        ? Math.pow((L + 16) / 116, 3)
+        : (108 / 841) * ((L + 16) / 116 - 4 / 29);
+    }
+
+    // ΔL* (Appendix B): signed lightness difference, sample minus target
+    function g7DeltaL(lSample, lTarget) {
+      return lSample - lTarget;
+    }
+
+    // ΔF* (Appendix B): Euclidean chroma distance in a*b* plane, sample vs target
+    function g7DeltaF(aSample, bSample, aTarget, bTarget) {
+      const da = aSample - aTarget;
+      const db = bSample - bTarget;
+      return Math.sqrt(da * da + db * db);
+    }
+
+    // Find the row in data that best matches target CMYK values within tolerance.
+    // Returns { row, dist } or null if no match within tol.
+    //
+    // TODO [colorant-mapping]: If the supplied characterization data uses device
+    // colorant values that differ systematically from P2P_PATCHES (e.g., due to
+    // linearisation curves, alternate patch sets, or printing condition offsets),
+    // insert a mapping/interpolation step here before the nearest-neighbour search.
+    // The current implementation does a direct ±tol% absolute nearest-neighbour match.
+    function g7FindPatch(rows, cIdx, mIdx, yIdx, kIdx, Caim, Maim, Yaim, Kaim, tol = 1.5) {
+      let bestRow = null, bestDist = Infinity;
+      for (const row of rows) {
+        const dc = Math.abs(parseFloat(row[cIdx]) - Caim);
+        const dm = Math.abs(parseFloat(row[mIdx]) - Maim);
+        const dy = Math.abs(parseFloat(row[yIdx]) - Yaim);
+        const dk = Math.abs(parseFloat(row[kIdx]) - Kaim);
+        if (dc > tol || dm > tol || dy > tol || dk > tol) continue;
+        const dist = dc + dm + dy + dk;
+        if (dist < bestDist) { bestDist = dist; bestRow = row; }
+      }
+      return bestRow ? { row: bestRow, dist: bestDist } : null;
+    }
+
+    // ── G7 Validation  [G7 System ADS, Table 2 tolerances] ──────────────────────
+    //
+    // Operates on a single dataset (File A / state.a).
+    // Matches data rows against P2P_PATCHES using CMYK device values.
+    // Computes ΔL* (K and CMY columns) and ΔF* (CMY column only).
+    // Applies Table 2 tolerances: average < 1.5, maximum < 3.
+    //
+    // Returns an HTML string for display in the validate-result panel.
+    // ─────────────────────────────────────────────────────────────────────────────
+    function validateG7(data) {
+      // ── 1. Locate required columns ──────────────────────────────────────────
+      const hi = (name) => data.headers.indexOf(name);
+      const cIdx = hi('CYAN'), mIdx = hi('MAGENTA'), yIdx = hi('YELLOW'), kIdx = hi('BLACK');
+      const lIdx = hi('LAB_L'), aIdx = hi('LAB_A'), bIdx = hi('LAB_B');
+      if ([cIdx, mIdx, yIdx, kIdx, lIdx, aIdx, bIdx].includes(-1)) {
+        return '<p style="color:#e74c3c;">Required columns missing in File A.</p>';
+      }
+
+      // ── 2. Locate anchor patches ────────────────────────────────────────────
+      const find = (C, M, Y, K) => g7FindPatch(data.rows, cIdx, mIdx, yIdx, kIdx, C, M, Y, K);
+
+      const paperHit = find(0, 0, 0, 0);
+      if (!paperHit) return '<p style="color:#e74c3c;">Paper white patch (0,0,0,0) not found in File A.</p>';
+      const kSolidHit  = find(0, 0, 0, 100);
+      const cmySolidHit = find(100, 100, 100, 0);
+      if (!kSolidHit)   return '<p style="color:#e74c3c;">100K solid patch not found in File A.</p>';
+      if (!cmySolidHit) return '<p style="color:#e74c3c;">100CMY solid patch not found in File A.</p>';
+
+      const L_paper = parseFloat(paperHit.row[lIdx]);
+      const a_paper = parseFloat(paperHit.row[aIdx]);
+      const b_paper = parseFloat(paperHit.row[bIdx]);
+      const YL      = g7LToY(L_paper);   // substrate reflectance factor
+
+      const YD_K   = g7LToY(parseFloat(kSolidHit.row[lIdx]));    // K solid reflectance
+      const YD_CMY = g7LToY(parseFloat(cmySolidHit.row[lIdx]));  // CMY solid reflectance
+      const a_solid = parseFloat(cmySolidHit.row[aIdx]);
+      const b_solid = parseFloat(cmySolidHit.row[bIdx]);
+
+      // ── 3. Evaluate each P2P patch ──────────────────────────────────────────
+      const G7_AVG_TOL = 1.5, G7_MAX_TOL = 3.0;
+
+      const kResults = [], cmyResults = [];
+
+      for (const patch of P2P_PATCHES) {
+        // ── K-only column ──
+        const ph = patch.k;
+        const kHit = find(ph.C, ph.M, ph.Y, ph.K);
+        if (kHit) {
+          const TV = ph.K;
+          const npdc = tr015NpdcK(TV, YD_K, YL);
+          const Y_aim = YL * Math.pow(10, -npdc);
+          const L_aim = g7NdToL(-Math.log10(Y_aim));
+          const L_meas = parseFloat(kHit.row[lIdx]);
+          kResults.push({ tv: TV, L_meas, L_aim, dL: g7DeltaL(L_meas, L_aim), dist: kHit.dist });
+        }
+
+        // ── CMY-only column ──
+        const pc = patch.cmy;
+        const cmyHit = find(pc.C, pc.M, pc.Y, pc.K);
+        if (cmyHit) {
+          const TVC = pc.C;
+          const npdc = tr015NpdcCmy(TVC, YD_CMY, YL);
+          const Y_aim = YL * Math.pow(10, -npdc);
+          const L_aim = g7NdToL(-Math.log10(Y_aim));
+          const aims  = tr015GrayScaleColorAims(TVC, a_paper, b_paper, a_solid, b_solid);
+          const L_meas = parseFloat(cmyHit.row[lIdx]);
+          const a_meas = parseFloat(cmyHit.row[aIdx]);
+          const b_meas = parseFloat(cmyHit.row[bIdx]);
+          cmyResults.push({
+            tv: TVC, L_meas, a_meas, b_meas,
+            L_aim, a_aim: aims.aStar, b_aim: aims.bStar,
+            dL: g7DeltaL(L_meas, L_aim),
+            dF: g7DeltaF(a_meas, b_meas, aims.aStar, aims.bStar),
+            dist: cmyHit.dist
+          });
+        }
+      }
+
+      if (!kResults.length)   return '<p style="color:#e74c3c;">No K-only patches matched.</p>';
+      if (!cmyResults.length) return '<p style="color:#e74c3c;">No CMY patches matched.</p>';
+
+      // ── 4. Compute statistics ───────────────────────────────────────────────
+      const absAvg = arr => arr.reduce((s, v) => s + Math.abs(v), 0) / arr.length;
+      const absMax = arr => arr.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+      const avg    = arr => arr.reduce((s, v) => s + v, 0) / arr.length;
+      const max    = arr => arr.reduce((m, v) => Math.max(m, v), 0);
+
+      const kDLs   = kResults.map(r => r.dL);
+      const cmyDLs = cmyResults.map(r => r.dL);
+      const cmyDFs = cmyResults.map(r => r.dF);
+
+      const kDL_avg   = absAvg(kDLs),   kDL_max   = absMax(kDLs);
+      const cmyDL_avg = absAvg(cmyDLs), cmyDL_max = absMax(cmyDLs);
+      const cmyDF_avg = avg(cmyDFs),    cmyDF_max  = max(cmyDFs);
+
+      const kPass   = kDL_avg   < G7_AVG_TOL && kDL_max   < G7_MAX_TOL;
+      const cmyLPass = cmyDL_avg < G7_AVG_TOL && cmyDL_max < G7_MAX_TOL;
+      const cmyFPass = cmyDF_avg < G7_AVG_TOL && cmyDF_max < G7_MAX_TOL;
+      const overall  = kPass && cmyLPass && cmyFPass;
+
+      // ── 5. Render HTML report ───────────────────────────────────────────────
+      const PASS_CLR = '#27ae60', FAIL_CLR = '#e74c3c', WARN_CLR = '#e67e22';
+      const badge = (pass) =>
+        `<span style="font-weight:bold;color:${pass ? PASS_CLR : FAIL_CLR}">${pass ? 'PASS' : 'FAIL'}</span>`;
+      const fmt  = (v) => (typeof v === 'number' ? v.toFixed(2) : v);
+      const cell = (v, flag) => {
+        const abs = Math.abs(v);
+        const clr = abs >= G7_MAX_TOL ? FAIL_CLR : abs >= G7_AVG_TOL ? WARN_CLR : 'inherit';
+        return `<td style="text-align:right;${clr !== 'inherit' ? `color:${clr};font-weight:bold;` : ''}">${fmt(v)}</td>`;
+      };
+
+      const TH = 'background:#f0f0f0;padding:3px 6px;font-size:11px;border:1px solid #ddd;white-space:nowrap;';
+      const TD = 'padding:3px 6px;font-size:11px;border:1px solid #ddd;';
+
+      const summaryRow = (label, dL_avg, dL_max, dL_pass, dF_avg, dF_max, dF_pass, showDF) =>
+        `<tr>
+          <td style="${TD}">${label}</td>
+          <td style="${TD};text-align:right;${dL_avg >= G7_AVG_TOL ? `color:${FAIL_CLR};font-weight:bold;` : ''}">${dL_avg.toFixed(2)}</td>
+          <td style="${TD};text-align:right;${dL_max >= G7_MAX_TOL ? `color:${FAIL_CLR};font-weight:bold;` : ''}">${dL_max.toFixed(2)}</td>
+          <td style="${TD};text-align:center;">${badge(dL_pass)}</td>
+          ${showDF
+            ? `<td style="${TD};text-align:right;${dF_avg >= G7_AVG_TOL ? `color:${FAIL_CLR};font-weight:bold;` : ''}">${dF_avg.toFixed(2)}</td>
+               <td style="${TD};text-align:right;${dF_max >= G7_MAX_TOL ? `color:${FAIL_CLR};font-weight:bold;` : ''}">${dF_max.toFixed(2)}</td>
+               <td style="${TD};text-align:center;">${badge(dF_pass)}</td>`
+            : `<td style="${TD}" colspan="3">—</td>`}
+        </tr>`;
+
+      let html = `
+        <div style="margin-bottom:8px;">
+          <span style="font-size:14px;font-weight:bold;">G7 Overall: ${badge(overall)}</span>
+          <span style="font-size:11px;color:#777;margin-left:10px;">
+            Paper L*=${L_paper.toFixed(1)}  |  K solid L*=${parseFloat(kSolidHit.row[lIdx]).toFixed(1)}  |  CMY solid L*=${parseFloat(cmySolidHit.row[lIdx]).toFixed(1)}
+          </span>
+        </div>
+
+        <table style="border-collapse:collapse;width:100%;margin-bottom:12px;">
+          <thead>
+            <tr>
+              <th style="${TH}">Scale</th>
+              <th style="${TH}">ΔL* avg</th>
+              <th style="${TH}">ΔL* max</th>
+              <th style="${TH}">ΔL*</th>
+              <th style="${TH}">ΔF* avg</th>
+              <th style="${TH}">ΔF* max</th>
+              <th style="${TH}">ΔF*</th>
+            </tr>
+            <tr>
+              <th style="${TH}">Tolerance</th>
+              <th style="${TH};color:#555;">&lt; ${G7_AVG_TOL}</th>
+              <th style="${TH};color:#555;">&lt; ${G7_MAX_TOL}</th>
+              <th style="${TH}"></th>
+              <th style="${TH};color:#555;">&lt; ${G7_AVG_TOL}</th>
+              <th style="${TH};color:#555;">&lt; ${G7_MAX_TOL}</th>
+              <th style="${TH}"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${summaryRow('K (Black)',  kDL_avg,   kDL_max,   kPass,    0, 0,         true,  false)}
+            ${summaryRow('CMY',        cmyDL_avg, cmyDL_max, cmyLPass, cmyDF_avg, cmyDF_max, cmyFPass, true)}
+          </tbody>
+        </table>`;
+
+      // Patch detail tables (collapsible)
+      const patchTableRows = (results, showDF) =>
+        results.map(r =>
+          `<tr>
+            <td style="${TD};text-align:right;">${r.tv.toFixed(1)}</td>
+            <td style="${TD};text-align:right;">${r.L_meas.toFixed(2)}</td>
+            <td style="${TD};text-align:right;">${r.L_aim.toFixed(2)}</td>
+            <td style="${TD};text-align:right;${Math.abs(r.dL) >= G7_MAX_TOL ? `color:${FAIL_CLR};font-weight:bold;` : Math.abs(r.dL) >= G7_AVG_TOL ? `color:${WARN_CLR};font-weight:bold;` : ''}">${r.dL.toFixed(2)}</td>
+            ${showDF
+              ? `<td style="${TD};text-align:right;">${r.a_meas.toFixed(2)}</td>
+                 <td style="${TD};text-align:right;">${r.b_meas.toFixed(2)}</td>
+                 <td style="${TD};text-align:right;">${r.a_aim.toFixed(2)}</td>
+                 <td style="${TD};text-align:right;">${r.b_aim.toFixed(2)}</td>
+                 <td style="${TD};text-align:right;${r.dF >= G7_MAX_TOL ? `color:${FAIL_CLR};font-weight:bold;` : r.dF >= G7_AVG_TOL ? `color:${WARN_CLR};font-weight:bold;` : ''}">${r.dF.toFixed(2)}</td>`
+              : ''}
+          </tr>`
+        ).join('');
+
+      html += `
+        <details style="margin-bottom:6px;">
+          <summary style="cursor:pointer;font-size:12px;color:#555;">K patches (${kResults.length})</summary>
+          <table style="border-collapse:collapse;width:100%;margin-top:4px;">
+            <thead><tr>
+              <th style="${TH}">K%</th>
+              <th style="${TH}">L* meas</th>
+              <th style="${TH}">L* aim</th>
+              <th style="${TH}">ΔL*</th>
+            </tr></thead>
+            <tbody>${patchTableRows(kResults, false)}</tbody>
+          </table>
+        </details>
+
+        <details style="margin-bottom:6px;">
+          <summary style="cursor:pointer;font-size:12px;color:#555;">CMY patches (${cmyResults.length})</summary>
+          <table style="border-collapse:collapse;width:100%;margin-top:4px;">
+            <thead><tr>
+              <th style="${TH}">C%</th>
+              <th style="${TH}">L* meas</th>
+              <th style="${TH}">L* aim</th>
+              <th style="${TH}">ΔL*</th>
+              <th style="${TH}">a* meas</th>
+              <th style="${TH}">b* meas</th>
+              <th style="${TH}">a* aim</th>
+              <th style="${TH}">b* aim</th>
+              <th style="${TH}">ΔF*</th>
+            </tr></thead>
+            <tbody>${patchTableRows(cmyResults, true)}</tbody>
+          </table>
+        </details>`;
+
+      return html;
+    }
+
+    function validateFile() {
+      const mode = document.getElementById('validate-mode').value;
+      const el = document.getElementById('validate-result');
+      if (!el) return;
+      if (mode === 'g7') {
+        const slot = document.getElementById('validate-file-select')?.value || 'a';
+        const data = state[slot];
+        if (!data) { el.innerHTML = '<p style="color:#e74c3c;">Selected file is not loaded.</p>'; return; }
+        el.innerHTML = validateG7(data);
+      } else {
+        if (!state.a || !state.b) { el.innerHTML = '<p style="color:#e74c3c;">Both files must be loaded.</p>'; return; }
+        el.innerHTML = validateISO12647(state.a, state.b);
+      }
+    }
+
+    function renderExplore() {
+      if (!state.a) return;
+      const { a } = state;
+      const resultEl = document.getElementById('result');
+
+      // Preserve open/closed state of collapsible sections across re-renders
+      const _openSections = new Set(['extract-wrap', 'cmp-table-wrap'].filter(id => {
+        const el = document.getElementById(id);
+        return el && el.style.display !== 'none';
+      }));
+
+      const LAB = ['LAB_L', 'LAB_A', 'LAB_B'];
+      const aLabIdx = LAB.map(l => a.headers.indexOf(l));
+      const aColIdx = a.colorants.map(c => a.headers.indexOf(c));
+
+      const PR = 'padding:4px 16px 4px 0;text-align:right;';
+      const TH = 'font-weight:bold;border-bottom:2px solid #ddd;color:#555;';
+      const VL = 'border-left:1px solid #ccc;padding-left:12px;';
+
+      const colorantSpan = a.colorants.length;
+      const spanningRow = `<tr>
+        <th colspan="${colorantSpan}" style="padding:4px 0;text-align:center;${TH}">Device Colorants</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">LAB</th>
+      </tr>`;
+
+      _expSortCol = null;
+      _expSortDir = 'asc';
+      _expData = { a, aColIdx, aLabIdx, PR, TH, VL };
+      _expSortedIdx = Array.from({ length: a.rows.length }, (_, i) => i);
+
+      resultEl.innerHTML = `
+        <div onclick="toggleExtract()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span>Extract</span><span id="extract-arrow">▶</span>
+        </div>
+        <div id="extract-wrap" style="display:none;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:12px;">
+          <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:12px;">
+            <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#333;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" name="extract-type" value="primaries"> Primaries</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" name="extract-type" value="secondaries"> Secondaries</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" name="extract-type" value="cmy-grays"> CMY Grays</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" name="extract-type" value="cmy-browns"> CMY Browns</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" name="extract-type" value="solids-only"> Solids Only</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" name="extract-type" value="remove-paper-white"> Remove paper white point</label>
+            </div>
+            <div style="border-left:1px solid #ddd;align-self:stretch;"></div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="font-size:11px;color:#888;">Remove selected colorants from data.</div>
+              <div style="border:1px solid #ddd;border-radius:6px;padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+              ${a.colorants.map(c =>
+                '<div id="colorant-chip-' + c + '" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:12px;background:' + (_pendingColorantDeletes.has(c) ? '#fde8e8' : '#f0f0f0') + ';border:1px solid ' + (_pendingColorantDeletes.has(c) ? '#e74c3c' : '#ccc') + ';transition:background 0.1s,border-color 0.1s;">'
+                + '<span>' + c + '</span>'
+                + '<button onclick="toggleColorantDelete(\'' + c + '\')" title="Remove ' + c + '" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:none;border:none;padding:0;cursor:pointer;color:#999;margin-left:2px;border-radius:2px;" onmouseover="this.style.color=\'#e74c3c\'" onmouseout="this.style.color=\'#999\'">'
+                + '<svg width="9" height="11" viewBox="0 0 11 13" fill="currentColor"><rect x="1" y="2.5" width="9" height="1.2" rx="0.5"/><rect x="3.5" y="0.5" width="4" height="2" rx="0.5"/><path d="M2 4.2l.55 7.3h5.9l.55-7.3z"/></svg>'
+                + '</button></div>'
+              ).join('')}
+            </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <button class="validate-btn" onclick="extractData()">Extract</button>
+            <button class="validate-btn" onclick="restoreData()">Restore</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;">
+            <input type="text" id="export-dest" placeholder="Export destination folder..." style="flex:1;padding:5px 8px;border:1px solid #bbb;border-bottom:2px solid #999;border-radius:5px;font-size:12px;color:#333;background:#fff;outline:none;" value="${_exportDirHandle ? _exportDirHandle.name : ''}">
+            <button onclick="selectExportFolder()" title="${window.showDirectoryPicker ? 'Select folder' : 'Folder picker not supported in this browser'}" ${window.showDirectoryPicker ? '' : 'disabled'} style="display:inline-flex;align-items:center;justify-content:center;padding:5px 8px;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;color:#555;box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);transition:all 0.08s ease;flex-shrink:0;${window.showDirectoryPicker ? 'cursor:pointer;' : 'cursor:not-allowed;opacity:0.45;'}"><svg width="16" height="13" viewBox="0 0 16 13" fill="currentColor"><path d="M0 2.5C0 1.67.67 1 1.5 1H5.5l1.5 1.5H14.5C15.33 2.5 16 3.17 16 4v7.5c0 .83-.67 1.5-1.5 1.5h-13C.67 13 0 12.33 0 11.5z"/></svg></button>
+          </div>
+          <div>
+            <button class="validate-btn" onclick="exportData()">Export</button>
+          </div>
+        </div>
+        <div onclick="toggleCmpTable()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span>Data Table: ${a.name}</span><span id="cmp-table-arrow">▶</span>
+        </div>
+        <div id="cmp-table-wrap" style="display:none;overflow-x:auto;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:8px 0 8px 8px;">
+          ${a.hasSpectral ? '<div style="padding:4px 8px 8px;font-size:11px;color:#4a90e2;">Click on L*a*b* color to display spectral graph.</div>' : ''}
+          <table style="border-collapse:collapse;font-size:13px;">
+            <thead>${spanningRow}<tr id="exp-col-headers"></tr></thead>
+            <tbody id="exp-table-body" style="font-family:monospace;color:#333;"></tbody>
+          </table>
+        </div>`;
+
+      // Restore previously open sections
+      _openSections.forEach(id => {
+        const wrap = document.getElementById(id);
+        const arrow = document.getElementById(id.replace('-wrap', '-arrow'));
+        if (wrap) wrap.style.display = '';
+        if (arrow) arrow.textContent = '▼';
+      });
+
+      renderExpTable();
+      renderPlot();
+    }
+
+    function toggleColorantDelete(colorant) {
+      if (_pendingColorantDeletes.has(colorant)) {
+        _pendingColorantDeletes.delete(colorant);
+      } else {
+        _pendingColorantDeletes.add(colorant);
+      }
+      const chip = document.getElementById('colorant-chip-' + colorant);
+      if (!chip) return;
+      const pending = _pendingColorantDeletes.has(colorant);
+      chip.style.background = pending ? '#fde8e8' : '#f0f0f0';
+      chip.style.borderColor = pending ? '#e74c3c' : '#ccc';
+    }
+
+    function restoreData() {
+      if (!_rawFileData.a) return;
+      _pendingColorantDeletes.clear();
+      processFileText('a', _rawFileData.a.text, _rawFileData.a.fileName);
+    }
+
+    function matchesExtractType(type, vals, colorants) {
+      const nonZero = vals.filter(v => v !== 0).length;
+      if (type === 'primaries') return nonZero === 1;
+      if (type === 'secondaries') {
+        const ki = colorants.indexOf('BLACK');
+        if (ki !== -1 && vals[ki] !== 0) return false;
+        const nonZeroVals = vals.filter(v => v !== 0);
+        return nonZeroVals.length === 2 && nonZeroVals[0] === nonZeroVals[1];
+      }
+      if (type === 'solids-only') return vals.every(v => v === 0 || v === 100);
+      const ci = colorants.indexOf('CYAN'), mi = colorants.indexOf('MAGENTA'),
+            yi = colorants.indexOf('YELLOW'), ki = colorants.indexOf('BLACK');
+      if (type === 'cmy-grays') {
+        // G7 / TR015 CMY near-neutral gray ramp: K=0, M≈Y≈tr015CmyGrayRamp(C).M
+        if (ci === -1 || mi === -1 || yi === -1) return false;
+        if (ki !== -1 && vals[ki] !== 0) return false;
+        if (vals[ci] <= 0) return false;
+        const aim = tr015CmyGrayRamp(vals[ci]).M;
+        const tol = 1.0;
+        return Math.abs(vals[mi] - aim) <= tol && Math.abs(vals[yi] - aim) <= tol;
+      }
+      if (type === 'cmy-browns') {
+        if (ci === -1 || mi === -1 || yi === -1) return false;
+        return vals[ci] > 0 && vals[ci] === vals[mi] && vals[mi] === vals[yi];
+      }
+      return false;
+    }
+
+    function extractData() {
+      if (!state.a) return;
+      let { headers, rows, colorants, name, usedSpectralLab, hasSpectral } = state.a;
+
+      // Apply colorant deletions: keep rows where the colorant is zero, then drop the column
+      for (const colorant of _pendingColorantDeletes) {
+        const colIdx = headers.indexOf(colorant);
+        if (colIdx === -1) continue;
+        rows = rows.filter(row => { const v = parseFloat(row[colIdx]); return isNaN(v) || v === 0; });
+        headers = headers.filter((_, i) => i !== colIdx);
+        rows = rows.map(row => row.filter((_, i) => i !== colIdx));
+        colorants = colorants.filter(c => c !== colorant);
+      }
+      _pendingColorantDeletes.clear();
+
+      // Apply checkbox type filters (keep rows matching any checked type)
+      const types = [...document.querySelectorAll('input[name="extract-type"]:checked')].map(el => el.value);
+      if (types.length > 0) {
+        const colorantIdxArr = colorants.map(c => headers.indexOf(c));
+        const solidsOnly = types.includes('solids-only');
+        const removePaperWhite = types.includes('remove-paper-white');
+        const otherTypes = types.filter(t => t !== 'solids-only' && t !== 'remove-paper-white');
+        rows = rows.filter(row => {
+          const vals = colorantIdxArr.map(i => parseFloat(row[i]) || 0);
+          const isPaperWhite = vals.every(v => v === 0);
+          // Paper white is always included unless explicitly removed
+          if (isPaperWhite) return !removePaperWhite;
+          if (otherTypes.length === 0 && !solidsOnly) return true;
+          if (solidsOnly && otherTypes.length > 0) {
+            // Solids Only acts as an AND-modifier: must match another filter AND all non-zero vals = 100
+            return otherTypes.some(t => matchesExtractType(t, vals, colorants))
+              && vals.every(v => v === 0 || v === 100);
+          }
+          return (solidsOnly ? types : otherTypes).some(t => matchesExtractType(t, vals, colorants));
+        });
+      }
+
+      state.a = { headers, rows, colorants, name, usedSpectralLab, hasSpectral };
+      document.getElementById('rows-a').textContent = rows.length + ' rows (after extract).';
+      renderExplore();
+    }
+
+    async function selectExportFolder() {
+      if (!window.showDirectoryPicker) return;
+      try {
+        _exportDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        const inp = document.getElementById('export-dest');
+        if (inp) inp.value = _exportDirHandle.name;
+      } catch (e) {
+        if (e.name !== 'AbortError') console.error(e);
+      }
+    }
+
+    function _buildCGATS() {
+      const { headers, rows } = state.a;
+      // Extract preamble lines from original file (everything before BEGIN_DATA_FORMAT)
+      let preamble = 'CGATS.17\n';
+      if (_rawFileData.a) {
+        const lines = _rawFileData.a.text.split(/\r\n|\r|\n/);
+        const bdfIdx = lines.findIndex(l => l.trim().toUpperCase() === 'BEGIN_DATA_FORMAT');
+        if (bdfIdx > 0) preamble = lines.slice(0, bdfIdx).join('\n') + '\n';
+      }
+      return preamble
+        + 'NUMBER_OF_FIELDS ' + headers.length + '\n'
+        + 'BEGIN_DATA_FORMAT\n'
+        + headers.join('\t') + '\n'
+        + 'END_DATA_FORMAT\n'
+        + 'NUMBER_OF_SETS ' + rows.length + '\n'
+        + 'BEGIN_DATA\n'
+        + rows.map(r => r.join('\t')).join('\n') + '\n'
+        + 'END_DATA\n';
+    }
+
+    function _buildCSV() {
+      const { headers, rows } = state.a;
+      const escape = v => (v.includes(',') || v.includes('"') || v.includes('\n')) ? '"' + v.replace(/"/g, '""') + '"' : v;
+      return [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))].join('\n');
+    }
+
+    async function exportData() {
+      if (!state.a) return;
+      const baseName = state.a.name.replace(/\.[^.]+$/, '');
+      if (window.showSaveFilePicker) {
+        let fileHandle;
+        try {
+          fileHandle = await window.showSaveFilePicker({
+            suggestedName: baseName + '_extracted.cgt',
+            startIn: _exportDirHandle || 'documents',
+            types: [
+              { description: 'CGATS file', accept: { 'text/plain': ['.cgt'] } },
+              { description: 'CSV file',   accept: { 'text/csv':  ['.csv'] } }
+            ]
+          });
+        } catch (e) {
+          if (e.name !== 'AbortError') console.error(e);
+          return;
+        }
+        const ext = fileHandle.name.split('.').pop().toLowerCase();
+        const content = ext === 'csv' ? _buildCSV() : _buildCGATS();
+        const writable = await fileHandle.createWritable();
+        await writable.write(content);
+        await writable.close();
+      } else {
+        _showExportDialog(baseName);
+      }
+    }
+
+    function _showExportDialog(baseName) {
+      let localDirHandle = _exportDirHandle;
+      const folderBtnStyle = window.showDirectoryPicker
+        ? 'cursor:pointer;'
+        : 'cursor:not-allowed;opacity:0.45;';
+      const folderBtnTitle = window.showDirectoryPicker
+        ? 'Browse for folder'
+        : 'Folder picker not supported in this browser';
+      const folderBtnDisabled = window.showDirectoryPicker ? '' : 'disabled';
+      const folderSVG = '<svg width="16" height="13" viewBox="0 0 16 13" fill="currentColor"><path d="M0 2.5C0 1.67.67 1 1.5 1H5.5l1.5 1.5H14.5C15.33 2.5 16 3.17 16 4v7.5c0 .83-.67 1.5-1.5 1.5h-13C.67 13 0 12.33 0 11.5z"/></svg>';
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;';
+      overlay.innerHTML = `
+        <div onclick="event.stopPropagation()" style="background:#fff;border-radius:10px;padding:24px;min-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
+          <div style="font-size:14px;font-weight:bold;color:#333;margin-bottom:16px;">Export File</div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;">Folder</label>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input id="_exp-folder" type="text" placeholder="Select folder or leave empty to download…"
+                value="${localDirHandle ? localDirHandle.name : ''}"
+                style="flex:1;padding:5px 8px;border:1px solid #bbb;border-bottom:2px solid #999;border-radius:5px;font-size:12px;box-sizing:border-box;">
+              <button id="_exp-folder-btn" title="${folderBtnTitle}" ${folderBtnDisabled}
+                style="display:inline-flex;align-items:center;justify-content:center;padding:5px 8px;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;${folderBtnStyle}color:#555;box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);flex-shrink:0;">${folderSVG}</button>
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;">File name</label>
+            <input id="_exp-fname" type="text" value="${baseName}_extracted"
+              style="width:100%;padding:6px 8px;border:1px solid #bbb;border-bottom:2px solid #999;border-radius:5px;font-size:13px;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;">Format</label>
+            <select id="_exp-fmt"
+              style="width:100%;padding:6px 8px;border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;font-size:13px;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);cursor:pointer;box-sizing:border-box;">
+              <option value="cgt">CGATS (*.cgt)</option>
+              <option value="csv">CSV (*.csv)</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button id="_exp-cancel" class="validate-btn"
+              style="background:linear-gradient(to bottom,#f8f9fa,#e8eaed);color:#555;border-color:#bbb;border-bottom-color:#999;">Cancel</button>
+            <button id="_exp-save" class="validate-btn">Save</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+
+      const folderInput = overlay.querySelector('#_exp-folder');
+      const nameInput   = overlay.querySelector('#_exp-fname');
+      nameInput.focus(); nameInput.select();
+
+      const close = () => document.body.removeChild(overlay);
+      overlay.addEventListener('click', close);
+      overlay.querySelector('#_exp-cancel').addEventListener('click', close);
+
+      if (window.showDirectoryPicker) {
+        overlay.querySelector('#_exp-folder-btn').addEventListener('click', async () => {
+          try {
+            localDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            _exportDirHandle = localDirHandle;
+            folderInput.value = localDirHandle.name;
+          } catch (e) {
+            if (e.name !== 'AbortError') console.error(e);
+          }
+        });
+      }
+
+      overlay.querySelector('#_exp-save').addEventListener('click', async () => {
+        const name    = nameInput.value.trim() || baseName + '_extracted';
+        const fmt     = overlay.querySelector('#_exp-fmt').value;
+        const content = fmt === 'csv' ? _buildCSV() : _buildCGATS();
+        const mime    = fmt === 'csv' ? 'text/csv' : 'text/plain';
+        if (localDirHandle) {
+          try {
+            const fh = await localDirHandle.getFileHandle(name + '.' + fmt, { create: true });
+            const w  = await fh.createWritable();
+            await w.write(content);
+            await w.close();
+            close();
+            return;
+          } catch (e) { console.error(e); }
+        }
+        // Fallback: browser download
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+        a.download = name + '.' + fmt;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        close();
+      });
+    }
+
+    function toggleExtract() {
+      const wrap = document.getElementById('extract-wrap');
+      const arrow = document.getElementById('extract-arrow');
+      if (!wrap) return;
+      const hidden = wrap.style.display === 'none';
+      wrap.style.display = hidden ? '' : 'none';
+      arrow.textContent = hidden ? '▼' : '▶';
+    }
+
+    function toggleCmpTable() {
+      const wrap = document.getElementById('cmp-table-wrap');
+      const arrow = document.getElementById('cmp-table-arrow');
+      if (!wrap) return;
+      const hidden = wrap.style.display === 'none';
+      wrap.style.display = hidden ? '' : 'none';
+      arrow.textContent = hidden ? '▼' : '▶';
+    }
+
+    function sortCmpTable(colIdx) {
+      if (_cmpSortCol === colIdx) {
+        _cmpSortDir = _cmpSortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        _cmpSortCol = colIdx;
+        _cmpSortDir = 'asc';
+      }
+      renderCmpTable();
+    }
+
+    function renderCmpTable() {
+      if (!_cmpData) return;
+      const { matches, deRaw, a, b, aColIdx, aLabIdx, bLabIdx, method, PR, TH, VL } = _cmpData;
+      const LAB_LABELS = ['L*', 'a*', 'b*'];
+      const CH_LABELS = ['C*', 'h*(deg)'];
+      const colorantCount = a.colorants.length;
+
+      // Build spectral lookup: two entries per display row (File A then File B)
+      _spectralPopupData = [];
+      _cmpSortedIdx.forEach(origIdx => {
+        const { rowA, rowB } = matches[origIdx];
+        const sA = extractSpectral(a.headers, rowA);
+        const sB = extractSpectral(b.headers, rowB);
+        _spectralPopupData.push({ ...sA, label: buildSpectralLabel(a.name, a.headers, rowA, a.colorants), color: '#4a90e2' });
+        _spectralPopupData.push({ ...sB, label: buildSpectralLabel(b.name, b.headers, rowB, b.colorants), color: '#e24a4a' });
+      });
+
+      // Sorted indices
+      if (_cmpSortCol !== null) {
+        _cmpSortedIdx.sort((ii, jj) => {
+          const vi = getSortVal(ii), vj = getSortVal(jj);
+          return _cmpSortDir === 'asc' ? vi - vj : vj - vi;
+        });
+      }
+      const sortedIdx = _cmpSortedIdx;
+
+      function getSortVal(rowIdx) {
+        const col = _cmpSortCol;
+        if (col < colorantCount) {
+          const v = parseFloat(matches[rowIdx].rowA[aColIdx[col]]);
+          return isNaN(v) ? Infinity : v;
+        }
+        const rel = col - colorantCount;
+        if (rel < 3) {
+          const v = parseFloat(matches[rowIdx].rowA[aLabIdx[rel]]);
+          return isNaN(v) ? Infinity : v;
+        }
+        if (rel < 5) {
+          // A's C* (rel=3) or h* (rel=4)
+          const ai = aLabIdx[1], bi = aLabIdx[2];
+          const av = parseFloat(matches[rowIdx].rowA[ai]), bv = parseFloat(matches[rowIdx].rowA[bi]);
+          if (isNaN(av) || isNaN(bv)) return Infinity;
+          return rel === 3 ? Math.sqrt(av*av+bv*bv) : (Math.atan2(bv,av)*180/Math.PI+360)%360;
+        }
+        if (rel < 8) {
+          const v = parseFloat(matches[rowIdx].rowB[bLabIdx[rel - 5]]);
+          return isNaN(v) ? Infinity : v;
+        }
+        if (rel < 10) {
+          // B's C* (rel=8) or h* (rel=9)
+          const ai = bLabIdx[1], bi = bLabIdx[2];
+          const av = parseFloat(matches[rowIdx].rowB[ai]), bv = parseFloat(matches[rowIdx].rowB[bi]);
+          if (isNaN(av) || isNaN(bv)) return Infinity;
+          return rel === 8 ? Math.sqrt(av*av+bv*bv) : (Math.atan2(bv,av)*180/Math.PI+360)%360;
+        }
+        const v = parseFloat(deRaw[rowIdx]);
+        return isNaN(v) ? Infinity : v;
+      }
+
+      // Column headers with sort indicators
+      const arrow = i => _cmpSortCol === i ? (_cmpSortDir === 'asc' ? ' ↑' : ' ↓') : '';
+      const colHeaderCells = [
+        ...a.colorants.map((c, i) => `<th onclick="sortCmpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
+        ...LAB_LABELS.map((l, i) => `<th onclick="sortCmpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
+        ...CH_LABELS.map((l, i) => `<th onclick="sortCmpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`),
+        ...LAB_LABELS.map((l, i) => `<th onclick="sortCmpTable(${colorantCount + 5 + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + 5 + i)}</th>`),
+        ...CH_LABELS.map((l, i) => `<th onclick="sortCmpTable(${colorantCount + 8 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 8 + i)}</th>`),
+        `<th onclick="sortCmpTable(${colorantCount + 10})" style="${PR}${TH}${VL}cursor:pointer;">${method}${arrow(colorantCount + 10)}</th>`
+      ].join('');
+      document.getElementById('cmp-col-headers').innerHTML = colHeaderCells;
+
+      // Build and render rows
+      const fmtLab = v => { const n = parseFloat(v); return isNaN(n) ? '—' : n.toFixed(3); };
+      const colorantCols = aColIdx.map(i => alignDecimals(sortedIdx.map(ri => matches[ri].rowA[i] ?? '')));
+      const aLabCols = aLabIdx.map(i => sortedIdx.map(ri => i !== -1 ? fmtLab(matches[ri].rowA[i]) : '—'));
+      const bLabCols = bLabIdx.map(i => sortedIdx.map(ri => i !== -1 ? fmtLab(matches[ri].rowB[i]) : '—'));
+      const deCol = alignDecimals(sortedIdx.map(i => deRaw[i]));
+
+      const calcCH = (row, labIdx) => {
+        const ai = labIdx[1], bi = labIdx[2];
+        if (ai === -1 || bi === -1) return { c: '—', h: '—' };
+        const av = parseFloat(row[ai]), bv = parseFloat(row[bi]);
+        if (isNaN(av) || isNaN(bv)) return { c: '—', h: '—' };
+        return {
+          c: Math.sqrt(av*av+bv*bv).toFixed(2),
+          h: ((Math.atan2(bv,av)*180/Math.PI+360)%360).toFixed(1)
+        };
+      };
+
+      document.getElementById('cmp-table-body').innerHTML = sortedIdx.map((origIdx, ri) => {
+        const colorantCells = colorantCols.map(col => `<td style="${PR}">${col[ri]}</td>`).join('');
+        const aLabCells = aLabCols.map((col, i) =>
+          `<td onclick="showSpectral(event,${ri*2})" style="${PR}${i===0?VL:''}cursor:pointer;" title="Click to view spectral">${col[ri]}</td>`
+        ).join('');
+        const aCH = calcCH(matches[origIdx].rowA, aLabIdx);
+        const aCHCells = `<td style="${PR}">${aCH.c}</td><td style="${PR}">${aCH.h}</td>`;
+        const bLabCells = bLabCols.map((col, i) =>
+          `<td onclick="showSpectral(event,${ri*2+1})" style="${PR}${i===0?VL:''}cursor:pointer;" title="Click to view spectral">${col[ri]}</td>`
+        ).join('');
+        const bCH = calcCH(matches[origIdx].rowB, bLabIdx);
+        const bCHCells = `<td style="${PR}">${bCH.c}</td><td style="${PR}">${bCH.h}</td>`;
+        return `<tr>${colorantCells}${aLabCells}${aCHCells}${bLabCells}${bCHCells}<td style="${PR}${VL}font-weight:bold;">${deCol[ri]}</td></tr>`;
+      }).join('');
+    }
+
+    document.getElementById('compare-btn').addEventListener('click', () => {
+      const { a, b } = state;
+      const resultEl = document.getElementById('result');
+
+      // Build lookup: colorant key → row from File B
+      const bMap = new Map();
+      for (const row of b.rows) {
+        const key = colorantKey(row, b.headers, b.colorants);
+        if (!bMap.has(key)) bMap.set(key, row);
+      }
+
+      // Collect all matching rows
+      const matches = [];
+      for (const row of a.rows) {
+        const key = colorantKey(row, a.headers, a.colorants);
+        if (bMap.has(key)) matches.push({ rowA: row, rowB: bMap.get(key) });
+      }
+
+      if (matches.length === 0) {
+        resultEl.textContent = 'No matching device colorant rows found.';
+        return;
+      }
+
+      const LAB = ['LAB_L', 'LAB_A', 'LAB_B'];
+      const aLabIdx = LAB.map(l => a.headers.indexOf(l));
+      const bLabIdx = LAB.map(l => b.headers.indexOf(l));
+      const aColIdx = a.colorants.map(c => a.headers.indexOf(c));
+
+      const method = deMethod.value;
+      const PR = 'padding:4px 16px 4px 0;text-align:right;';
+      const TH = 'font-weight:bold;border-bottom:2px solid #ddd;color:#555;';
+      const VL = 'border-left:1px solid #ccc;padding-left:12px;';
+
+      // Compute ΔE per match
+      const deRaw = matches.map(({ rowA, rowB }) => {
+        const aVals = aLabIdx.map(i => i !== -1 ? parseFloat(rowA[i]) : NaN);
+        const bVals = bLabIdx.map(i => i !== -1 ? parseFloat(rowB[i]) : NaN);
+        const [L1, a1, b1] = aVals, [L2, a2, b2] = bVals;
+        return (!isNaN(L1) && !isNaN(a1) && !isNaN(b1) && !isNaN(L2) && !isNaN(a2) && !isNaN(b2))
+          ? calcDeltaE(method, L1, a1, b1, L2, a2, b2).toFixed(2)
+          : '—';
+      });
+
+      // Summary statistics
+      const deNums = deRaw.filter(v => v !== '—').map(Number);
+      const deMean = deNums.reduce((s, v) => s + v, 0) / deNums.length;
+      const deMax  = Math.max(...deNums);
+      const deStd  = Math.sqrt(deNums.reduce((s, v) => s + (v - deMean) ** 2, 0) / deNums.length);
+
+      const summaryBox = `
+        <div style="display:inline-flex;gap:32px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px 24px;margin-top:16px;font-size:13px;">
+          <div><div style="color:#888;margin-bottom:2px;">Mean ${method}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMean.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">Max ${method}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMax.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">Std Dev</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deStd.toFixed(2)}</div></div>
+        </div>`;
+
+      // Spanning header row
+      const colorantSpan = a.colorants.length;
+      const spanningRow = `<tr>
+        <th colspan="${colorantSpan}" style="padding:4px 0;text-align:center;${TH}">Device Colorants</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">File A</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">File B</th>
+        <th style="${PR}${TH}${VL}"></th>
+      </tr>`;
+
+      // Store data and reset sort state
+      _cmpSortCol = null;
+      _cmpSortDir = 'asc';
+      _cmpData = { matches, deRaw, a, b, aColIdx, aLabIdx, bLabIdx, method, PR, TH, VL };
+      _cmpSortedIdx = Array.from({ length: matches.length }, (_, i) => i);
+
+      resultEl.innerHTML = `
+        <p style="margin-bottom:8px;font-size:13px;color:#555;">${matches.length} matching row${matches.length !== 1 ? 's' : ''}</p>
+        ${summaryBox}
+        <div onclick="toggleValidate()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span>Validate</span><span id="validate-arrow">▶</span>
+        </div>
+        <div id="validate-wrap" style="display:none;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:12px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <select id="validate-mode" onchange="updateValidateFileLabel()" style="padding:6px 10px;border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;font-size:13px;color:#333;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);cursor:pointer;transition:all 0.08s ease;">
+              <option value="g7">G7</option>
+            </select>
+            <select id="validate-file-select" style="padding:6px 10px;border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;font-size:13px;color:#333;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);cursor:pointer;transition:all 0.08s ease;max-width:280px;"></select>
+            <button class="validate-btn" onclick="validateFile()">Validate</button>
+          </div>
+          <div id="validate-result" style="font-size:13px;color:#333;background:#f8f9fa;border:1px solid #ddd;border-radius:6px;padding:10px;min-height:60px;overflow-x:auto;"></div>
+        </div>
+        <div onclick="toggleCmpTable()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span>Comparison Table</span><span id="cmp-table-arrow">▶</span>
+        </div>
+        <div id="cmp-table-wrap" style="display:none;overflow-x:auto;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:8px 0 8px 8px;">
+          ${(a.hasSpectral || b.hasSpectral) ? '<div style="padding:4px 8px 8px;font-size:11px;color:#4a90e2;">Click on L*a*b* color to display spectral graph.</div>' : ''}
+          <table style="border-collapse:collapse;font-size:13px;">
+            <thead>${spanningRow}<tr id="cmp-col-headers"></tr></thead>
+            <tbody id="cmp-table-body" style="font-family:monospace;color:#333;"></tbody>
+          </table>
+        </div>`;
+
+      renderCmpTable();
+      renderPlot();
+      updateValidateFileLabel();
+    });
+
+    function togglePlot() {
+      const wrap = document.getElementById('plot-wrap');
+      const arrow = document.getElementById('plot-arrow');
+      if (!wrap) return;
+      const hidden = wrap.style.display === 'none';
+      wrap.style.display = hidden ? '' : 'none';
+      arrow.textContent = hidden ? '▼' : '▶';
+    }
+
+    function labToRgb(L, a, b) {
+      // LAB → XYZ (D65 white point for sRGB)
+      const Xn = 0.9505, Yn = 1.0000, Zn = 1.0890;
+      const f = t => t > 0.008856 ? t ** 3 : (t - 16 / 116) / 7.787;
+      const fy = (L + 16) / 116;
+      const X = Xn * f(a / 500 + fy);
+      const Y = Yn * f(fy);
+      const Z = Zn * f(fy - b / 200);
+      // XYZ → linear sRGB
+      let r =  3.2406 * X - 1.5372 * Y - 0.4986 * Z;
+      let g = -0.9689 * X + 1.8758 * Y + 0.0415 * Z;
+      let bv =  0.0557 * X - 0.2040 * Y + 1.0570 * Z;
+      // Gamma (sRGB)
+      const gc = v => Math.min(1, Math.max(0, v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055));
+      const toHex = v => Math.round(gc(v) * 255).toString(16).padStart(2, '0');
+      return '#' + toHex(r) + toHex(g) + toHex(bv);
+    }
+
+    function onPlotColorChange(which) {
+      if (which === 'hue' && document.getElementById('plot-opt-hue-color').checked)
+        document.getElementById('plot-opt-value-color').checked = false;
+      if (which === 'value' && document.getElementById('plot-opt-value-color').checked)
+        document.getElementById('plot-opt-hue-color').checked = false;
+      renderPlot();
+    }
+
+    function renderPlot() {
+      const { a, b } = state;
+      document.getElementById('plot-section').style.display = '';
+      document.getElementById('plot-tab-label').textContent =
+        _mode === 'explore' ? '3D Plot: ' + a.name : '3D Plot';
+      const plotEl = document.getElementById('plot');
+
+      const useCircles    = document.getElementById('plot-opt-circles')?.checked;
+      const useHueColor   = document.getElementById('plot-opt-hue-color')?.checked;
+      const useValueColor = document.getElementById('plot-opt-value-color')?.checked;
+
+      // Show spectral checkbox only when at least one active dataset has spectral data
+      const hasAnySpectral = a.hasSpectral || (_mode === 'compare' && b && b.hasSpectral);
+      const spectralOptLabel = document.getElementById('plot-opt-spectral-label');
+      if (spectralOptLabel) {
+        spectralOptLabel.style.display = hasAnySpectral ? '' : 'none';
+        if (!hasAnySpectral) {
+          const cb = document.getElementById('plot-opt-spectral');
+          if (cb) cb.checked = false;
+        }
+      }
+
+      const hueToColor = (av, bv) => {
+        const h = (Math.atan2(bv, av) * 180 / Math.PI + 360) % 360;
+        return `hsl(${h.toFixed(1)},90%,45%)`;
+      };
+
+      // Build trace + record which original row index each plotted point came from
+      const buildTrace = (data, name, defaultColor) => {
+        const iA = data.headers.indexOf('LAB_A');
+        const iB = data.headers.indexOf('LAB_B');
+        const iL = data.headers.indexOf('LAB_L');
+        const xs = [], ys = [], zs = [], colors = [], rowMap = [];
+        data.rows.forEach((r, ri) => {
+          const av = parseFloat(r[iA]), bv = parseFloat(r[iB]), l = parseFloat(r[iL]);
+          if (!isNaN(av) && !isNaN(bv) && !isNaN(l)) {
+            xs.push(av); ys.push(bv); zs.push(l);
+            colors.push(useHueColor ? hueToColor(av, bv) : useValueColor ? labToRgb(l, av, bv) : defaultColor);
+            rowMap.push(ri);
+          }
+        });
+        return {
+          tr: { type: 'scatter3d', mode: 'markers', name, x: xs, y: ys, z: zs,
+                marker: { size: 3, color: colors, opacity: 0.8,
+                          symbol: useCircles ? 'circle-open' : 'circle' } },
+          rowMap
+        };
+      };
+
+      // Build traces, preserving per-trace visibility across re-renders
+      const traceSpecs = [{ data: a, name: a.name, color: '#4a90e2' }];
+      if (_mode === 'compare' && b) traceSpecs.push({ data: b, name: b.name, color: '#e24a4a' });
+      if (_plotVisible.length !== traceSpecs.length) _plotVisible = Array(traceSpecs.length).fill(true);
+
+      _plotRowMap = [];
+      const builtTraces = traceSpecs.map((spec, i) => {
+        const built = buildTrace(spec.data, spec.name, spec.color);
+        built.tr.visible = _plotVisible[i];
+        built.tr.showlegend = false; // hide Plotly's built-in legend; we use a custom one
+        _plotRowMap.push(built.rowMap);
+        return built;
+      });
+      const traces = builtTraces.map(b => b.tr);
+
+      // Compute fixed axis ranges from all datasets (regardless of visibility)
+      let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity, zMin = Infinity, zMax = -Infinity;
+      traces.forEach(tr => {
+        tr.x.forEach(v => { if (v < xMin) xMin = v; if (v > xMax) xMax = v; });
+        tr.y.forEach(v => { if (v < yMin) yMin = v; if (v > yMax) yMax = v; });
+        tr.z.forEach(v => { if (v < zMin) zMin = v; if (v > zMax) zMax = v; });
+      });
+      const pad = (lo, hi) => { const d = (hi - lo) * 0.05 || 5; return [lo - d, hi + d]; };
+      const xRange = (xMin === Infinity) ? [-128, 128] : pad(xMin, xMax);
+      const yRange = (yMin === Infinity) ? [-128, 128] : pad(yMin, yMax);
+      const zRange = (zMin === Infinity) ? [0, 100] : [Math.min(0, zMin), zMax + (zMax - zMin) * 0.05 || 5];
+      _plotAxisRanges = { xRange, yRange, zRange };
+
+      // Render custom legend for compare mode
+      let customLegendEl = document.getElementById('plot-custom-legend');
+      if (_mode === 'compare' && b) {
+        if (!customLegendEl) {
+          customLegendEl = document.createElement('div');
+          customLegendEl.id = 'plot-custom-legend';
+          customLegendEl.style.cssText = 'position:absolute;top:38px;left:12px;z-index:10;display:flex;flex-direction:column;gap:4px;';
+          document.getElementById('plot-wrap').style.position = 'relative';
+          document.getElementById('plot-wrap').appendChild(customLegendEl);
+        }
+        customLegendEl.innerHTML = traceSpecs.map((spec, i) => {
+          const on = _plotVisible[i];
+          return `<div onclick="togglePlotTrace(${i})" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 8px;background:rgba(255,255,255,0.85);border:1px solid #ddd;border-radius:4px;font-size:12px;user-select:none;${on ? '' : 'opacity:0.45;'}">
+            <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${spec.color};flex-shrink:0;${on ? '' : 'background:#aaa;'}"></span>
+            <span style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
+          </div>`;
+        }).join('');
+      } else if (customLegendEl) {
+        customLegendEl.remove();
+      }
+
+      Plotly.react(plotEl, traces, {
+        margin: { t: 30, r: 10, b: 10, l: 10 },
+        scene: {
+          xaxis: { title: 'a*', range: xRange },
+          yaxis: { title: 'b*', range: yRange },
+          zaxis: { title: 'L*', range: zRange }
+        },
+        showlegend: false,
+        paper_bgcolor: '#fff'
+      }, { responsive: true }).then(() => {
+        // Attach plot click handler (remove previous one first)
+        if (_plotClickHandler) plotEl.removeListener('plotly_click', _plotClickHandler);
+        _plotClickHandler = function(evtData) {
+          if (!document.getElementById('plot-opt-spectral')?.checked) return;
+          if (!evtData.points || evtData.points.length === 0) return;
+          const pt = evtData.points[0];
+          const curveNum = pt.curveNumber;
+          const ptNum = pt.pointNumber;
+          const rowMap = _plotRowMap[curveNum];
+          if (!rowMap) return;
+          const rowIdx = rowMap[ptNum];
+          if (rowIdx === undefined) return;
+          const slot = curveNum === 0 ? a : b;
+          const color = curveNum === 0 ? '#4a90e2' : '#e24a4a';
+          const spec = extractSpectral(slot.headers, slot.rows[rowIdx]);
+          _suppressDismiss = true;
+          const cx = (pt.event && pt.event.clientX != null) ? pt.event.clientX : window.innerWidth  / 2;
+          const cy = (pt.event && pt.event.clientY != null) ? pt.event.clientY : window.innerHeight / 2;
+          showSpectralPopup(cx, cy, { wavelengths: spec.wavelengths, values: spec.values, label: buildSpectralLabel(slot.name, slot.headers, slot.rows[rowIdx], slot.colorants), color });
+        };
+        plotEl.on('plotly_click', _plotClickHandler);
+      });
+    }
+
+    function togglePlotTrace(i) {
+      const plotEl = document.getElementById('plot');
+      if (!plotEl) return;
+      _plotVisible[i] = !_plotVisible[i];
+      const layout = _plotAxisRanges ? {
+        'scene.xaxis.range': _plotAxisRanges.xRange,
+        'scene.yaxis.range': _plotAxisRanges.yRange,
+        'scene.zaxis.range': _plotAxisRanges.zRange
+      } : {};
+      Plotly.update(plotEl, { visible: [_plotVisible[i]] }, layout, [i]);
+      // Refresh custom legend appearance without full re-render
+      const items = document.querySelectorAll('#plot-custom-legend > div');
+      const { a, b } = state;
+      const colors = ['#4a90e2', '#e24a4a'];
+      const names = [a ? a.name : '', b ? b.name : ''];
+      items.forEach((el, idx) => {
+        const on = _plotVisible[idx];
+        el.style.opacity = on ? '' : '0.45';
+        el.querySelector('span:first-child').style.background = on ? colors[idx] : '#aaa';
+        const label = el.querySelector('span:last-child');
+        label.style.color = on ? '#333' : '#999';
+        label.style.textDecoration = on ? '' : 'line-through';
+      });
+    }
+  </script>
+  <button id="scroll-top-btn" title="Scroll to top"
+    onclick="document.getElementById('main-content').scrollTo({top:0,behavior:'smooth'})">&#8679; Top</button>
+
+  <div id="file-viewer-overlay" onclick="closeFileViewer()"
+    style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.4);">
+    <div onclick="event.stopPropagation()"
+      style="position:absolute;top:5vh;left:50%;transform:translateX(-50%);
+             width:80vw;max-width:1100px;height:88vh;
+             background:#fff;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,0.3);
+             display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;justify-content:space-between;
+                  padding:12px 16px;border-bottom:1px solid #ddd;flex-shrink:0;">
+        <span id="file-viewer-title" style="font-size:14px;font-weight:bold;color:#333;word-break:break-all;"></span>
+        <button onclick="closeFileViewer()" class="validate-btn" style="padding:4px 12px;flex-shrink:0;margin-left:16px;">✕ Close</button>
+      </div>
+      <pre id="file-viewer-content"
+        style="flex:1;overflow:auto;margin:0;padding:14px 16px;
+               font-size:12px;font-family:monospace;color:#333;
+               white-space:pre;background:#f8f9fa;border-radius:0 0 10px 10px;"></pre>
+    </div>
+  </div>
+
+  <div id="spectral-popup" onclick="event.stopPropagation()"
+    style="display:none;position:fixed;z-index:1000;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.18);padding:12px;">
+    <div id="spectral-plot-div" style="width:420px;height:260px;"></div>
+  </div>
+  <div style="position:fixed;bottom:8px;left:50%;transform:translateX(-50%);
+              z-index:800;pointer-events:none;user-select:none;
+              font-size:11px;color:rgba(0,0,0,0.22);white-space:nowrap;
+              font-family:sans-serif;letter-spacing:0.02em;">
+    https://colourbill.com &nbsp;&copy;&nbsp; William Li 2026
+  </div>
+</body>
+</html>
