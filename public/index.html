@@ -359,7 +359,7 @@
     <div class="panel" id="panel-a">
       <h2>File A</h2>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <button class="validate-btn" id="show-file-a" onclick="showFile('a')" disabled>Show file</button>
+        <button class="validate-btn" id="show-file-a" onclick="showFile('a')" disabled>Display File</button>
       </div>
       <div class="file-info" id="info-a">
         <div class="file-name" id="name-a"></div>
@@ -373,7 +373,7 @@
     <div class="panel" id="panel-b">
       <h2>File B</h2>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <button class="validate-btn" id="show-file-b" onclick="showFile('b')" disabled>Show file</button>
+        <button class="validate-btn" id="show-file-b" onclick="showFile('b')" disabled>Display File</button>
       </div>
       <div class="file-info" id="info-b">
         <div class="file-name" id="name-b"></div>
@@ -540,6 +540,9 @@
     let _plotVisible = [];       // per-trace visibility, preserved across re-renders
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
     let _suppressDismiss = false;
+
+    let _hasExtracted = false;
+    let _fileViewerSlot = 'a';
 
     let _fileList = [];          // [{ id, name, text }, ...]
     let _nextFileId = 0;
@@ -974,9 +977,28 @@
     function showFile(slot) {
       const raw = _rawFileData[slot];
       if (!raw) return;
+      _fileViewerSlot = slot;
       document.getElementById('file-viewer-title').textContent = raw.fileName;
-      document.getElementById('file-viewer-content').textContent = raw.text;
+      const modeSection = document.getElementById('file-viewer-mode-section');
+      const showModes = _hasExtracted && slot === 'a';
+      modeSection.style.display = showModes ? 'flex' : 'none';
+      if (showModes) {
+        document.querySelector('input[name="file-viewer-mode"][value="modified"]').checked = true;
+      }
+      updateFileViewerContent();
       document.getElementById('file-viewer-overlay').style.display = '';
+    }
+
+    function updateFileViewerContent() {
+      const raw = _rawFileData[_fileViewerSlot];
+      if (!raw) return;
+      const mode = document.querySelector('input[name="file-viewer-mode"]:checked')?.value;
+      if (mode === 'original' || !_hasExtracted || _fileViewerSlot !== 'a') {
+        document.getElementById('file-viewer-content').textContent = raw.text;
+      } else {
+        const isCGATS = raw.text.split(/\r\n|\r|\n/).some(l => l.trim().toUpperCase() === 'BEGIN_DATA_FORMAT');
+        document.getElementById('file-viewer-content').textContent = isCGATS ? _buildCGATS() : _buildCSV();
+      }
     }
 
     function closeFileViewer() {
@@ -1016,7 +1038,7 @@
     function assignFile(fileId, slot) {
       const entry = _fileList.find(f => f.id === fileId);
       if (!entry) return;
-      if (slot === 'a') _pendingColorantDeletes.clear();
+      if (slot === 'a') { _pendingColorantDeletes.clear(); _hasExtracted = false; }
       _rawFileData[slot] = { text: entry.text, fileName: entry.name };
       document.getElementById('name-' + slot).textContent = entry.name;
       processFileText(slot, entry.text, entry.name);
@@ -1981,6 +2003,7 @@
 
     function restoreData() {
       if (!_rawFileData.a) return;
+      _hasExtracted = false;
       _pendingColorantDeletes.clear();
       processFileText('a', _rawFileData.a.text, _rawFileData.a.fileName);
     }
@@ -2051,6 +2074,7 @@
       }
 
       state.a = { headers, rows, colorants, name, usedSpectralLab, hasSpectral };
+      _hasExtracted = true;
       document.getElementById('rows-a').textContent = rows.length + ' rows (after extract).';
       renderExplore();
     }
@@ -2069,13 +2093,19 @@
     function _buildCGATS() {
       const { headers, rows } = state.a;
       // Extract preamble lines from original file (everything before BEGIN_DATA_FORMAT)
-      let preamble = 'CGATS.17\n';
+      let preambleLines = ['CGATS.17'];
       if (_rawFileData.a) {
         const lines = _rawFileData.a.text.split(/\r\n|\r|\n/);
         const bdfIdx = lines.findIndex(l => l.trim().toUpperCase() === 'BEGIN_DATA_FORMAT');
-        if (bdfIdx > 0) preamble = lines.slice(0, bdfIdx).join('\n') + '\n';
+        if (bdfIdx > 0) preambleLines = lines.slice(0, bdfIdx);
       }
-      return preamble
+      // Remove stale NUMBER_OF_FIELDS / NUMBER_OF_SETS lines — they will be rewritten
+      // with correct counts below. All other lines (first line, # comments, metadata) are kept as-is.
+      const filteredPreamble = preambleLines.filter(l =>
+        !/^NUMBER_OF_FIELDS\b/i.test(l.trim()) &&
+        !/^NUMBER_OF_SETS\b/i.test(l.trim())
+      );
+      return filteredPreamble.join('\n') + '\n'
         + 'NUMBER_OF_FIELDS ' + headers.length + '\n'
         + 'BEGIN_DATA_FORMAT\n'
         + headers.join('\t') + '\n'
@@ -2654,6 +2684,17 @@
                   padding:12px 16px;border-bottom:1px solid #ddd;flex-shrink:0;">
         <span id="file-viewer-title" style="font-size:14px;font-weight:bold;color:#333;word-break:break-all;"></span>
         <button onclick="closeFileViewer()" class="validate-btn" style="padding:4px 12px;flex-shrink:0;margin-left:16px;">✕ Close</button>
+      </div>
+      <div id="file-viewer-mode-section"
+        style="display:none;align-items:center;gap:14px;padding:9px 16px;
+               border-bottom:2px solid #ddd;background:#f0f4fa;flex-shrink:0;font-size:13px;color:#333;">
+        <span style="font-weight:bold;">Show:</span>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;">
+          <input type="radio" name="file-viewer-mode" value="original" onchange="updateFileViewerContent()"> Original
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;">
+          <input type="radio" name="file-viewer-mode" value="modified" onchange="updateFileViewerContent()"> Modified
+        </label>
       </div>
       <pre id="file-viewer-content"
         style="flex:1;overflow:auto;margin:0;padding:14px 16px;
