@@ -2604,7 +2604,8 @@
           document.getElementById('plot-wrap').style.position = 'relative';
           document.getElementById('plot-wrap').appendChild(customLegendEl);
         }
-        customLegendEl.innerHTML = traceSpecs.map((spec, i) => {
+        customLegendEl.innerHTML = '<div style="font-size:11px;color:#555;padding:2px 4px 4px 4px;user-select:none;">Select to toggle file visibility:</div>'
+          + traceSpecs.map((spec, i) => {
           const on = _plotVisible[i];
           return `<div onclick="togglePlotTrace(${i})" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 8px;background:rgba(255,255,255,0.85);border:1px solid #ddd;border-radius:4px;font-size:12px;user-select:none;${on ? '' : 'opacity:0.45;'}">
             <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${spec.color};flex-shrink:0;${on ? '' : 'background:#aaa;'}"></span>
