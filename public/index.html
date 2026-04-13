@@ -83,16 +83,16 @@
       margin-bottom: 16px;
     }
 
-    /* Mobile FABs + backdrop — hidden on desktop */
+    /* Mobile overlays — all hidden on desktop */
     #mobile-backdrop {
       display: none;
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.45);
       z-index: 999;
     }
-    #mobile-fab-files, #mobile-fab-settings {
+    #mobile-fab-files {
       display: none;
-      position: fixed; bottom: 22px; z-index: 998;
+      position: fixed; bottom: 22px; left: 22px; z-index: 1001;
       padding: 8px 18px; border-radius: 28px;
       border: 1px solid #2a6ab5; border-bottom: 3px solid #1f52a0;
       cursor: pointer;
@@ -102,18 +102,26 @@
       align-items: center; justify-content: center;
       flex-direction: column; gap: 2px;
     }
-    #mobile-fab-files  { left: 22px; }
-    #mobile-fab-settings { right: 22px; }
+    #mobile-hamburger {
+      display: none;
+      position: fixed; top: 12px; right: 12px; z-index: 1001;
+      width: 44px; height: 44px; border-radius: 8px;
+      border: 1px solid #2a6ab5; border-bottom: 3px solid #1f52a0;
+      cursor: pointer; font-size: 22px;
+      background: linear-gradient(to bottom, #6aa8f0, #3a7fd5);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      align-items: center; justify-content: center;
+    }
 
     @media (max-width: 700px) {
       .panels { flex-direction: column; }
-      /* Body scrolls on mobile; inner containers must not create scroll contexts
-         that break position:fixed on iOS Safari */
+      /* Body scrolls on mobile — avoids iOS Safari position:fixed clipping */
       #app-layout { overflow: visible; height: auto; }
       #main-content { height: auto; overflow-y: visible; padding: 16px 10px 100px; }
 
-      /* Blades become fixed bottom sheets */
-      #file-select-blade, #blade {
+      /* File-select blade → bottom sheet */
+      #file-select-blade {
         position: fixed !important;
         bottom: 0; left: 0; right: 0;
         width: 100% !important; min-width: unset !important;
@@ -125,30 +133,37 @@
         transition: transform 0.3s ease !important;
         z-index: 1000;
       }
-      /* Pull handle */
-      #file-select-blade::before, #blade::before {
+      #file-select-blade::before {
         content: ''; display: block;
         width: 40px; height: 4px;
         background: #ccc; border-radius: 2px;
         margin: 10px auto 0; flex-shrink: 0;
       }
-      /* Open state */
-      #file-select-blade:not(.collapsed), #blade:not(.collapsed) {
-        transform: translateY(0);
+      #file-select-blade:not(.collapsed) { transform: translateY(0); }
+      #file-select-blade #file-select-blade-content { display: flex !important; overflow-y: auto; }
+
+      /* Settings blade → right-side drawer */
+      #blade {
+        position: fixed !important;
+        top: 0; right: 0; bottom: 0;
+        width: min(300px, 85vw) !important; min-width: unset !important;
+        height: 100% !important; max-height: none;
+        flex-direction: column !important;
+        border-radius: 0;
+        box-shadow: -4px 0 24px rgba(0,0,0,0.22);
+        transform: translateX(100%);
+        transition: transform 0.3s ease !important;
+        z-index: 1000; overflow-y: auto;
       }
-      /* Show content (not hidden by collapsed; slide handles visibility) */
-      #file-select-blade #file-select-blade-content,
-      #blade #blade-content {
-        display: flex !important;
-        overflow-y: auto;
-      }
-      /* Hide the desktop toggle strips */
+      #blade:not(.collapsed) { transform: translateX(0); }
+      #blade #blade-content { display: flex !important; overflow-y: auto; flex: 1; }
+
+      /* Hide desktop toggle strips */
       #fs-blade-toggle, #blade-toggle { display: none !important; }
-      /* Show FABs */
-      #mobile-fab-files, #mobile-fab-settings { display: flex; }
-      /* Show backdrop when active */
+      /* Show mobile controls */
+      #mobile-fab-files { display: flex; }
+      #mobile-hamburger { display: flex; }
       #mobile-backdrop.active { display: block; }
-      /* Scroll-top button: fixed right since blade no longer pushes it */
       #scroll-top-btn { right: 12px !important; }
     }
 
@@ -553,10 +568,7 @@
   <span style="font-size:20px;line-height:1;">&#128193;</span>
   <span style="font-size:11px;font-weight:bold;letter-spacing:0.02em;">Files</span>
 </button>
-<button id="mobile-fab-settings" title="Settings">
-  <span style="font-size:20px;line-height:1;">&#9881;&#xFE0E;</span>
-  <span style="font-size:11px;font-weight:bold;letter-spacing:0.02em;">Settings</span>
-</button>
+<button id="mobile-hamburger" title="Settings">&#9776;</button>
 
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
   <script>
@@ -1272,23 +1284,37 @@
       localStorage.setItem('fsBladeCollapsed', collapsed ? '1' : '0');
     });
 
-    // Mobile bottom-sheet FABs
+    // Mobile sheets + hamburger
+    // Append blade elements directly to <body> so position:fixed works on iOS Safari
     const mobileBackdrop = document.getElementById('mobile-backdrop');
     const fabFiles = document.getElementById('mobile-fab-files');
-    const fabSettings = document.getElementById('mobile-fab-settings');
-    function openMobileSheet(sheetEl) {
-      fsBlade.classList.add('collapsed');
-      blade.classList.add('collapsed');
-      sheetEl.classList.remove('collapsed');
-      mobileBackdrop.classList.add('active');
+    const mobileHamburger = document.getElementById('mobile-hamburger');
+    if (_isMobile) {
+      document.body.appendChild(fsBlade);
+      document.body.appendChild(blade);
     }
     function closeMobileSheets() {
       fsBlade.classList.add('collapsed');
       blade.classList.add('collapsed');
       mobileBackdrop.classList.remove('active');
+      mobileHamburger.textContent = '\u2630';
     }
-    fabFiles.addEventListener('click', () => openMobileSheet(fsBlade));
-    fabSettings.addEventListener('click', () => openMobileSheet(blade));
+    fabFiles.addEventListener('click', () => {
+      blade.classList.add('collapsed');
+      fsBlade.classList.remove('collapsed');
+      mobileBackdrop.classList.add('active');
+      mobileHamburger.textContent = '\u2630';
+    });
+    mobileHamburger.addEventListener('click', () => {
+      if (blade.classList.contains('collapsed')) {
+        fsBlade.classList.add('collapsed');
+        blade.classList.remove('collapsed');
+        mobileBackdrop.classList.add('active');
+        mobileHamburger.textContent = '\u2715';
+      } else {
+        closeMobileSheets();
+      }
+    });
     mobileBackdrop.addEventListener('click', closeMobileSheets);
 
     // Blade OS drag-drop
