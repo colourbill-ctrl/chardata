@@ -2754,26 +2754,32 @@
       const zRange = (zMin === Infinity) ? [0, 100] : [Math.min(0, zMin), zMax + (zMax - zMin) * 0.05 || 5];
       _plotAxisRanges = { xRange, yRange, zRange };
 
-      // Render custom legend for compare mode
+      // Render custom legend
       let customLegendEl = document.getElementById('plot-custom-legend');
+      if (!customLegendEl) {
+        customLegendEl = document.createElement('div');
+        customLegendEl.id = 'plot-custom-legend';
+        customLegendEl.style.cssText = 'position:absolute;top:38px;left:12px;z-index:10;display:flex;flex-direction:column;gap:4px;';
+        document.getElementById('plot-wrap').style.position = 'relative';
+        document.getElementById('plot-wrap').appendChild(customLegendEl);
+      }
       if (_mode === 'compare' && b) {
-        if (!customLegendEl) {
-          customLegendEl = document.createElement('div');
-          customLegendEl.id = 'plot-custom-legend';
-          customLegendEl.style.cssText = 'position:absolute;top:38px;left:12px;z-index:10;display:flex;flex-direction:column;gap:4px;';
-          document.getElementById('plot-wrap').style.position = 'relative';
-          document.getElementById('plot-wrap').appendChild(customLegendEl);
-        }
+        // Compare: toggleable entries; header is a plain div, entries have class legend-item
         customLegendEl.innerHTML = '<div style="font-size:11px;color:#555;padding:2px 4px 4px 4px;user-select:none;">Select to toggle file visibility:</div>'
           + traceSpecs.map((spec, i) => {
           const on = _plotVisible[i];
-          return `<div onclick="togglePlotTrace(${i})" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 8px;background:rgba(255,255,255,0.85);border:1px solid #ddd;border-radius:4px;font-size:12px;user-select:none;${on ? '' : 'opacity:0.45;'}">
-            <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${spec.color};flex-shrink:0;${on ? '' : 'background:#aaa;'}"></span>
+          return `<div class="legend-item" onclick="togglePlotTrace(${i})" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 8px;background:rgba(255,255,255,0.85);border:1px solid #ddd;border-radius:4px;font-size:12px;user-select:none;${on ? '' : 'opacity:0.45;'}">
+            <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
             <span style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
           </div>`;
         }).join('');
-      } else if (customLegendEl) {
-        customLegendEl.remove();
+      } else {
+        // Explore: single non-interactive file name entry
+        const spec = traceSpecs[0];
+        customLegendEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(255,255,255,0.85);border:1px solid #ddd;border-radius:4px;font-size:12px;user-select:none;">
+          <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${spec.color};flex-shrink:0;"></span>
+          <span style="color:#333;">${spec.name}</span>
+        </div>`;
       }
 
       Plotly.react(plotEl, traces, {
@@ -2821,7 +2827,7 @@
       } : {};
       Plotly.update(plotEl, { visible: [_plotVisible[i]] }, layout, [i]);
       // Refresh custom legend appearance without full re-render
-      const items = document.querySelectorAll('#plot-custom-legend > div');
+      const items = document.querySelectorAll('#plot-custom-legend .legend-item');
       const { a, b } = state;
       const colors = ['#4a90e2', '#e24a4a'];
       const names = [a ? a.name : '', b ? b.name : ''];
