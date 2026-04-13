@@ -124,32 +124,21 @@
       #app-layout { overflow: visible; height: auto; }
       #main-content { height: auto; overflow-y: visible; padding: 16px 10px 100px; }
 
-      /* File-select blade → bottom sheet */
+      /* File-select blade → left-side drawer (mirrors Settings on right) */
       #file-select-blade {
         position: fixed !important;
-        bottom: 0; left: 0; right: 0;
-        width: 100% !important; min-width: unset !important;
-        height: auto !important; max-height: 75vh;
+        top: 0; left: 0; bottom: 0;
+        width: min(300px, 85vw) !important; min-width: unset !important;
+        height: 100% !important; max-height: none;
         flex-direction: column !important;
-        border-radius: 16px 16px 0 0;
-        box-shadow: 0 -4px 24px rgba(0,0,0,0.22);
-        transform: translateY(100%);
+        border-radius: 0;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.22);
+        transform: translateX(-100%);
         transition: transform 0.3s ease !important;
-        z-index: 1000;
+        z-index: 1000; overflow-y: auto;
       }
-      #fs-sheet-handle {
-        display: flex; align-items: center; justify-content: center;
-        width: 100%; padding: 14px 0 8px; flex-shrink: 0;
-        cursor: pointer; background: none; border: none; outline: none;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-      }
-      #fs-sheet-handle::after {
-        content: ''; display: block;
-        width: 40px; height: 4px;
-        background: #ccc; border-radius: 2px;
-      }
-      #file-select-blade:not(.collapsed) { transform: translateY(0); }
+      #fs-sheet-handle { display: none !important; }
+      #file-select-blade:not(.collapsed) { transform: translateX(0); }
       #file-select-blade #file-select-blade-content { display: flex !important; overflow-y: auto; }
 
       /* Settings blade → right-side drawer */
