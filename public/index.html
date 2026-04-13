@@ -1307,12 +1307,18 @@
       blade.classList.add('collapsed');
       mobileBackdrop.classList.remove('active');
       mobileHamburger.textContent = GEAR;
+      fabFiles.querySelector('span').textContent = '\uD83D\uDCC1';
     }
     fabFiles.addEventListener('click', () => {
-      blade.classList.add('collapsed');
-      fsBlade.classList.remove('collapsed');
-      mobileBackdrop.classList.add('active');
-      mobileHamburger.textContent = GEAR;
+      if (fsBlade.classList.contains('collapsed')) {
+        blade.classList.add('collapsed');
+        fsBlade.classList.remove('collapsed');
+        mobileBackdrop.classList.add('active');
+        mobileHamburger.textContent = GEAR;
+        fabFiles.querySelector('span').textContent = CLOSE;
+      } else {
+        closeMobileSheets();
+      }
     });
     fsSheetHandle.addEventListener('click', closeMobileSheets);
     mobileHamburger.addEventListener('click', () => {
@@ -1321,6 +1327,7 @@
         blade.classList.remove('collapsed');
         mobileBackdrop.classList.add('active');
         mobileHamburger.textContent = CLOSE;
+        fabFiles.querySelector('span').textContent = '\uD83D\uDCC1';
       } else {
         closeMobileSheets();
       }
