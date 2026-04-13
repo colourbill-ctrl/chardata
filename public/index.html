@@ -93,20 +93,24 @@
     #mobile-fab-files, #mobile-fab-settings {
       display: none;
       position: fixed; bottom: 22px; z-index: 998;
-      width: 54px; height: 54px; border-radius: 50%;
+      padding: 8px 18px; border-radius: 28px;
       border: 1px solid #2a6ab5; border-bottom: 3px solid #1f52a0;
-      cursor: pointer; font-size: 22px;
+      cursor: pointer;
       background: linear-gradient(to bottom, #6aa8f0, #3a7fd5);
       color: #fff;
       box-shadow: 0 3px 10px rgba(0,0,0,0.25);
       align-items: center; justify-content: center;
+      flex-direction: column; gap: 2px;
     }
     #mobile-fab-files  { left: 22px; }
     #mobile-fab-settings { right: 22px; }
 
     @media (max-width: 700px) {
       .panels { flex-direction: column; }
-      #main-content { padding: 16px 10px; padding-bottom: 88px; }
+      /* Body scrolls on mobile; inner containers must not create scroll contexts
+         that break position:fixed on iOS Safari */
+      #app-layout { overflow: visible; height: auto; }
+      #main-content { height: auto; overflow-y: visible; padding: 16px 10px 100px; }
 
       /* Blades become fixed bottom sheets */
       #file-select-blade, #blade {
@@ -545,8 +549,14 @@
 </div><!-- /app-layout -->
 
 <div id="mobile-backdrop"></div>
-<button id="mobile-fab-files" title="Files">&#128193;</button>
-<button id="mobile-fab-settings" title="Settings">&#9881;&#xFE0E;</button>
+<button id="mobile-fab-files" title="File Select">
+  <span style="font-size:20px;line-height:1;">&#128193;</span>
+  <span style="font-size:11px;font-weight:bold;letter-spacing:0.02em;">Files</span>
+</button>
+<button id="mobile-fab-settings" title="Settings">
+  <span style="font-size:20px;line-height:1;">&#9881;&#xFE0E;</span>
+  <span style="font-size:11px;font-weight:bold;letter-spacing:0.02em;">Settings</span>
+</button>
 
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
   <script>
@@ -2781,7 +2791,7 @@
     }
   </script>
   <button id="scroll-top-btn" title="Scroll to top"
-    onclick="document.getElementById('main-content').scrollTo({top:0,behavior:'smooth'})">&#8679; Top</button>
+    onclick="window.innerWidth<=700?window.scrollTo({top:0,behavior:'smooth'}):document.getElementById('main-content').scrollTo({top:0,behavior:'smooth'})">&#8679; Top</button>
 
   <div id="file-viewer-overlay" onclick="closeFileViewer()"
     style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.4);">
