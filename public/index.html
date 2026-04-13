@@ -83,6 +83,8 @@
       margin-bottom: 16px;
     }
 
+    #fs-sheet-handle { display: none; }
+
     /* Mobile overlays — all hidden on desktop */
     #mobile-backdrop {
       display: none;
@@ -133,11 +135,14 @@
         transition: transform 0.3s ease !important;
         z-index: 1000;
       }
-      #file-select-blade::before {
+      #fs-sheet-handle {
+        display: flex; align-items: center; justify-content: center;
+        padding: 12px 0 6px; flex-shrink: 0; cursor: pointer;
+      }
+      #fs-sheet-handle::after {
         content: ''; display: block;
         width: 40px; height: 4px;
         background: #ccc; border-radius: 2px;
-        margin: 10px auto 0; flex-shrink: 0;
       }
       #file-select-blade:not(.collapsed) { transform: translateY(0); }
       #file-select-blade #file-select-blade-content { display: flex !important; overflow-y: auto; }
@@ -415,6 +420,7 @@
 
   <!-- Left file-select blade -->
   <div id="file-select-blade">
+    <div id="fs-sheet-handle"></div>
     <div id="file-select-blade-content">
       <div id="file-select-blade-header">File Select</div>
       <div id="file-select-add-btn-wrap" style="display:flex;align-items:flex-start;gap:6px;">
@@ -568,7 +574,7 @@
   <span style="font-size:20px;line-height:1;">&#128193;</span>
   <span style="font-size:11px;font-weight:bold;letter-spacing:0.02em;">Files</span>
 </button>
-<button id="mobile-hamburger" title="Settings">&#9776;</button>
+<button id="mobile-hamburger" title="Settings">&#9881;&#xFE0E;</button>
 
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
   <script>
@@ -1289,28 +1295,38 @@
     const mobileBackdrop = document.getElementById('mobile-backdrop');
     const fabFiles = document.getElementById('mobile-fab-files');
     const mobileHamburger = document.getElementById('mobile-hamburger');
+    const fsSheetHandle = document.getElementById('fs-sheet-handle');
+    const GEAR = '\u2699\uFE0E', CLOSE = '\u2715';
     if (_isMobile) {
+      // Suppress transition during DOM move to prevent flash-then-slide animation
+      fsBlade.style.setProperty('transition', 'none', 'important');
+      blade.style.setProperty('transition', 'none', 'important');
       document.body.appendChild(fsBlade);
       document.body.appendChild(blade);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        fsBlade.style.removeProperty('transition');
+        blade.style.removeProperty('transition');
+      }));
     }
     function closeMobileSheets() {
       fsBlade.classList.add('collapsed');
       blade.classList.add('collapsed');
       mobileBackdrop.classList.remove('active');
-      mobileHamburger.textContent = '\u2630';
+      mobileHamburger.textContent = GEAR;
     }
     fabFiles.addEventListener('click', () => {
       blade.classList.add('collapsed');
       fsBlade.classList.remove('collapsed');
       mobileBackdrop.classList.add('active');
-      mobileHamburger.textContent = '\u2630';
+      mobileHamburger.textContent = GEAR;
     });
+    fsSheetHandle.addEventListener('click', closeMobileSheets);
     mobileHamburger.addEventListener('click', () => {
       if (blade.classList.contains('collapsed')) {
         fsBlade.classList.add('collapsed');
         blade.classList.remove('collapsed');
         mobileBackdrop.classList.add('active');
-        mobileHamburger.textContent = '\u2715';
+        mobileHamburger.textContent = CLOSE;
       } else {
         closeMobileSheets();
       }
