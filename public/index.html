@@ -83,6 +83,11 @@
       margin-bottom: 16px;
     }
 
+    @media (max-width: 700px) {
+      .panels { flex-direction: column; }
+      #main-content { padding: 16px 10px; }
+    }
+
     .panel {
       flex: 1;
       background: #fff;
@@ -580,7 +585,8 @@
     // Blade toggle
     const blade = document.getElementById('blade');
     const bladeToggle = document.getElementById('blade-toggle');
-    if (localStorage.getItem('bladeCollapsed') === '1') blade.classList.add('collapsed');
+    const _isMobile = window.innerWidth <= 700;
+    if (_isMobile || localStorage.getItem('bladeCollapsed') === '1') blade.classList.add('collapsed');
     const bladeArrow = bladeToggle.querySelector('.blade-arrow');
     bladeArrow.textContent = blade.classList.contains('collapsed') ? '\u2039' : '\u203a';
     const BLADE_W_OPEN = 220, BLADE_W_CLOSED = 38;
@@ -1182,7 +1188,7 @@
     // File-select blade toggle
     const fsBlade = document.getElementById('file-select-blade');
     const fsToggle = document.getElementById('fs-blade-toggle');
-    if (localStorage.getItem('fsBladeCollapsed') === '1') fsBlade.classList.add('collapsed');
+    if (_isMobile || localStorage.getItem('fsBladeCollapsed') === '1') fsBlade.classList.add('collapsed');
     const fsArrow = fsToggle.querySelector('.fs-arrow');
     fsArrow.textContent = fsBlade.classList.contains('collapsed') ? '\u203a' : '\u2039';
     fsToggle.addEventListener('click', () => {
@@ -1941,6 +1947,7 @@
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" name="extract-type" value="cmy-grays"> CMY Grays</label>
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" name="extract-type" value="cmy-browns"> CMY Browns</label>
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" name="extract-type" value="solids-only"> Solids Only</label>
+              <label style="display:none;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" name="extract-type" value="surface-points"> Surface Points</label>
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" name="extract-type" value="remove-paper-white"> Remove paper white point</label>
             </div>
             <div style="border-left:1px solid #ddd;align-self:stretch;"></div>
@@ -2022,6 +2029,21 @@
         return nonZeroVals.length === 2 && nonZeroVals[0] === nonZeroVals[1];
       }
       if (type === 'solids-only') return vals.every(v => v === 0 || v === 100);
+      if (type === 'surface-points') {
+        const ki = colorants.indexOf('BLACK');
+        const ci2 = colorants.indexOf('CYAN'), mi2 = colorants.indexOf('MAGENTA'), yi2 = colorants.indexOf('YELLOW');
+        // Exclusion 1: CMY all 0 (K-only axis and paper white)
+        if (ci2 !== -1 && mi2 !== -1 && yi2 !== -1 && vals[ci2] === 0 && vals[mi2] === 0 && vals[yi2] === 0) return false;
+        // Base condition: at least 2 colorants at extremes (0 or 100)
+        if (vals.filter(v => v === 0 || v === 100).length < 2) return false;
+        // Exclusion 2: K=0 paired with another 0 as the sole qualifying pair (condition 1 with K)
+        if (ki !== -1 && vals[ki] === 0) {
+          const nonKExtremes = vals.filter((v, i) => i !== ki && (v === 0 || v === 100)).length;
+          const nonKHas100 = vals.some((v, i) => i !== ki && v === 100);
+          if (nonKExtremes < 2 && !nonKHas100) return false;
+        }
+        return true;
+      }
       const ci = colorants.indexOf('CYAN'), mi = colorants.indexOf('MAGENTA'),
             yi = colorants.indexOf('YELLOW'), ki = colorants.indexOf('BLACK');
       if (type === 'cmy-grays') {
