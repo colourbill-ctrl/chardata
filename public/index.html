@@ -83,7 +83,7 @@
       margin-bottom: 16px;
     }
 
-    #fs-sheet-handle { display: none; }
+    #fs-sheet-handle { display: none; padding: 0; background: none; border: none; }
 
     /* Mobile overlays — all hidden on desktop */
     #mobile-backdrop {
@@ -91,6 +91,8 @@
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.45);
       z-index: 999;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
     #mobile-fab-files {
       display: none;
@@ -137,7 +139,10 @@
       }
       #fs-sheet-handle {
         display: flex; align-items: center; justify-content: center;
-        padding: 12px 0 6px; flex-shrink: 0; cursor: pointer;
+        width: 100%; padding: 14px 0 8px; flex-shrink: 0;
+        cursor: pointer; background: none; border: none; outline: none;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
       }
       #fs-sheet-handle::after {
         content: ''; display: block;
@@ -420,7 +425,7 @@
 
   <!-- Left file-select blade -->
   <div id="file-select-blade">
-    <div id="fs-sheet-handle"></div>
+    <button id="fs-sheet-handle" aria-label="Close file select"></button>
     <div id="file-select-blade-content">
       <div id="file-select-blade-header">File Select</div>
       <div id="file-select-add-btn-wrap" style="display:flex;align-items:flex-start;gap:6px;">
