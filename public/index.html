@@ -410,7 +410,7 @@
     /* ── Gamut shell legend & panel ── */
     .legend-item-row { display:flex; align-items:stretch; background:rgba(255,255,255,0.85); border:1px solid #ddd; border-radius:4px; font-size:12px; user-select:none; overflow:hidden; }
     .legend-item-left { display:flex; align-items:center; gap:6px; padding:3px 8px; cursor:pointer; flex:1; }
-    .legend-gear-btn { padding:3px 8px; background:none; border:none; border-left:1px solid #ddd; cursor:pointer; color:#888; font-size:14px; flex-shrink:0; line-height:1; }
+    .legend-gear-btn { padding:3px 8px; background:none; border:none; border-right:1px solid #ddd; cursor:pointer; color:#888; font-size:14px; flex-shrink:0; line-height:1; }
     .legend-gear-btn:hover { background:#f0f4ff; color:#4a90e2; }
     .gamut-panel { display:none; flex-direction:column; gap:7px; padding:9px 10px; background:rgba(255,255,255,0.97); border:1px solid #ccc; border-radius:4px; font-size:12px; color:#444; min-width:210px; box-shadow:0 2px 8px rgba(0,0,0,0.12); }
     .gamut-panel-row { display:flex; align-items:center; gap:6px; }
@@ -2845,11 +2845,11 @@
         const on = _plotVisible[i];
         return `<div style="display:flex;flex-direction:column;gap:3px;">
           <div class="legend-item legend-item-row" style="${on ? '' : 'opacity:0.45;'}">
+            <button class="legend-gear-btn" onclick="event.stopPropagation();toggleGamutPanel('${spec.slot}')">&#9881;&#xFE0E;</button>
             <div class="legend-item-left" ${toggleable ? `onclick="togglePlotTrace(${i})"` : ''}>
               <span class="legend-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
               <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
             </div>
-            <button class="legend-gear-btn" onclick="event.stopPropagation();toggleGamutPanel('${spec.slot}')">&#9881;&#xFE0E;</button>
           </div>
           ${gamutPanelHTML(spec)}
         </div>`;
@@ -2860,7 +2860,7 @@
       if (!customLegendEl) {
         customLegendEl = document.createElement('div');
         customLegendEl.id = 'plot-custom-legend';
-        customLegendEl.style.cssText = 'position:absolute;top:38px;left:12px;z-index:10;display:flex;flex-direction:column;gap:4px;max-width:240px;';
+        customLegendEl.style.cssText = 'position:absolute;top:38px;left:12px;z-index:10;display:flex;flex-direction:column;gap:4px;max-width:60%;';
         document.getElementById('plot-wrap').style.position = 'relative';
         document.getElementById('plot-wrap').appendChild(customLegendEl);
       }
