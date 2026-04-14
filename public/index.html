@@ -2936,7 +2936,11 @@
 
     function setShellOn(slot, val) {
       _gamutState[slot].shellOn = val;
-      applyGamutUpdate(slot);
+      if (val && !_gamutState[slot].cachedXYZ) {
+        regenerateGamutShell(slot);  // auto-build on first enable
+      } else {
+        applyGamutUpdate(slot);
+      }
     }
 
     function setPointsOn(slot, val) {
