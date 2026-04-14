@@ -647,9 +647,9 @@
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
     let _nSpecs = 0;             // number of scatter traces; shell traces are at indices _nSpecs..(2*_nSpecs-1)
     const _gamutState = {
-      a: { shellOn: false, pointsOn: true, alpha: 70, cachedXYZ: null,
+      a: { shellOn: false, pointsOn: true, alpha: 70, cachedXYZ: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
-      b: { shellOn: false, pointsOn: true, alpha: 70, cachedXYZ: null,
+      b: { shellOn: false, pointsOn: true, alpha: 70, cachedXYZ: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } }
     };
     let _suppressDismiss = false;
@@ -2802,12 +2802,12 @@
       const gamutPanelHTML = (spec) => {
         const gs = _gamutState[spec.slot];
         const li = gs.lighting;
-        return `<div class="gamut-panel" id="gamut-panel-${spec.slot}">
-          <div class="gamut-panel-row"><label><input type="checkbox" onchange="setShellOn('${spec.slot}',this.checked)"${gs.shellOn ? ' checked' : ''}> Gamut Shell</label></div>
-          <div class="gamut-panel-row"><label><input type="checkbox" onchange="setPointsOn('${spec.slot}',this.checked)"${gs.pointsOn ? ' checked' : ''}> Data Points</label></div>
+        return `<div class="gamut-panel" id="gamut-panel-${spec.slot}" style="display:${gs.panelOpen ? 'flex' : 'none'};">
+          <div class="gamut-panel-row"><label><input type="checkbox" onchange="setShellOn('${spec.slot}',this.checked)"${gs.shellOn ? ' checked' : ''}> Show gamut shell</label></div>
+          <div class="gamut-panel-row"><label><input type="checkbox" onchange="setPointsOn('${spec.slot}',this.checked)"${gs.pointsOn ? ' checked' : ''}> Show data points</label></div>
           <div class="gamut-panel-row">
             <span>Alpha</span>
-            <input type="range" id="gs-alpha-r-${spec.slot}" min="0" max="100" value="${gs.alpha}" oninput="setGamutAlpha('${spec.slot}',+this.value)">
+            <input type="range" id="gs-alpha-r-${spec.slot}" min="0" max="100" value="${gs.alpha}" onchange="setGamutAlpha('${spec.slot}',+this.value)">
             <input type="number" id="gs-alpha-n-${spec.slot}" min="0" max="100" value="${gs.alpha}" onchange="setGamutAlpha('${spec.slot}',+this.value)">
             <span>%</span>
           </div>
@@ -2820,7 +2820,7 @@
             <div class="gamut-light-row">
               <span>${prop}</span>
               <input type="range" id="gs-${prop}-r-${spec.slot}" min="0" max="100" value="${Math.round(li[prop]*100)}"
-                     oninput="setLighting('${spec.slot}','${prop}',+this.value)">
+                     onchange="setLighting('${spec.slot}','${prop}',+this.value)">
               <span class="light-readout" id="gs-${prop}-v-${spec.slot}">${Math.round(li[prop]*100)}%</span>
             </div>`).join('')}
           </div>
@@ -2925,13 +2925,17 @@
     }
 
     function toggleGamutPanel(slot) {
-      const target = document.getElementById('gamut-panel-' + slot);
-      if (!target) return;
-      const wasHidden = target.style.display === 'none' || target.style.display === '';
-      // Close all panels first
-      document.querySelectorAll('.gamut-panel').forEach(p => { p.style.display = 'none'; });
+      const wasOpen = _gamutState[slot].panelOpen;
+      // Close all panels
+      ['a', 'b'].forEach(s => { _gamutState[s].panelOpen = false; });
       // Toggle target
-      if (wasHidden) target.style.display = 'flex';
+      if (!wasOpen) _gamutState[slot].panelOpen = true;
+      // Update DOM directly (no full re-render needed)
+      document.querySelectorAll('.gamut-panel').forEach(p => { p.style.display = 'none'; });
+      if (_gamutState[slot].panelOpen) {
+        const target = document.getElementById('gamut-panel-' + slot);
+        if (target) target.style.display = 'flex';
+      }
     }
 
     function setShellOn(slot, val) {
@@ -2987,30 +2991,7 @@
     }
 
     function applyGamutUpdate(slot) {
-      const plotEl = document.getElementById('plot');
-      if (!plotEl) return;
-      const slotIdx = slot === 'a' ? 0 : 1;
-      const shellIdx = _nSpecs + slotIdx;
-      if (shellIdx >= plotEl.data.length) return;
-      const gs = _gamutState[slot];
-      const hasCache = !!(gs.cachedXYZ && gs.cachedXYZ.x.length);
-      const show = gs.shellOn && hasCache && _plotVisible[slotIdx];
-      const update = {
-        visible: [show],
-        opacity: [gs.alpha / 100]
-      };
-      if (hasCache) {
-        update.x = [gs.cachedXYZ.x];
-        update.y = [gs.cachedXYZ.y];
-        update.z = [gs.cachedXYZ.z];
-      }
-      update.lighting = [{
-        ambient: gs.lighting.ambient,
-        diffuse: gs.lighting.diffuse,
-        specular: gs.lighting.specular,
-        roughness: gs.lighting.roughness
-      }];
-      Plotly.update(plotEl, update, {}, [shellIdx]);
+      renderPlot();
     }
   </script>
   <button id="scroll-top-btn" title="Scroll to top"
