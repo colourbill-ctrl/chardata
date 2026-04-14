@@ -684,7 +684,7 @@
       renderFileList();
       updateCompareBtn();
       ['a', 'b'].forEach(slot => {
-        document.getElementById('show-file-' + slot).disabled = !state[slot];
+        document.getElementById('show-file-' + slot).disabled = !_rawFileData[slot];
       });
       if (isExplore && state.a) renderExplore();
     }
@@ -992,7 +992,7 @@
         validEl.textContent = 'File is neither CSV nor CGATS format';
         validEl.className = 'validation invalid';
         state[slot] = null;
-        document.getElementById('show-file-' + slot).disabled = true;
+        document.getElementById('show-file-' + slot).disabled = false;
         updateCompareBtn();
         document.getElementById('result').innerHTML = '';
         document.getElementById('plot-section').style.display = 'none';
@@ -1009,7 +1009,7 @@
                             + cgats.errors.map(e => `<div>${e}</div>`).join('');
           validEl.className = 'validation invalid';
           state[slot] = null;
-          document.getElementById('show-file-' + slot).disabled = true;
+          document.getElementById('show-file-' + slot).disabled = false;
           updateCompareBtn();
           document.getElementById('result').innerHTML = '';
           document.getElementById('plot-section').style.display = 'none';
@@ -1071,7 +1071,7 @@
         validEl.innerHTML += `<div>Missing: ${missing.join(', ')}</div>`;
         validEl.className = 'validation invalid';
         state[slot] = null;
-        document.getElementById('show-file-' + slot).disabled = true;
+        document.getElementById('show-file-' + slot).disabled = false;
       }
 
       document.getElementById('rows-' + slot).textContent = (dedupEnabled && rowsBefore !== rowsAfter)
