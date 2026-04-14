@@ -662,9 +662,9 @@
     const _sliceState = { axis: 'L', value: 50, bandwidth: 5 };
     const _sliceVisible = { a: true, b: true };
     const _gamutState = {
-      a: { shellOn: false, pointsOn: true, alpha: 70, cachedXYZ: null, panelOpen: false,
+      a: { shellOn: false, pointsOn: true, alpha: 70, meshDensity: 7, cachedXYZ: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
-      b: { shellOn: false, pointsOn: true, alpha: 70, cachedXYZ: null, panelOpen: false,
+      b: { shellOn: false, pointsOn: true, alpha: 70, meshDensity: 7, cachedXYZ: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } }
     };
     let _suppressDismiss = false;
@@ -864,9 +864,10 @@
       const lines = text.split(/\r\n|\r|\n/);
       const errors = [], warnings = [];
 
-      // Check 1 — CGATS header: warning only, does not block processing
-      if (!lines[0] || !lines[0].toUpperCase().includes('CGATS')) {
-        warnings.push('File header is not standard CGATS (first line does not contain "CGATS")');
+      // Check 1 — CGATS/ISO28178 header: warning only, does not block processing
+      const firstLineUpper = (lines[0] || '').toUpperCase();
+      if (!firstLineUpper.includes('CGATS') && !firstLineUpper.includes('ISO28178')) {
+        warnings.push('File header is not standard CGATS (first line does not contain "CGATS" or "ISO28178")');
       }
 
       // Check 2 — single BEGIN_DATA_FORMAT / END_DATA_FORMAT pair
@@ -1004,7 +1005,7 @@
       const typeEl  = document.getElementById('type-' + slot);
 
       if (!isCSV && !isCGATS) {
-        validEl.textContent = 'File is neither CSV nor CGATS format';
+        validEl.textContent = 'File is neither CSV nor CGATS/ISO28178 format';
         validEl.className = 'validation invalid';
         state[slot] = null;
         document.getElementById('show-file-' + slot).disabled = false;
@@ -1015,7 +1016,7 @@
         return;
       }
 
-      typeEl.textContent = isCSV ? 'CSV' : 'CGATS';
+      typeEl.textContent = isCSV ? 'CSV' : (firstLine.toUpperCase().includes('ISO28178') ? 'ISO28178' : 'CGATS');
 
       if (isCGATS) {
         const cgats = validateCGATS(text);
@@ -1079,6 +1080,10 @@
         }
         validEl.className = 'validation';
         state[slot] = { headers, rows: dedupedRows, colorants, name: fileName, usedSpectralLab, hasSpectral };
+        _gamutState[slot].shellOn = false;
+        const perFileCb = document.getElementById('gs-shell-cb-' + slot);
+        if (perFileCb) perFileCb.checked = false;
+        syncShellCheckbox();
         buildGamutCache(slot);
         document.getElementById('show-file-' + slot).disabled = false;
       } else {
@@ -1273,6 +1278,7 @@
         const nameEl = document.createElement('div');
         nameEl.className = 'file-card-name';
         nameEl.textContent = entry.name;
+        nameEl.title = entry.name;
         card.appendChild(nameEl);
 
         const delBtn = document.createElement('button');
@@ -2832,7 +2838,7 @@
           shellColor = undefined;
         }
         const tr = {
-          type: 'mesh3d', name: spec.name + ' shell', showlegend: false, alphahull: 0,
+          type: 'mesh3d', name: spec.name + ' shell', showlegend: false, alphahull: gs.meshDensity,
           x: hasCache ? gs.cachedXYZ.x : [],
           y: hasCache ? gs.cachedXYZ.y : [],
           z: hasCache ? gs.cachedXYZ.z : [],
@@ -2869,13 +2875,21 @@
           <div class="gamut-panel-row"><label><input type="checkbox" id="gs-shell-cb-${spec.slot}" onchange="setShellOn('${spec.slot}',this.checked)"${gs.shellOn ? ' checked' : ''}> Show gamut shell</label></div>
           <div class="gamut-panel-row"><label><input type="checkbox" onchange="setPointsOn('${spec.slot}',this.checked)"${gs.pointsOn ? ' checked' : ''}> Show data points</label></div>
           <div class="gamut-panel-row">
-            <span>Alpha</span>
+            <span>Opacity</span>
             <input type="range" id="gs-alpha-r-${spec.slot}" min="0" max="100" value="${gs.alpha}" onchange="setGamutAlpha('${spec.slot}',+this.value)">
             <input type="number" id="gs-alpha-n-${spec.slot}" min="0" max="100" value="${gs.alpha}" onchange="setGamutAlpha('${spec.slot}',+this.value)">
             <span>%</span>
           </div>
           <div class="gamut-panel-row">
             <button onclick="regenerateGamutShell('${spec.slot}')" class="validate-btn" style="font-size:11px;padding:3px 8px;">&#8635; Regenerate Shell</button>
+          </div>
+          <div style="border-top:1px solid #eee;padding-top:6px;margin-top:2px;">
+            <div class="gamut-lighting-label">Mesh</div>
+            <div class="gamut-panel-row">
+              <span>Density</span>
+              <input type="range" id="gs-density-r-${spec.slot}" min="1" max="50" value="${gs.meshDensity}" oninput="setMeshDensity('${spec.slot}',+this.value)">
+              <input type="number" id="gs-density-n-${spec.slot}" min="1" max="50" value="${gs.meshDensity}" onchange="setMeshDensity('${spec.slot}',+this.value)">
+            </div>
           </div>
           <div style="border-top:1px solid #eee;padding-top:6px;margin-top:2px;">
             <div class="gamut-lighting-label">Lighting</div>
@@ -3047,6 +3061,16 @@
         const visible = _plotVisible[slotIdx] && val;
         Plotly.update(plotEl, { visible: [visible] }, {}, [slotIdx]);
       }
+    }
+
+    function setMeshDensity(slot, val) {
+      val = Math.max(1, Math.min(50, Math.round(val)));
+      _gamutState[slot].meshDensity = val;
+      const slider = document.getElementById('gs-density-r-' + slot);
+      const num = document.getElementById('gs-density-n-' + slot);
+      if (slider) slider.value = val;
+      if (num) num.value = val;
+      applyGamutUpdate(slot);
     }
 
     function setGamutAlpha(slot, val) {
