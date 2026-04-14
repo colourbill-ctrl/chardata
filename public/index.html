@@ -406,6 +406,22 @@
     }
     .file-card:hover .file-card-delete { display: flex; }
     .file-card-delete:hover { color: #e74c3c; background: #fdecea; }
+
+    /* ── Gamut shell legend & panel ── */
+    .legend-item-row { display:flex; align-items:stretch; background:rgba(255,255,255,0.85); border:1px solid #ddd; border-radius:4px; font-size:12px; user-select:none; overflow:hidden; }
+    .legend-item-left { display:flex; align-items:center; gap:6px; padding:3px 8px; cursor:pointer; flex:1; }
+    .legend-gear-btn { padding:3px 8px; background:none; border:none; border-left:1px solid #ddd; cursor:pointer; color:#888; font-size:14px; flex-shrink:0; line-height:1; }
+    .legend-gear-btn:hover { background:#f0f4ff; color:#4a90e2; }
+    .gamut-panel { display:none; flex-direction:column; gap:7px; padding:9px 10px; background:rgba(255,255,255,0.97); border:1px solid #ccc; border-radius:4px; font-size:12px; color:#444; min-width:210px; box-shadow:0 2px 8px rgba(0,0,0,0.12); }
+    .gamut-panel-row { display:flex; align-items:center; gap:6px; }
+    .gamut-panel-row input[type=range] { flex:1; min-width:60px; }
+    .gamut-panel-row input[type=number] { width:44px; padding:1px 3px; font-size:11px; border:1px solid #ccc; border-radius:3px; }
+    .gamut-panel-row label { display:flex; align-items:center; gap:6px; cursor:pointer; }
+    .gamut-lighting-label { font-size:10px; font-weight:bold; color:#aaa; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px; }
+    .gamut-light-row { display:flex; align-items:center; gap:5px; }
+    .gamut-light-row span:first-child { min-width:66px; color:#555; text-transform:capitalize; }
+    .gamut-light-row input[type=range] { flex:1; min-width:60px; }
+    .gamut-light-row .light-readout { min-width:30px; font-size:11px; color:#666; text-align:right; }
   </style>
 </head>
 <body>
@@ -627,8 +643,15 @@
     let _plotRowMap = [];        // _plotRowMap[curveNumber][pointIndex] → row index in state[slot].rows
     let _plotClickHandler = null;
     let _plotLegendHandler = null;
-    let _plotVisible = [];       // per-trace visibility, preserved across re-renders
+    let _plotVisible = [];       // per-trace visibility for scatter traces, preserved across re-renders
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
+    let _nSpecs = 0;             // number of scatter traces; shell traces are at indices _nSpecs..(2*_nSpecs-1)
+    const _gamutState = {
+      a: { shellOn: false, pointsOn: true, alpha: 70, cachedXYZ: null,
+           lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
+      b: { shellOn: false, pointsOn: true, alpha: 70, cachedXYZ: null,
+           lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } }
+    };
     let _suppressDismiss = false;
 
     let _hasExtracted = false;
@@ -1039,6 +1062,7 @@
         }
         validEl.className = 'validation';
         state[slot] = { headers, rows: dedupedRows, colorants, name: fileName, usedSpectralLab, hasSpectral };
+        _gamutState[slot].cachedXYZ = null;
         document.getElementById('show-file-' + slot).disabled = false;
       } else {
         validEl.innerHTML += `<div>Missing: ${missing.join(', ')}</div>`;
@@ -2727,23 +2751,43 @@
       };
 
       // Build traces, preserving per-trace visibility across re-renders
-      const traceSpecs = [{ data: a, name: a.name, color: '#4a90e2' }];
-      if (_mode === 'compare' && b) traceSpecs.push({ data: b, name: b.name, color: '#e24a4a' });
-      if (_plotVisible.length !== traceSpecs.length) _plotVisible = Array(traceSpecs.length).fill(true);
+      const traceSpecs = [{ data: a, name: a.name, color: '#4a90e2', slot: 'a' }];
+      if (_mode === 'compare' && b) traceSpecs.push({ data: b, name: b.name, color: '#e24a4a', slot: 'b' });
+      _nSpecs = traceSpecs.length;
+      if (_plotVisible.length !== _nSpecs) _plotVisible = Array(_nSpecs).fill(true);
 
       _plotRowMap = [];
-      const builtTraces = traceSpecs.map((spec, i) => {
+      const scatterTraces = traceSpecs.map((spec, i) => {
         const built = buildTrace(spec.data, spec.name, spec.color);
-        built.tr.visible = _plotVisible[i];
-        built.tr.showlegend = false; // hide Plotly's built-in legend; we use a custom one
+        const gs = _gamutState[spec.slot];
+        built.tr.visible = _plotVisible[i] && gs.pointsOn;
+        built.tr.showlegend = false;
         _plotRowMap.push(built.rowMap);
-        return built;
+        return built.tr;
       });
-      const traces = builtTraces.map(b => b.tr);
 
-      // Compute fixed axis ranges from all datasets (regardless of visibility)
+      // Shell mesh3d traces — one per spec, indices _nSpecs .. 2*_nSpecs-1
+      const shellTraces = traceSpecs.map((spec, i) => {
+        const gs = _gamutState[spec.slot];
+        const hasCache = !!(gs.cachedXYZ && gs.cachedXYZ.x.length);
+        const li = gs.lighting;
+        return {
+          type: 'mesh3d', name: spec.name + ' shell', showlegend: false, alphahull: 0,
+          x: hasCache ? gs.cachedXYZ.x : [],
+          y: hasCache ? gs.cachedXYZ.y : [],
+          z: hasCache ? gs.cachedXYZ.z : [],
+          color: spec.color, opacity: gs.alpha / 100,
+          visible: _plotVisible[i] && gs.shellOn && hasCache,
+          flatshading: false, hoverinfo: 'skip',
+          lighting: { ambient: li.ambient, diffuse: li.diffuse, specular: li.specular, roughness: li.roughness }
+        };
+      });
+
+      const allTraces = [...scatterTraces, ...shellTraces];
+
+      // Compute fixed axis ranges from scatter data only (regardless of visibility)
       let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity, zMin = Infinity, zMax = -Infinity;
-      traces.forEach(tr => {
+      scatterTraces.forEach(tr => {
         tr.x.forEach(v => { if (v < xMin) xMin = v; if (v > xMax) xMax = v; });
         tr.y.forEach(v => { if (v < yMin) yMin = v; if (v > yMax) yMax = v; });
         tr.z.forEach(v => { if (v < zMin) zMin = v; if (v > zMax) zMax = v; });
@@ -2754,35 +2798,68 @@
       const zRange = (zMin === Infinity) ? [0, 100] : [Math.min(0, zMin), zMax + (zMax - zMin) * 0.05 || 5];
       _plotAxisRanges = { xRange, yRange, zRange };
 
+      // Build gamut panel HTML for a given spec
+      const gamutPanelHTML = (spec) => {
+        const gs = _gamutState[spec.slot];
+        const li = gs.lighting;
+        return `<div class="gamut-panel" id="gamut-panel-${spec.slot}">
+          <div class="gamut-panel-row"><label><input type="checkbox" onchange="setShellOn('${spec.slot}',this.checked)"${gs.shellOn ? ' checked' : ''}> Gamut Shell</label></div>
+          <div class="gamut-panel-row"><label><input type="checkbox" onchange="setPointsOn('${spec.slot}',this.checked)"${gs.pointsOn ? ' checked' : ''}> Data Points</label></div>
+          <div class="gamut-panel-row">
+            <span>Alpha</span>
+            <input type="range" id="gs-alpha-r-${spec.slot}" min="0" max="100" value="${gs.alpha}" oninput="setGamutAlpha('${spec.slot}',+this.value)">
+            <input type="number" id="gs-alpha-n-${spec.slot}" min="0" max="100" value="${gs.alpha}" onchange="setGamutAlpha('${spec.slot}',+this.value)">
+            <span>%</span>
+          </div>
+          <div class="gamut-panel-row">
+            <button onclick="regenerateGamutShell('${spec.slot}')" class="validate-btn" style="font-size:11px;padding:3px 8px;">&#8635; Regenerate Shell</button>
+          </div>
+          <div style="border-top:1px solid #eee;padding-top:6px;margin-top:2px;">
+            <div class="gamut-lighting-label">Lighting</div>
+            ${['ambient','diffuse','specular','roughness'].map(prop => `
+            <div class="gamut-light-row">
+              <span>${prop}</span>
+              <input type="range" id="gs-${prop}-r-${spec.slot}" min="0" max="100" value="${Math.round(li[prop]*100)}"
+                     oninput="setLighting('${spec.slot}','${prop}',+this.value)">
+              <span class="light-readout" id="gs-${prop}-v-${spec.slot}">${Math.round(li[prop]*100)}%</span>
+            </div>`).join('')}
+          </div>
+        </div>`;
+      };
+
+      // Build legend item HTML (with gear button + gamut panel)
+      const legendItemHTML = (spec, i, toggleable) => {
+        const on = _plotVisible[i];
+        return `<div style="display:flex;flex-direction:column;gap:3px;">
+          <div class="legend-item legend-item-row" style="${on ? '' : 'opacity:0.45;'}">
+            <div class="legend-item-left" ${toggleable ? `onclick="togglePlotTrace(${i})"` : ''}>
+              <span class="legend-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
+              <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
+            </div>
+            <button class="legend-gear-btn" onclick="event.stopPropagation();toggleGamutPanel('${spec.slot}')">&#9881;&#xFE0E;</button>
+          </div>
+          ${gamutPanelHTML(spec)}
+        </div>`;
+      };
+
       // Render custom legend
       let customLegendEl = document.getElementById('plot-custom-legend');
       if (!customLegendEl) {
         customLegendEl = document.createElement('div');
         customLegendEl.id = 'plot-custom-legend';
-        customLegendEl.style.cssText = 'position:absolute;top:38px;left:12px;z-index:10;display:flex;flex-direction:column;gap:4px;';
+        customLegendEl.style.cssText = 'position:absolute;top:38px;left:12px;z-index:10;display:flex;flex-direction:column;gap:4px;max-width:240px;';
         document.getElementById('plot-wrap').style.position = 'relative';
         document.getElementById('plot-wrap').appendChild(customLegendEl);
       }
       if (_mode === 'compare' && b) {
-        // Compare: toggleable entries; header is a plain div, entries have class legend-item
-        customLegendEl.innerHTML = '<div style="font-size:11px;color:#555;padding:2px 4px 4px 4px;user-select:none;">Select to toggle file visibility:</div>'
-          + traceSpecs.map((spec, i) => {
-          const on = _plotVisible[i];
-          return `<div class="legend-item" onclick="togglePlotTrace(${i})" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 8px;background:rgba(255,255,255,0.85);border:1px solid #ddd;border-radius:4px;font-size:12px;user-select:none;${on ? '' : 'opacity:0.45;'}">
-            <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
-            <span style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
-          </div>`;
-        }).join('');
+        customLegendEl.innerHTML =
+          '<div style="font-size:11px;color:#555;padding:2px 4px 4px 4px;user-select:none;">Select to toggle file visibility:</div>'
+          + traceSpecs.map((spec, i) => legendItemHTML(spec, i, true)).join('');
       } else {
-        // Explore: single non-interactive file name entry
-        const spec = traceSpecs[0];
-        customLegendEl.innerHTML = `<div style="display:flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(255,255,255,0.85);border:1px solid #ddd;border-radius:4px;font-size:12px;user-select:none;">
-          <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${spec.color};flex-shrink:0;"></span>
-          <span style="color:#333;">${spec.name}</span>
-        </div>`;
+        customLegendEl.innerHTML = legendItemHTML(traceSpecs[0], 0, false);
       }
 
-      Plotly.react(plotEl, traces, {
+      Plotly.react(plotEl, allTraces, {
         margin: { t: 30, r: 10, b: 10, l: 10 },
         scene: {
           xaxis: { title: 'a*', range: xRange },
@@ -2820,25 +2897,116 @@
       const plotEl = document.getElementById('plot');
       if (!plotEl) return;
       _plotVisible[i] = !_plotVisible[i];
+      const on = _plotVisible[i];
       const layout = _plotAxisRanges ? {
         'scene.xaxis.range': _plotAxisRanges.xRange,
         'scene.yaxis.range': _plotAxisRanges.yRange,
         'scene.zaxis.range': _plotAxisRanges.zRange
       } : {};
-      Plotly.update(plotEl, { visible: [_plotVisible[i]] }, layout, [i]);
-      // Refresh custom legend appearance without full re-render
+      // Update scatter trace
+      Plotly.update(plotEl, { visible: [on] }, layout, [i]);
+      // Also hide/show shell trace if it exists
+      const shellIdx = _nSpecs + i;
+      const slotKey = i === 0 ? 'a' : 'b';
+      const gs = _gamutState[slotKey];
+      if (gs.shellOn && gs.cachedXYZ) {
+        Plotly.update(plotEl, { visible: [on] }, {}, [shellIdx]);
+      }
+      // Refresh custom legend appearance
       const items = document.querySelectorAll('#plot-custom-legend .legend-item');
-      const { a, b } = state;
       const colors = ['#4a90e2', '#e24a4a'];
-      const names = [a ? a.name : '', b ? b.name : ''];
-      items.forEach((el, idx) => {
-        const on = _plotVisible[idx];
-        el.style.opacity = on ? '' : '0.45';
-        el.querySelector('span:first-child').style.background = on ? colors[idx] : '#aaa';
-        const label = el.querySelector('span:last-child');
-        label.style.color = on ? '#333' : '#999';
-        label.style.textDecoration = on ? '' : 'line-through';
+      if (items[i]) {
+        items[i].style.opacity = on ? '' : '0.45';
+        const dot = items[i].querySelector('.legend-dot');
+        if (dot) dot.style.background = on ? colors[i] : '#aaa';
+        const name = items[i].querySelector('.legend-name');
+        if (name) { name.style.color = on ? '#333' : '#999'; name.style.textDecoration = on ? '' : 'line-through'; }
+      }
+    }
+
+    function toggleGamutPanel(slot) {
+      const target = document.getElementById('gamut-panel-' + slot);
+      if (!target) return;
+      const wasHidden = target.style.display === 'none' || target.style.display === '';
+      // Close all panels first
+      document.querySelectorAll('.gamut-panel').forEach(p => { p.style.display = 'none'; });
+      // Toggle target
+      if (wasHidden) target.style.display = 'flex';
+    }
+
+    function setShellOn(slot, val) {
+      _gamutState[slot].shellOn = val;
+      applyGamutUpdate(slot);
+    }
+
+    function setPointsOn(slot, val) {
+      _gamutState[slot].pointsOn = val;
+      const plotEl = document.getElementById('plot');
+      if (!plotEl) return;
+      const slotIdx = slot === 'a' ? 0 : 1;
+      if (slotIdx < _nSpecs) {
+        const visible = _plotVisible[slotIdx] && val;
+        Plotly.update(plotEl, { visible: [visible] }, {}, [slotIdx]);
+      }
+    }
+
+    function setGamutAlpha(slot, val) {
+      val = Math.max(0, Math.min(100, Math.round(val)));
+      _gamutState[slot].alpha = val;
+      // Sync slider and number input
+      const slider = document.getElementById('gs-alpha-r-' + slot);
+      const num = document.getElementById('gs-alpha-n-' + slot);
+      if (slider) slider.value = val;
+      if (num) num.value = val;
+      applyGamutUpdate(slot);
+    }
+
+    function regenerateGamutShell(slot) {
+      const data = state[slot];
+      if (!data || !data.rows || data.rows.length === 0) return;
+      const x = [], y = [], z = [];
+      data.rows.forEach(r => {
+        const L = parseFloat(r.LAB_L), A = parseFloat(r.LAB_A), B = parseFloat(r.LAB_B);
+        if (!isNaN(L) && !isNaN(A) && !isNaN(B)) { x.push(A); y.push(B); z.push(L); }
       });
+      _gamutState[slot].cachedXYZ = { x, y, z };
+      applyGamutUpdate(slot);
+    }
+
+    function setLighting(slot, prop, val) {
+      val = parseFloat(val) / 100;   // slider is 0-100, state stores 0.0-1.0
+      _gamutState[slot].lighting[prop] = val;
+      // Sync readout span
+      const readout = document.getElementById('gs-' + prop + '-v-' + slot);
+      if (readout) readout.textContent = Math.round(val * 100) + '%';
+      applyGamutUpdate(slot);
+    }
+
+    function applyGamutUpdate(slot) {
+      const plotEl = document.getElementById('plot');
+      if (!plotEl) return;
+      const slotIdx = slot === 'a' ? 0 : 1;
+      const shellIdx = _nSpecs + slotIdx;
+      if (shellIdx >= plotEl.data.length) return;
+      const gs = _gamutState[slot];
+      const hasCache = !!(gs.cachedXYZ && gs.cachedXYZ.x.length);
+      const show = gs.shellOn && hasCache && _plotVisible[slotIdx];
+      const update = {
+        visible: [show],
+        opacity: [gs.alpha / 100]
+      };
+      if (hasCache) {
+        update.x = [gs.cachedXYZ.x];
+        update.y = [gs.cachedXYZ.y];
+        update.z = [gs.cachedXYZ.z];
+      }
+      update.lighting = [{
+        ambient: gs.lighting.ambient,
+        diffuse: gs.lighting.diffuse,
+        specular: gs.lighting.specular,
+        roughness: gs.lighting.roughness
+      }];
+      Plotly.update(plotEl, update, {}, [shellIdx]);
     }
   </script>
   <button id="scroll-top-btn" title="Scroll to top"
