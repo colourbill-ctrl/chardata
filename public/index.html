@@ -480,30 +480,36 @@
     <div onclick="togglePlot()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;display:flex;justify-content:space-between;align-items:center;user-select:none;">
       <span id="plot-tab-label">3D Plot</span><span id="plot-arrow">▼</span>
     </div>
-    <div id="plot-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;">
-      <div style="padding:6px 12px;border-bottom:1px solid #eee;display:flex;gap:18px;align-items:center;font-size:12px;color:#555;">
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
-          <input type="checkbox" id="plot-opt-circles" onchange="renderPlot()"> Circles
-        </label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
-          <input type="checkbox" id="plot-opt-hue-color" onchange="onPlotColorChange('hue')"> Color by hue angle
-        </label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
-          <input type="checkbox" id="plot-opt-value-color" onchange="onPlotColorChange('value')" checked> Color by value
-        </label>
-        <label id="plot-opt-spectral-label" style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
-          <input type="checkbox" id="plot-opt-spectral"> Show spectral data when point selected
-        </label>
+    <div id="plot-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;position:relative;">
+      <div id="plot-controls-box" style="position:absolute;top:10px;right:10px;z-index:20;background:rgba(255,255,255,0.92);border:1px solid #ddd;border-radius:6px;font-size:12px;color:#555;min-width:170px;box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+        <div onclick="togglePlotControls()" style="cursor:pointer;padding:5px 10px;font-weight:bold;display:flex;justify-content:space-between;align-items:center;user-select:none;border-bottom:1px solid #eee;">
+          <span>Controls</span><span id="plot-controls-arrow">&#9660;</span>
+        </div>
+        <div id="plot-controls-body" style="padding:6px 10px;display:flex;flex-direction:column;gap:6px;">
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
+            <input type="checkbox" id="plot-opt-shell" onchange="onShellCheckboxChange(this.checked)"> Show gamut shell
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
+            <input type="checkbox" id="plot-opt-hue-color" onchange="onPlotColorChange('hue')"> Color by hue angle
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
+            <input type="checkbox" id="plot-opt-value-color" onchange="onPlotColorChange('value')" checked> Color by value
+          </label>
+          <label id="plot-opt-spectral-label" style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
+            <input type="checkbox" id="plot-opt-spectral"> Show spectral data when point selected
+          </label>
+        </div>
       </div>
       <div id="plot" style="width:100%;height:600px;"></div>
     </div>
   </div>
 
-  <div id="slice-section" style="margin-top:16px;display:none;">
+  <div id="slice-section" style="margin-top:16px;">
     <div onclick="toggleSlice()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;display:flex;justify-content:space-between;align-items:center;user-select:none;">
       <span id="slice-tab-label">Gamut Slice (2D)</span><span id="slice-arrow">&#9660;</span>
     </div>
-    <div id="slice-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;">
+    <div id="slice-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;position:relative;">
+      <div id="slice-custom-legend" style="position:absolute;top:38px;left:12px;z-index:10;display:flex;flex-direction:column;gap:4px;max-width:60%;"></div>
       <div class="slice-controls">
         <span style="font-weight:bold;">Axis:</span>
         <label><input type="radio" name="slice-axis" value="L" checked onchange="setSliceAxis('L')"> L*</label>
@@ -654,6 +660,7 @@
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
     let _nSpecs = 0;             // number of scatter traces; shell traces are at indices _nSpecs..(2*_nSpecs-1)
     const _sliceState = { axis: 'L', value: 50, bandwidth: 5 };
+    const _sliceVisible = { a: true, b: true };
     const _gamutState = {
       a: { shellOn: false, pointsOn: true, alpha: 70, cachedXYZ: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
@@ -694,6 +701,7 @@
         document.getElementById('show-file-' + slot).disabled = !_rawFileData[slot];
       });
       if (isExplore && state.a) renderExplore();
+      else if (!(!isExplore && state.a && state.b)) renderSlicePlot();
     }
 
     // Blade toggle
@@ -1003,7 +1011,7 @@
         updateCompareBtn();
         document.getElementById('result').innerHTML = '';
         document.getElementById('plot-section').style.display = 'none';
-        document.getElementById('slice-section').style.display = 'none';
+        renderSlicePlot();
         return;
       }
 
@@ -1020,7 +1028,7 @@
           updateCompareBtn();
           document.getElementById('result').innerHTML = '';
           document.getElementById('plot-section').style.display = 'none';
-        document.getElementById('slice-section').style.display = 'none';
+          renderSlicePlot();
           return;
         }
         if (cgats.warnings.length > 0) {
@@ -1071,8 +1079,7 @@
         }
         validEl.className = 'validation';
         state[slot] = { headers, rows: dedupedRows, colorants, name: fileName, usedSpectralLab, hasSpectral };
-        _gamutState[slot].cachedXYZ = null;
-        if (_gamutState[slot].shellOn) regenerateGamutShell(slot);
+        buildGamutCache(slot);
         document.getElementById('show-file-' + slot).disabled = false;
       } else {
         validEl.innerHTML += `<div>Missing: ${missing.join(', ')}</div>`;
@@ -1101,9 +1108,11 @@
       if (!state[slot]) {
         document.getElementById('result').innerHTML = '';
         document.getElementById('plot-section').style.display = 'none';
-        document.getElementById('slice-section').style.display = 'none';
+        renderSlicePlot();
       } else if (_mode === 'explore' && slot === 'a') {
-        renderExplore();
+        renderExplore(); // calls renderSlicePlot internally
+      } else {
+        renderSlicePlot();
       }
     }
 
@@ -1212,7 +1221,7 @@
           document.getElementById('show-file-' + slot).disabled = true;
           document.getElementById('result').innerHTML = '';
           document.getElementById('plot-section').style.display = 'none';
-        document.getElementById('slice-section').style.display = 'none';
+          renderSlicePlot();
         }
       });
       updateCompareBtn();
@@ -2750,7 +2759,6 @@
         _mode === 'explore' ? '3D Plot: ' + a.name : '3D Plot';
       const plotEl = document.getElementById('plot');
 
-      const useCircles    = document.getElementById('plot-opt-circles')?.checked;
       const useHueColor   = document.getElementById('plot-opt-hue-color')?.checked;
       const useValueColor = document.getElementById('plot-opt-value-color')?.checked;
 
@@ -2787,7 +2795,7 @@
         return {
           tr: { type: 'scatter3d', mode: 'markers', name, x: xs, y: ys, z: zs,
                 marker: { size: 3, color: colors, opacity: 0.8,
-                          symbol: useCircles ? 'circle-open' : 'circle' } },
+                          symbol: 'circle' } },
           rowMap
         };
       };
@@ -2858,7 +2866,7 @@
         const gs = _gamutState[spec.slot];
         const li = gs.lighting;
         return `<div class="gamut-panel" id="gamut-panel-${spec.slot}" style="display:${gs.panelOpen ? 'flex' : 'none'};">
-          <div class="gamut-panel-row"><label><input type="checkbox" onchange="setShellOn('${spec.slot}',this.checked)"${gs.shellOn ? ' checked' : ''}> Show gamut shell</label></div>
+          <div class="gamut-panel-row"><label><input type="checkbox" id="gs-shell-cb-${spec.slot}" onchange="setShellOn('${spec.slot}',this.checked)"${gs.shellOn ? ' checked' : ''}> Show gamut shell</label></div>
           <div class="gamut-panel-row"><label><input type="checkbox" onchange="setPointsOn('${spec.slot}',this.checked)"${gs.pointsOn ? ' checked' : ''}> Show data points</label></div>
           <div class="gamut-panel-row">
             <span>Alpha</span>
@@ -2903,7 +2911,6 @@
         customLegendEl = document.createElement('div');
         customLegendEl.id = 'plot-custom-legend';
         customLegendEl.style.cssText = 'position:absolute;top:38px;left:12px;z-index:10;display:flex;flex-direction:column;gap:4px;max-width:60%;';
-        document.getElementById('plot-wrap').style.position = 'relative';
         document.getElementById('plot-wrap').appendChild(customLegendEl);
       }
       if (_mode === 'compare' && b) {
@@ -2996,11 +3003,39 @@
 
     function setShellOn(slot, val) {
       _gamutState[slot].shellOn = val;
-      if (val && !_gamutState[slot].cachedXYZ) {
-        regenerateGamutShell(slot);  // auto-build on first enable
-      } else {
-        applyGamutUpdate(slot);
-      }
+      syncShellCheckbox();
+      applyGamutUpdate(slot);
+    }
+
+    function onShellCheckboxChange(val) {
+      ['a', 'b'].forEach(slot => {
+        if (state[slot]) {
+          _gamutState[slot].shellOn = val;
+          const cb = document.getElementById('gs-shell-cb-' + slot);
+          if (cb) cb.checked = val;
+          applyGamutUpdate(slot);
+        }
+      });
+    }
+
+    function syncShellCheckbox() {
+      const topCb = document.getElementById('plot-opt-shell');
+      if (!topCb) return;
+      const slots = ['a', 'b'].filter(s => state[s]);
+      if (slots.length === 0) { topCb.checked = false; topCb.indeterminate = false; return; }
+      const onCount = slots.filter(s => _gamutState[s].shellOn).length;
+      if (onCount === 0) { topCb.checked = false; topCb.indeterminate = false; }
+      else if (onCount === slots.length) { topCb.checked = true; topCb.indeterminate = false; }
+      else { topCb.checked = false; topCb.indeterminate = true; }
+    }
+
+    function togglePlotControls() {
+      const body = document.getElementById('plot-controls-body');
+      const arrow = document.getElementById('plot-controls-arrow');
+      if (!body) return;
+      const hidden = body.style.display === 'none';
+      body.style.display = hidden ? '' : 'none';
+      if (arrow) arrow.textContent = hidden ? '\u25bc' : '\u25b6';
     }
 
     function setPointsOn(slot, val) {
@@ -3025,7 +3060,7 @@
       applyGamutUpdate(slot);
     }
 
-    function regenerateGamutShell(slot) {
+    function buildGamutCache(slot) {
       const data = state[slot];
       if (!data || !data.rows || data.rows.length === 0) return;
       const iA = data.headers.indexOf('LAB_A');
@@ -3038,6 +3073,10 @@
         if (!isNaN(A) && !isNaN(B) && !isNaN(L)) { x.push(A); y.push(B); z.push(L); }
       });
       _gamutState[slot].cachedXYZ = { x, y, z };
+    }
+
+    function regenerateGamutShell(slot) {
+      buildGamutCache(slot);
       applyGamutUpdate(slot);
     }
 
@@ -3148,6 +3187,11 @@
       if (arrow) arrow.textContent = open ? '\u25b6' : '\u25bc';
     }
 
+    function toggleSliceTrace(slot) {
+      _sliceVisible[slot] = !_sliceVisible[slot];
+      renderSlicePlot();
+    }
+
     function renderSlicePlot() {
       const sectionEl = document.getElementById('slice-section');
       const sliceEl = document.getElementById('slice-plot');
@@ -3157,15 +3201,21 @@
       const { axis, value, bandwidth } = _sliceState;
       const { a, b } = state;
 
-      const specs = [];
-      if (_gamutState.a.cachedXYZ) specs.push({ slot: 'a', color: '#4a90e2', name: a ? a.name : 'File A' });
-      if (_mode === 'compare' && _gamutState.b.cachedXYZ) specs.push({ slot: 'b', color: '#e24a4a', name: b ? b.name : 'File B' });
+      // Determine which slots have data to show
+      const allSpecs = [];
+      if (_gamutState.a.cachedXYZ) allSpecs.push({ slot: 'a', color: '#4a90e2', name: a ? a.name : 'File A' });
+      if (_mode === 'compare' && _gamutState.b.cachedXYZ) allSpecs.push({ slot: 'b', color: '#e24a4a', name: b ? b.name : 'File B' });
 
-      if (specs.length === 0) {
-        if (sectionEl) sectionEl.style.display = 'none';
+      if (sectionEl) sectionEl.style.display = '';
+
+      if (allSpecs.length === 0) {
+        if (tabLabel) tabLabel.textContent = 'Gamut Slice (2D)';
+        const legendEl = document.getElementById('slice-custom-legend');
+        if (legendEl) legendEl.innerHTML = '';
+        Plotly.purge(sliceEl);
+        sliceEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#aaa;font-size:14px;">No file loaded</div>';
         return;
       }
-      if (sectionEl) sectionEl.style.display = '';
       sliceEl.style.display = '';
 
       syncSliceValueRange();
@@ -3177,6 +3227,29 @@
         b: { xlabel: 'a*', ylabel: 'L*' }
       };
       const { xlabel, ylabel } = axisLabels[axis];
+
+      // Build custom HTML legend (matching 3D plot style)
+      const legendEl = document.getElementById('slice-custom-legend');
+      if (legendEl) {
+        const legendItemHTML = spec => {
+          const on = _sliceVisible[spec.slot];
+          return `<div class="legend-item legend-item-row" style="${on ? '' : 'opacity:0.45;'}" onclick="toggleSliceTrace('${spec.slot}')">
+            <div class="legend-item-left">
+              <span class="legend-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
+              <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
+            </div>
+          </div>`;
+        };
+        if (allSpecs.length > 1) {
+          legendEl.innerHTML = '<div style="font-size:11px;color:#555;padding:2px 4px 4px 4px;user-select:none;">Select to toggle file visibility:</div>'
+            + allSpecs.map(legendItemHTML).join('');
+        } else {
+          legendEl.innerHTML = legendItemHTML(allSpecs[0]);
+        }
+      }
+
+      // Filter to visible specs for Plotly traces
+      const specs = allSpecs.filter(s => _sliceVisible[s.slot]);
 
       const traces = specs.map(spec => {
         const { x, y, z } = _gamutState[spec.slot].cachedXYZ;
@@ -3214,7 +3287,7 @@
         margin: { t: 20, r: 20, b: 50, l: 50 },
         xaxis: { title: xlabel, range: xAxisRange },
         yaxis: { title: ylabel, range: yAxisRange },
-        showlegend: specs.length > 1,
+        showlegend: false,
         paper_bgcolor: '#fff',
         plot_bgcolor: '#fafafa'
       };
@@ -3226,6 +3299,9 @@
 
       Plotly.react(sliceEl, traces, layout, { responsive: true });
     }
+
+    // Initial render of slice section (shows "No file loaded" on fresh page load)
+    renderSlicePlot();
   </script>
   <button id="scroll-top-btn" title="Scroll to top"
     onclick="window.innerWidth<=700?window.scrollTo({top:0,behavior:'smooth'}):document.getElementById('main-content').scrollTo({top:0,behavior:'smooth'})">&#8679; Top</button>
