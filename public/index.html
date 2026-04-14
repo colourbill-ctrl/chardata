@@ -422,6 +422,12 @@
     .gamut-light-row span:first-child { min-width:66px; color:#555; text-transform:capitalize; }
     .gamut-light-row input[type=range] { flex:1; min-width:60px; }
     .gamut-light-row .light-readout { min-width:30px; font-size:11px; color:#666; text-align:right; }
+
+    /* ── Gamut slice (2D) ── */
+    .slice-controls { display:flex; align-items:center; gap:14px; padding:6px 12px; border-bottom:1px solid #eee; font-size:12px; color:#555; flex-wrap:wrap; }
+    .slice-controls label { display:flex; align-items:center; gap:4px; cursor:pointer; }
+    .slice-controls input[type=range] { width:90px; }
+    .slice-controls input[type=number] { width:46px; padding:1px 3px; font-size:11px; border:1px solid #ccc; border-radius:3px; }
   </style>
 </head>
 <body>
@@ -510,6 +516,28 @@
         </label>
       </div>
       <div id="plot" style="width:100%;height:600px;"></div>
+    </div>
+  </div>
+
+  <div id="slice-section" style="margin-top:16px;display:none;">
+    <div onclick="toggleSlice()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+      <span id="slice-tab-label">Gamut Slice (2D)</span><span id="slice-arrow">&#9660;</span>
+    </div>
+    <div id="slice-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;">
+      <div class="slice-controls">
+        <span style="font-weight:bold;">Axis:</span>
+        <label><input type="radio" name="slice-axis" value="L" checked onchange="setSliceAxis('L')"> L*</label>
+        <label><input type="radio" name="slice-axis" value="a" onchange="setSliceAxis('a')"> a*</label>
+        <label><input type="radio" name="slice-axis" value="b" onchange="setSliceAxis('b')"> b*</label>
+        <span style="margin-left:8px;font-weight:bold;">Value:</span>
+        <input type="range" id="slice-value-r" min="0" max="100" value="50" oninput="setSliceValue(+this.value)">
+        <input type="number" id="slice-value-n" min="0" max="100" value="50" onchange="setSliceValue(+this.value)">
+        <span style="margin-left:8px;font-weight:bold;">Bandwidth &#177;</span>
+        <input type="range" id="slice-bw-r" min="1" max="30" value="5" oninput="setSliceBandwidth(+this.value)">
+        <input type="number" id="slice-bw-n" min="1" max="30" value="5" onchange="setSliceBandwidth(+this.value)">
+      </div>
+      <div id="slice-no-data" style="padding:24px;text-align:center;color:#999;font-size:13px;">Enable the gamut shell for at least one file to see the 2D slice.</div>
+      <div id="slice-plot" style="width:100%;height:420px;display:none;"></div>
     </div>
   </div>
 
@@ -646,6 +674,7 @@
     let _plotVisible = [];       // per-trace visibility for scatter traces, preserved across re-renders
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
     let _nSpecs = 0;             // number of scatter traces; shell traces are at indices _nSpecs..(2*_nSpecs-1)
+    const _sliceState = { axis: 'L', value: 50, bandwidth: 5 };
     const _gamutState = {
       a: { shellOn: false, pointsOn: true, alpha: 70, cachedXYZ: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
@@ -996,6 +1025,7 @@
         updateCompareBtn();
         document.getElementById('result').innerHTML = '';
         document.getElementById('plot-section').style.display = 'none';
+        document.getElementById('slice-section').style.display = 'none';
         return;
       }
 
@@ -1012,6 +1042,7 @@
           updateCompareBtn();
           document.getElementById('result').innerHTML = '';
           document.getElementById('plot-section').style.display = 'none';
+        document.getElementById('slice-section').style.display = 'none';
           return;
         }
         if (cgats.warnings.length > 0) {
@@ -1091,6 +1122,7 @@
       if (!state[slot]) {
         document.getElementById('result').innerHTML = '';
         document.getElementById('plot-section').style.display = 'none';
+        document.getElementById('slice-section').style.display = 'none';
       } else if (_mode === 'explore' && slot === 'a') {
         renderExplore();
       }
@@ -1201,6 +1233,7 @@
           document.getElementById('show-file-' + slot).disabled = true;
           document.getElementById('result').innerHTML = '';
           document.getElementById('plot-section').style.display = 'none';
+        document.getElementById('slice-section').style.display = 'none';
         }
       });
       updateCompareBtn();
@@ -2567,6 +2600,36 @@
       const { a, b } = state;
       const resultEl = document.getElementById('result');
 
+      // Check for device colorant mismatch
+      const colorantsMismatch =
+        [...a.colorants].sort().join('\x00') !== [...b.colorants].sort().join('\x00');
+      if (colorantsMismatch) {
+        const validateHTML = `
+          <div onclick="toggleValidate()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+            <span>Validate</span><span id="validate-arrow">&#9654;</span>
+          </div>
+          <div id="validate-wrap" style="display:none;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:12px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+              <select id="validate-mode" onchange="updateValidateFileLabel()" style="padding:6px 10px;border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;font-size:13px;color:#333;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);cursor:pointer;transition:all 0.08s ease;">
+                <option value="g7">G7</option>
+              </select>
+              <select id="validate-file-select" style="padding:6px 10px;border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;font-size:13px;color:#333;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);cursor:pointer;transition:all 0.08s ease;max-width:280px;"></select>
+              <button class="validate-btn" onclick="validateFile()">Validate</button>
+            </div>
+            <div id="validate-result" style="font-size:13px;color:#333;background:#f8f9fa;border:1px solid #ddd;border-radius:6px;padding:10px;min-height:60px;overflow-x:auto;"></div>
+          </div>
+          <div style="padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;">
+            Comparison Table
+          </div>
+          <div style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:20px 16px;font-size:13px;color:#888;background:#fafafa;">
+            Device colorants mismatch between files. No comparison available.
+          </div>`;
+        resultEl.innerHTML = validateHTML;
+        renderPlot();
+        updateValidateFileLabel();
+        return;
+      }
+
       // Build lookup: colorant key → row from File B
       const bMap = new Map();
       for (const row of b.rows) {
@@ -2704,6 +2767,7 @@
     function renderPlot() {
       const { a, b } = state;
       document.getElementById('plot-section').style.display = '';
+      document.getElementById('slice-section').style.display = '';
       document.getElementById('plot-tab-label').textContent =
         _mode === 'explore' ? '3D Plot: ' + a.name : '3D Plot';
       const plotEl = document.getElementById('plot');
@@ -2904,6 +2968,7 @@
         };
         plotEl.on('plotly_click', _plotClickHandler);
       });
+      renderSlicePlot();
     }
 
     function togglePlotTrace(i) {
@@ -3009,6 +3074,180 @@
 
     function applyGamutUpdate(slot) {
       renderPlot();
+    }
+
+    // ── Gamut slice (2D) ──────────────────────────────────────────────────────
+
+    // Andrew's monotone chain — returns hull vertices in CCW order
+    function convexHull2D(pts) {
+      if (pts.length < 3) return pts;
+      pts = pts.slice().sort((a, b) => a[0] !== b[0] ? a[0] - b[0] : a[1] - b[1]);
+      const cross = (o, a, b) => (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0]);
+      const lower = [];
+      for (const p of pts) {
+        while (lower.length >= 2 && cross(lower[lower.length-2], lower[lower.length-1], p) <= 0) lower.pop();
+        lower.push(p);
+      }
+      const upper = [];
+      for (let i = pts.length - 1; i >= 0; i--) {
+        const p = pts[i];
+        while (upper.length >= 2 && cross(upper[upper.length-2], upper[upper.length-1], p) <= 0) upper.pop();
+        upper.push(p);
+      }
+      upper.pop(); lower.pop();
+      return lower.concat(upper);
+    }
+
+    // Sync slice-value slider range to the actual data range for the chosen axis
+    function syncSliceValueRange() {
+      let lo = Infinity, hi = -Infinity;
+      ['a', 'b'].forEach(slot => {
+        const c = _gamutState[slot].cachedXYZ;
+        if (!c) return;
+        const arr = _sliceState.axis === 'L' ? c.z : _sliceState.axis === 'a' ? c.x : c.y;
+        for (const v of arr) { if (v < lo) lo = v; if (v > hi) hi = v; }
+      });
+      if (lo === Infinity) return;
+      lo = Math.floor(lo); hi = Math.ceil(hi);
+      const r = document.getElementById('slice-value-r');
+      const n = document.getElementById('slice-value-n');
+      if (r) { r.min = lo; r.max = hi; }
+      if (n) { n.min = lo; n.max = hi; }
+      // Clamp current value to new range
+      const clamped = Math.max(lo, Math.min(hi, _sliceState.value));
+      if (clamped !== _sliceState.value) {
+        _sliceState.value = clamped;
+        if (r) r.value = clamped;
+        if (n) n.value = clamped;
+      }
+    }
+
+    function setSliceAxis(axis) {
+      _sliceState.axis = axis;
+      // Reset value to midpoint of new axis range
+      let lo = Infinity, hi = -Infinity;
+      ['a', 'b'].forEach(slot => {
+        const c = _gamutState[slot].cachedXYZ;
+        if (!c) return;
+        const arr = axis === 'L' ? c.z : axis === 'a' ? c.x : c.y;
+        for (const v of arr) { if (v < lo) lo = v; if (v > hi) hi = v; }
+      });
+      if (lo !== Infinity) {
+        _sliceState.value = Math.round((Math.floor(lo) + Math.ceil(hi)) / 2);
+      }
+      syncSliceValueRange();
+      const r = document.getElementById('slice-value-r');
+      const n = document.getElementById('slice-value-n');
+      if (r) r.value = _sliceState.value;
+      if (n) n.value = _sliceState.value;
+      renderSlicePlot();
+    }
+
+    function setSliceValue(val) {
+      _sliceState.value = val;
+      const r = document.getElementById('slice-value-r');
+      const n = document.getElementById('slice-value-n');
+      if (r) r.value = val;
+      if (n) n.value = val;
+      renderSlicePlot();
+    }
+
+    function setSliceBandwidth(val) {
+      _sliceState.bandwidth = val;
+      const r = document.getElementById('slice-bw-r');
+      const n = document.getElementById('slice-bw-n');
+      if (r) r.value = val;
+      if (n) n.value = val;
+      renderSlicePlot();
+    }
+
+    function toggleSlice() {
+      const wrap = document.getElementById('slice-wrap');
+      const arrow = document.getElementById('slice-arrow');
+      if (!wrap) return;
+      const open = wrap.style.display !== 'none';
+      wrap.style.display = open ? 'none' : '';
+      if (arrow) arrow.textContent = open ? '\u25b6' : '\u25bc';
+    }
+
+    function renderSlicePlot() {
+      const sliceEl = document.getElementById('slice-plot');
+      const noDataEl = document.getElementById('slice-no-data');
+      const tabLabel = document.getElementById('slice-tab-label');
+      if (!sliceEl) return;
+
+      const { axis, value, bandwidth } = _sliceState;
+      const { a, b } = state;
+
+      const specs = [];
+      if (_gamutState.a.cachedXYZ) specs.push({ slot: 'a', color: '#4a90e2', name: a ? a.name : 'File A' });
+      if (_mode === 'compare' && _gamutState.b.cachedXYZ) specs.push({ slot: 'b', color: '#e24a4a', name: b ? b.name : 'File B' });
+
+      if (specs.length === 0) {
+        if (noDataEl) noDataEl.style.display = '';
+        sliceEl.style.display = 'none';
+        return;
+      }
+      if (noDataEl) noDataEl.style.display = 'none';
+      sliceEl.style.display = '';
+
+      syncSliceValueRange();
+      if (tabLabel) tabLabel.textContent = `Gamut Slice (2D) \u2014 ${axis}* = ${value} \u00b1 ${bandwidth}`;
+
+      const axisLabels = {
+        L: { xlabel: 'a*', ylabel: 'b*' },
+        a: { xlabel: 'b*', ylabel: 'L*' },
+        b: { xlabel: 'a*', ylabel: 'L*' }
+      };
+      const { xlabel, ylabel } = axisLabels[axis];
+
+      const traces = specs.map(spec => {
+        const { x, y, z } = _gamutState[spec.slot].cachedXYZ;
+        const pts = [];
+        for (let i = 0; i < x.length; i++) {
+          let coord, px, py;
+          if (axis === 'L')      { coord = z[i]; px = x[i]; py = y[i]; }
+          else if (axis === 'a') { coord = x[i]; px = y[i]; py = z[i]; }
+          else                   { coord = y[i]; px = x[i]; py = z[i]; }
+          if (Math.abs(coord - value) <= bandwidth) pts.push([px, py]);
+        }
+        const hull = convexHull2D(pts);
+        if (hull.length < 2) {
+          return { type: 'scatter', x: [], y: [], name: spec.name, mode: 'lines', line: { color: spec.color } };
+        }
+        const hx = hull.map(p => p[0]).concat([hull[0][0]]);
+        const hy = hull.map(p => p[1]).concat([hull[0][1]]);
+        return {
+          type: 'scatter',
+          x: hx, y: hy,
+          name: spec.name,
+          mode: 'lines',
+          fill: 'toself',
+          fillcolor: spec.color + '33',
+          line: { color: spec.color, width: 2 }
+        };
+      });
+
+      // Map slice axis to the 3D plot's fixed axis ranges (x=a*, y=b*, z=L*)
+      const pr = _plotAxisRanges;
+      const xAxisRange = pr ? (axis === 'L' ? pr.xRange : axis === 'a' ? pr.yRange : pr.xRange) : undefined;
+      const yAxisRange = pr ? (axis === 'L' ? pr.yRange : pr.zRange) : undefined;
+
+      const layout = {
+        margin: { t: 20, r: 20, b: 50, l: 50 },
+        xaxis: { title: xlabel, range: xAxisRange },
+        yaxis: { title: ylabel, range: yAxisRange },
+        showlegend: specs.length > 1,
+        paper_bgcolor: '#fff',
+        plot_bgcolor: '#fafafa'
+      };
+      // Lock aspect ratio for a*-b* plane so the gamut shape isn't distorted
+      if (axis === 'L') {
+        layout.xaxis.scaleanchor = 'y';
+        layout.xaxis.scaleratio = 1;
+      }
+
+      Plotly.react(sliceEl, traces, layout, { responsive: true });
     }
   </script>
   <button id="scroll-top-btn" title="Scroll to top"
