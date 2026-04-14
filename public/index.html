@@ -1065,6 +1065,7 @@
         validEl.className = 'validation';
         state[slot] = { headers, rows: dedupedRows, colorants, name: fileName, usedSpectralLab, hasSpectral };
         _gamutState[slot].cachedXYZ = null;
+        if (_gamutState[slot].shellOn) regenerateGamutShell(slot);
         document.getElementById('show-file-' + slot).disabled = false;
       } else {
         validEl.innerHTML += `<div>Missing: ${missing.join(', ')}</div>`;
