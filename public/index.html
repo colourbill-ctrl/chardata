@@ -766,7 +766,7 @@
     function standardizeHeaders(headers) {
       const RENAMES = { CMYK_C: 'CYAN', CMYK_M: 'MAGENTA', CMYK_Y: 'YELLOW', CMYK_K: 'BLACK' };
       return headers.map(h => {
-        const nm = h.match(/^nm(\d+)$/i) || h.match(/^NM_(\d+)$/i);
+        const nm = h.match(/^nm(\d+)$/i) || h.match(/^NM_(\d+)$/i) || h.match(/^SPECTRAL_NM(\d+)$/i);
         if (nm) return nm[1] + '_NM';
         return RENAMES[h.toUpperCase()] || h;
       });
