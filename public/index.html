@@ -2771,16 +2771,29 @@
         const gs = _gamutState[spec.slot];
         const hasCache = !!(gs.cachedXYZ && gs.cachedXYZ.x.length);
         const li = gs.lighting;
-        return {
+        // Compute per-vertex colors matching the scatter point coloring
+        let shellColor = spec.color;
+        let vertexcolor;
+        if (hasCache && (useHueColor || useValueColor)) {
+          const { x: ax, y: bx, z: lx } = gs.cachedXYZ; // x=a*, y=b*, z=L*
+          vertexcolor = ax.map((a, vi) =>
+            useHueColor ? hueToColor(a, bx[vi]) : labToRgb(lx[vi], a, bx[vi])
+          );
+          shellColor = undefined;
+        }
+        const tr = {
           type: 'mesh3d', name: spec.name + ' shell', showlegend: false, alphahull: 0,
           x: hasCache ? gs.cachedXYZ.x : [],
           y: hasCache ? gs.cachedXYZ.y : [],
           z: hasCache ? gs.cachedXYZ.z : [],
-          color: spec.color, opacity: gs.alpha / 100,
+          opacity: gs.alpha / 100,
           visible: _plotVisible[i] && gs.shellOn && hasCache,
           flatshading: false, hoverinfo: 'skip',
           lighting: { ambient: li.ambient, diffuse: li.diffuse, specular: li.specular, roughness: li.roughness }
         };
+        if (vertexcolor) tr.vertexcolor = vertexcolor;
+        else tr.color = shellColor;
+        return tr;
       });
 
       const allTraces = [...scatterTraces, ...shellTraces];
