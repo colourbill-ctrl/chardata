@@ -2972,10 +2972,14 @@
     function regenerateGamutShell(slot) {
       const data = state[slot];
       if (!data || !data.rows || data.rows.length === 0) return;
+      const iA = data.headers.indexOf('LAB_A');
+      const iB = data.headers.indexOf('LAB_B');
+      const iL = data.headers.indexOf('LAB_L');
+      if (iA === -1 || iB === -1 || iL === -1) return;
       const x = [], y = [], z = [];
       data.rows.forEach(r => {
-        const L = parseFloat(r.LAB_L), A = parseFloat(r.LAB_A), B = parseFloat(r.LAB_B);
-        if (!isNaN(L) && !isNaN(A) && !isNaN(B)) { x.push(A); y.push(B); z.push(L); }
+        const A = parseFloat(r[iA]), B = parseFloat(r[iB]), L = parseFloat(r[iL]);
+        if (!isNaN(A) && !isNaN(B) && !isNaN(L)) { x.push(A); y.push(B); z.push(L); }
       });
       _gamutState[slot].cachedXYZ = { x, y, z };
       applyGamutUpdate(slot);
