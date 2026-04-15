@@ -202,8 +202,9 @@
       #mobile-hamburger { display: flex; }
       #mobile-backdrop.active { display: block; }
       #scroll-top-btn { right: 12px !important; }
-      #kofi-group { right: 72px !important; }
+      #kofi-group { right: 72px !important; transform: scale(0.85); transform-origin: top right; }
       #kofi-msg { right: 72px !important; }
+      #seg-row { margin-top: 30px; }
     }
 
     .panel {
@@ -474,7 +475,7 @@
 
   <!-- Main content -->
   <div id="main-content">
-  <div style="display:inline-flex;gap:6px;margin-bottom:24px;">
+  <div id="seg-row" style="display:inline-flex;gap:6px;margin-bottom:24px;">
     <button id="seg-explore" onclick="setMode('explore')" class="seg-btn seg-btn-active" style="border-radius:6px 6px 6px 6px;">Explore Char Data</button>
     <button id="seg-compare" onclick="setMode('compare')" class="seg-btn seg-btn-inactive" style="border-radius:6px 6px 6px 6px;">Compare Char Data</button>
   </div>
