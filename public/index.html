@@ -215,6 +215,7 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.08);
       border: 2px solid transparent;
       transition: border-color 0.15s, background 0.15s;
+      position: relative;
     }
     .panel.dragover { border-color: #4a90e2; background: #e8f0fe; }
     .panel h2 { font-size: 15px; color: #555; margin-bottom: 12px; }
@@ -486,6 +487,7 @@
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button class="validate-btn" id="show-file-a" onclick="showFile('a')" disabled>Display File</button>
       </div>
+      <div id="panel-a-empty" style="position:absolute;top:16px;right:16px;font-size:11px;color:#bbb;text-align:right;pointer-events:none;line-height:1.4;">Drag files here from<br>File Select pane or file system</div>
       <div class="file-info" id="info-a">
         <div class="file-name" id="name-a"></div>
         <div class="file-type" id="type-a"></div>
@@ -500,6 +502,7 @@
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button class="validate-btn" id="show-file-b" onclick="showFile('b')" disabled>Display File</button>
       </div>
+      <div id="panel-b-empty" style="position:absolute;top:16px;right:16px;font-size:11px;color:#bbb;text-align:right;pointer-events:none;line-height:1.4;">Drag files here from<br>File Select pane or file system</div>
       <div class="file-info" id="info-b">
         <div class="file-name" id="name-b"></div>
         <div class="file-type" id="type-b"></div>
@@ -523,6 +526,9 @@
         <div id="plot-controls-body" style="padding:6px 10px;display:flex;flex-direction:column;gap:6px;">
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
             <input type="checkbox" id="plot-opt-shell" onchange="onShellCheckboxChange(this.checked)"> Show gamut shell
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
+            <input type="checkbox" id="plot-opt-points" checked onchange="onPointsCheckboxChange(this.checked)"> Show data points
           </label>
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
             <input type="checkbox" id="plot-opt-hue-color" onchange="onPlotColorChange('hue')"> Color by hue angle
@@ -572,9 +578,9 @@
       <div class="blade-section">
         <div class="blade-label">ΔE Method</div>
         <select id="de-method" class="blade-select">
-          <option value="dEab">dEab</option>
-          <option value="dE94">dE94</option>
-          <option value="dE00">dE00</option>
+          <option value="dEab">ΔEab</option>
+          <option value="dE94">ΔE94</option>
+          <option value="dE00">ΔE00</option>
         </select>
       </div>
 
@@ -697,9 +703,9 @@
     const _sliceState = { axis: 'L', value: 50, bandwidth: 5 };
     const _sliceVisible = { a: true, b: true };
     const _gamutState = {
-      a: { shellOn: false, pointsOn: true, alpha: 70, meshDensity: 7, cachedXYZ: null, panelOpen: false,
+      a: { shellOn: false, pointsOn: true, alpha: 70, meshDensity: 5, cachedXYZ: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
-      b: { shellOn: false, pointsOn: true, alpha: 70, meshDensity: 7, cachedXYZ: null, panelOpen: false,
+      b: { shellOn: false, pointsOn: true, alpha: 70, meshDensity: 5, cachedXYZ: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } }
     };
     let _suppressDismiss = false;
@@ -783,10 +789,14 @@
     });
 
     // Reprocess any slot that used spectral LAB when illuminant/observer/M-cond changes
+    function setPanelName(slot, text) {
+      document.getElementById('name-' + slot).textContent = text;
+    }
+
     function reprocessSpectral() {
       ['a', 'b'].forEach(slot => {
         if (_rawFileData[slot] && state[slot] && state[slot].usedSpectralLab) {
-          document.getElementById('name-' + slot).textContent = _rawFileData[slot].fileName;
+          setPanelName(slot, _rawFileData[slot].fileName);
           processFileText(slot, _rawFileData[slot].text, _rawFileData[slot].fileName);
         }
       });
@@ -1024,7 +1034,7 @@
       const reader = new FileReader();
       reader.onload = e => {
         _rawFileData[slot] = { text: e.target.result, fileName: file.name };
-        document.getElementById('name-' + slot).textContent = file.name;
+        setPanelName(slot, file.name);
         processFileText(slot, e.target.result, file.name);
       };
       reader.readAsText(file);
@@ -1122,9 +1132,13 @@
         validEl.className = 'validation';
         state[slot] = { headers, rows: dedupedRows, colorants, name: fileName, usedSpectralLab, hasSpectral };
         _gamutState[slot].shellOn = false;
+        _gamutState[slot].pointsOn = true;
         const perFileCb = document.getElementById('gs-shell-cb-' + slot);
         if (perFileCb) perFileCb.checked = false;
+        const perFilePointsCb = document.getElementById('gs-points-cb-' + slot);
+        if (perFilePointsCb) perFilePointsCb.checked = true;
         syncShellCheckbox();
+        syncPointsCheckbox();
         buildGamutCache(slot);
         document.getElementById('show-file-' + slot).disabled = false;
       } else {
@@ -1228,7 +1242,7 @@
       if (!entry) return;
       if (slot === 'a') { _pendingColorantDeletes.clear(); _hasExtracted = false; }
       _rawFileData[slot] = { text: entry.text, fileName: entry.name };
-      document.getElementById('name-' + slot).textContent = entry.name;
+      setPanelName(slot, entry.name);
       processFileText(slot, entry.text, entry.name);
       _cardAssignments[slot] = fileId;
       renderFileList();
@@ -1258,7 +1272,7 @@
           _cardAssignments[slot] = null;
           state[slot] = null;
           _rawFileData[slot] = null;
-          document.getElementById('name-' + slot).textContent = '';
+          setPanelName(slot, '');
           document.getElementById('type-' + slot).textContent = '';
           document.getElementById('rows-' + slot).textContent = '';
           document.getElementById('valid-' + slot).textContent = '';
@@ -1446,6 +1460,15 @@
       return colorants.map(c => (row[headers.indexOf(c)] || '').trim()).join('\x00');
     }
 
+    function nonZeroColorantKey(row, headers, colorants) {
+      const entries = colorants
+        .map(c => ({ name: c, val: (row[headers.indexOf(c)] || '').trim() }))
+        .filter(({ val }) => parseFloat(val) !== 0 && val !== '' && !isNaN(parseFloat(val)));
+      if (entries.length === 0) return null;
+      return entries.sort((a, b) => a.name.localeCompare(b.name))
+        .map(({ name, val }) => `${name}=${val}`).join('\x00');
+    }
+
     function deltaEab(L1, a1, b1, L2, a2, b2) {
       return Math.sqrt((L2-L1)**2 + (a2-a1)**2 + (b2-b1)**2);
     }
@@ -1497,10 +1520,33 @@
       return Math.sqrt((dLp/SL)**2 + (dCp/SC)**2 + (dHp/SH)**2 + RT * (dCp/SC) * (dHp/SH));
     }
 
+    function fmtMethod(method) { return method.replace(/^d/, 'Δ'); }
+
     function calcDeltaE(method, L1, a1, b1, L2, a2, b2) {
       if (method === 'dE94') return deltaE94(L1, a1, b1, L2, a2, b2);
       if (method === 'dE00') return deltaE00(L1, a1, b1, L2, a2, b2);
       return deltaEab(L1, a1, b1, L2, a2, b2);
+    }
+
+    function calcDeltaH(method, L1, a1, b1, L2, a2, b2) {
+      if (method === 'dE00') {
+        // Use ΔH' from CIEDE2000 (same intermediate value as in deltaE00)
+        const deg = Math.PI / 180;
+        const C1ab = Math.sqrt(a1**2 + b1**2), C2ab = Math.sqrt(a2**2 + b2**2);
+        const Cavg7 = ((C1ab + C2ab) / 2) ** 7;
+        const G = 0.5 * (1 - Math.sqrt(Cavg7 / (Cavg7 + 25**7)));
+        const a1p = a1 * (1 + G), a2p = a2 * (1 + G);
+        const C1p = Math.sqrt(a1p**2 + b1**2), C2p = Math.sqrt(a2p**2 + b2**2);
+        const h1p = (Math.atan2(b1, a1p) * 180 / Math.PI + 360) % 360;
+        const h2p = (Math.atan2(b2, a2p) * 180 / Math.PI + 360) % 360;
+        const hdiff = h2p - h1p;
+        const dhp = C1p * C2p === 0 ? 0 : Math.abs(hdiff) <= 180 ? hdiff : hdiff > 180 ? hdiff - 360 : hdiff + 360;
+        return Math.abs(2 * Math.sqrt(C1p * C2p) * Math.sin(dhp * deg / 2));
+      }
+      // dEab and dE94: ΔH*ab = √(max(0, (Δa)²+(Δb)²−(ΔC*)²))
+      const C1 = Math.sqrt(a1**2 + b1**2), C2 = Math.sqrt(a2**2 + b2**2);
+      const dC = C1 - C2;
+      return Math.sqrt(Math.max(0, (a1-a2)**2 + (b1-b2)**2 - dC**2));
     }
 
     function alignDecimals(values) {
@@ -2528,10 +2574,10 @@
 
     function renderCmpTable() {
       if (!_cmpData) return;
-      const { matches, deRaw, a, b, aColIdx, aLabIdx, bLabIdx, method, PR, TH, VL } = _cmpData;
+      const { matches, deRaw, dhRaw, a, b, displayColorants, aLabIdx, bLabIdx, method, PR, TH, VL } = _cmpData;
       const LAB_LABELS = ['L*', 'a*', 'b*'];
       const CH_LABELS = ['C*', 'h*(deg)'];
-      const colorantCount = a.colorants.length;
+      const colorantCount = displayColorants.length;
 
       // Build spectral lookup: two entries per display row (File A then File B)
       _spectralPopupData = [];
@@ -2555,7 +2601,11 @@
       function getSortVal(rowIdx) {
         const col = _cmpSortCol;
         if (col < colorantCount) {
-          const v = parseFloat(matches[rowIdx].rowA[aColIdx[col]]);
+          const colorantName = displayColorants[col];
+          const idxA = a.headers.indexOf(colorantName);
+          const idxB = b.headers.indexOf(colorantName);
+          const raw = idxA !== -1 ? matches[rowIdx].rowA[idxA] : (idxB !== -1 ? matches[rowIdx].rowB[idxB] : '');
+          const v = parseFloat(raw);
           return isNaN(v) ? Infinity : v;
         }
         const rel = col - colorantCount;
@@ -2581,28 +2631,42 @@
           if (isNaN(av) || isNaN(bv)) return Infinity;
           return rel === 8 ? Math.sqrt(av*av+bv*bv) : (Math.atan2(bv,av)*180/Math.PI+360)%360;
         }
-        const v = parseFloat(deRaw[rowIdx]);
+        if (col === colorantCount + 10) {
+          const v = parseFloat(deRaw[rowIdx]);
+          return isNaN(v) ? Infinity : v;
+        }
+        const v = parseFloat(dhRaw[rowIdx]);
         return isNaN(v) ? Infinity : v;
       }
 
       // Column headers with sort indicators
       const arrow = i => _cmpSortCol === i ? (_cmpSortDir === 'asc' ? ' ↑' : ' ↓') : '';
       const colHeaderCells = [
-        ...a.colorants.map((c, i) => `<th onclick="sortCmpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
+        ...displayColorants.map((c, i) => `<th onclick="sortCmpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
         ...LAB_LABELS.map((l, i) => `<th onclick="sortCmpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
         ...CH_LABELS.map((l, i) => `<th onclick="sortCmpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`),
         ...LAB_LABELS.map((l, i) => `<th onclick="sortCmpTable(${colorantCount + 5 + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + 5 + i)}</th>`),
         ...CH_LABELS.map((l, i) => `<th onclick="sortCmpTable(${colorantCount + 8 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 8 + i)}</th>`),
-        `<th onclick="sortCmpTable(${colorantCount + 10})" style="${PR}${TH}${VL}cursor:pointer;">${method}${arrow(colorantCount + 10)}</th>`
+        `<th onclick="sortCmpTable(${colorantCount + 10})" style="${PR}${TH}${VL}cursor:pointer;">${fmtMethod(method)}${arrow(colorantCount + 10)}</th>`,
+        `<th onclick="sortCmpTable(${colorantCount + 11})" style="${PR}${TH}cursor:pointer;">ΔH*${arrow(colorantCount + 11)}</th>`
       ].join('');
       document.getElementById('cmp-col-headers').innerHTML = colHeaderCells;
 
       // Build and render rows
       const fmtLab = v => { const n = parseFloat(v); return isNaN(n) ? '—' : n.toFixed(3); };
-      const colorantCols = aColIdx.map(i => alignDecimals(sortedIdx.map(ri => matches[ri].rowA[i] ?? '')));
+      const colorantCols = displayColorants.map(c => {
+        const idxA = a.headers.indexOf(c);
+        const idxB = b.headers.indexOf(c);
+        return alignDecimals(sortedIdx.map(ri => {
+          if (idxA !== -1) return matches[ri].rowA[idxA] ?? '';
+          if (idxB !== -1) return matches[ri].rowB[idxB] ?? '';
+          return '';
+        }));
+      });
       const aLabCols = aLabIdx.map(i => sortedIdx.map(ri => i !== -1 ? fmtLab(matches[ri].rowA[i]) : '—'));
       const bLabCols = bLabIdx.map(i => sortedIdx.map(ri => i !== -1 ? fmtLab(matches[ri].rowB[i]) : '—'));
       const deCol = alignDecimals(sortedIdx.map(i => deRaw[i]));
+      const dhCol = alignDecimals(sortedIdx.map(i => dhRaw[i]));
 
       const calcCH = (row, labIdx) => {
         const ai = labIdx[1], bi = labIdx[2];
@@ -2627,7 +2691,7 @@
         ).join('');
         const bCH = calcCH(matches[origIdx].rowB, bLabIdx);
         const bCHCells = `<td style="${PR}">${bCH.c}</td><td style="${PR}">${bCH.h}</td>`;
-        return `<tr>${colorantCells}${aLabCells}${aCHCells}${bLabCells}${bCHCells}<td style="${PR}${VL}font-weight:bold;">${deCol[ri]}</td></tr>`;
+        return `<tr>${colorantCells}${aLabCells}${aCHCells}${bLabCells}${bCHCells}<td style="${PR}${VL}font-weight:bold;">${deCol[ri]}</td><td style="${PR}font-weight:bold;">${dhCol[ri]}</td></tr>`;
       }).join('');
     }
 
@@ -2635,73 +2699,55 @@
       const { a, b } = state;
       const resultEl = document.getElementById('result');
 
-      // Check for device colorant mismatch
-      const colorantsMismatch =
-        [...a.colorants].sort().join('\x00') !== [...b.colorants].sort().join('\x00');
-      if (colorantsMismatch) {
-        const validateHTML = `
-          <div onclick="toggleValidate()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
-            <span>Validate</span><span id="validate-arrow">&#9654;</span>
-          </div>
-          <div id="validate-wrap" style="display:none;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:12px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-              <select id="validate-mode" onchange="updateValidateFileLabel()" style="padding:6px 10px;border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;font-size:13px;color:#333;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);cursor:pointer;transition:all 0.08s ease;">
-                <option value="g7">G7</option>
-              </select>
-              <select id="validate-file-select" style="padding:6px 10px;border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;font-size:13px;color:#333;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);cursor:pointer;transition:all 0.08s ease;max-width:280px;"></select>
-              <button class="validate-btn" onclick="validateFile()">Validate</button>
-            </div>
-            <div id="validate-result" style="font-size:13px;color:#333;background:#f8f9fa;border:1px solid #ddd;border-radius:6px;padding:10px;min-height:60px;overflow-x:auto;"></div>
-          </div>
-          <div style="padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;">
-            Comparison Table
-          </div>
-          <div style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:20px 16px;font-size:13px;color:#888;background:#fafafa;">
-            Device colorants mismatch between files. No comparison available.
-          </div>`;
-        resultEl.innerHTML = validateHTML;
-        renderPlot();
-        updateValidateFileLabel();
-        return;
-      }
-
-      // Build lookup: colorant key → row from File B
+      // Build lookup: non-zero colorant key → first matching row from File B
       const bMap = new Map();
       for (const row of b.rows) {
-        const key = colorantKey(row, b.headers, b.colorants);
-        if (!bMap.has(key)) bMap.set(key, row);
+        const key = nonZeroColorantKey(row, b.headers, b.colorants);
+        if (key !== null && !bMap.has(key)) bMap.set(key, row);
       }
 
-      // Collect all matching rows
+      // Collect all matching rows (non-zero colorant sets that exist in both files)
       const matches = [];
       for (const row of a.rows) {
-        const key = colorantKey(row, a.headers, a.colorants);
-        if (bMap.has(key)) matches.push({ rowA: row, rowB: bMap.get(key) });
+        const key = nonZeroColorantKey(row, a.headers, a.colorants);
+        if (key !== null && bMap.has(key)) matches.push({ rowA: row, rowB: bMap.get(key) });
       }
 
       if (matches.length === 0) {
-        resultEl.textContent = 'No matching device colorant rows found.';
+        resultEl.innerHTML = `
+          <div style="padding:20px 16px;font-size:13px;color:#888;background:#fafafa;border:1px solid #ddd;border-radius:6px;margin-top:16px;">
+            No comparable inkings between selected files.
+          </div>`;
+        renderPlot();
         return;
       }
 
       const LAB = ['LAB_L', 'LAB_A', 'LAB_B'];
       const aLabIdx = LAB.map(l => a.headers.indexOf(l));
       const bLabIdx = LAB.map(l => b.headers.indexOf(l));
-      const aColIdx = a.colorants.map(c => a.headers.indexOf(c));
+
+      // Build union of colorants: CMYK first, then alphabetical remainder
+      const CMYK_ORDER = ['CYAN', 'MAGENTA', 'YELLOW', 'BLACK'];
+      const allColorants = [...new Set([...a.colorants, ...b.colorants])];
+      const displayColorants = [
+        ...CMYK_ORDER.filter(c => allColorants.includes(c)),
+        ...allColorants.filter(c => !CMYK_ORDER.includes(c)).sort()
+      ];
 
       const method = deMethod.value;
       const PR = 'padding:4px 16px 4px 0;text-align:right;';
       const TH = 'font-weight:bold;border-bottom:2px solid #ddd;color:#555;';
       const VL = 'border-left:1px solid #ccc;padding-left:12px;';
 
-      // Compute ΔE per match
-      const deRaw = matches.map(({ rowA, rowB }) => {
+      // Compute ΔE and ΔH per match
+      const deRaw = [], dhRaw = [];
+      matches.forEach(({ rowA, rowB }) => {
         const aVals = aLabIdx.map(i => i !== -1 ? parseFloat(rowA[i]) : NaN);
         const bVals = bLabIdx.map(i => i !== -1 ? parseFloat(rowB[i]) : NaN);
         const [L1, a1, b1] = aVals, [L2, a2, b2] = bVals;
-        return (!isNaN(L1) && !isNaN(a1) && !isNaN(b1) && !isNaN(L2) && !isNaN(a2) && !isNaN(b2))
-          ? calcDeltaE(method, L1, a1, b1, L2, a2, b2).toFixed(2)
-          : '—';
+        const valid = !isNaN(L1) && !isNaN(a1) && !isNaN(b1) && !isNaN(L2) && !isNaN(a2) && !isNaN(b2);
+        deRaw.push(valid ? calcDeltaE(method, L1, a1, b1, L2, a2, b2).toFixed(2) : '—');
+        dhRaw.push(valid ? calcDeltaH(method, L1, a1, b1, L2, a2, b2).toFixed(2) : '—');
       });
 
       // Summary statistics
@@ -2712,24 +2758,24 @@
 
       const summaryBox = `
         <div style="display:inline-flex;gap:32px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px 24px;margin-top:16px;font-size:13px;">
-          <div><div style="color:#888;margin-bottom:2px;">Mean ${method}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMean.toFixed(2)}</div></div>
-          <div><div style="color:#888;margin-bottom:2px;">Max ${method}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMax.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">Mean ${fmtMethod(method)}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMean.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">Max ${fmtMethod(method)}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMax.toFixed(2)}</div></div>
           <div><div style="color:#888;margin-bottom:2px;">Std Dev</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deStd.toFixed(2)}</div></div>
         </div>`;
 
       // Spanning header row
-      const colorantSpan = a.colorants.length;
+      const colorantSpan = displayColorants.length;
       const spanningRow = `<tr>
         <th colspan="${colorantSpan}" style="padding:4px 0;text-align:center;${TH}">Device Colorants</th>
         <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">File A</th>
         <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">File B</th>
-        <th style="${PR}${TH}${VL}"></th>
+        <th colspan="2" style="padding:4px 0;text-align:center;${TH}${VL}">Difference</th>
       </tr>`;
 
       // Store data and reset sort state
       _cmpSortCol = null;
       _cmpSortDir = 'asc';
-      _cmpData = { matches, deRaw, a, b, aColIdx, aLabIdx, bLabIdx, method, PR, TH, VL };
+      _cmpData = { matches, deRaw, dhRaw, a, b, displayColorants, aLabIdx, bLabIdx, method, PR, TH, VL };
       _cmpSortedIdx = Array.from({ length: matches.length }, (_, i) => i);
 
       resultEl.innerHTML = `
@@ -2914,7 +2960,7 @@
         const li = gs.lighting;
         return `<div class="gamut-panel" id="gamut-panel-${spec.slot}" style="display:${gs.panelOpen ? 'flex' : 'none'};">
           <div class="gamut-panel-row"><label><input type="checkbox" id="gs-shell-cb-${spec.slot}" onchange="setShellOn('${spec.slot}',this.checked)"${gs.shellOn ? ' checked' : ''}> Show gamut shell</label></div>
-          <div class="gamut-panel-row"><label><input type="checkbox" onchange="setPointsOn('${spec.slot}',this.checked)"${gs.pointsOn ? ' checked' : ''}> Show data points</label></div>
+          <div class="gamut-panel-row"><label><input type="checkbox" id="gs-points-cb-${spec.slot}" onchange="setPointsOn('${spec.slot}',this.checked)"${gs.pointsOn ? ' checked' : ''}> Show data points</label></div>
           <div class="gamut-panel-row">
             <span>Opacity</span>
             <input type="range" id="gs-alpha-r-${spec.slot}" min="0" max="100" value="${gs.alpha}" onchange="setGamutAlpha('${spec.slot}',+this.value)">
@@ -3100,6 +3146,7 @@
 
     function setPointsOn(slot, val) {
       _gamutState[slot].pointsOn = val;
+      syncPointsCheckbox();
       const plotEl = document.getElementById('plot');
       if (!plotEl) return;
       const slotIdx = slot === 'a' ? 0 : 1;
@@ -3107,6 +3154,34 @@
         const visible = _plotVisible[slotIdx] && val;
         Plotly.update(plotEl, { visible: [visible] }, {}, [slotIdx]);
       }
+    }
+
+    function onPointsCheckboxChange(val) {
+      ['a', 'b'].forEach(slot => {
+        if (state[slot]) {
+          _gamutState[slot].pointsOn = val;
+          const cb = document.getElementById('gs-points-cb-' + slot);
+          if (cb) cb.checked = val;
+          const plotEl = document.getElementById('plot');
+          if (plotEl) {
+            const slotIdx = slot === 'a' ? 0 : 1;
+            if (slotIdx < _nSpecs) {
+              Plotly.update(plotEl, { visible: [_plotVisible[slotIdx] && val] }, {}, [slotIdx]);
+            }
+          }
+        }
+      });
+    }
+
+    function syncPointsCheckbox() {
+      const topCb = document.getElementById('plot-opt-points');
+      if (!topCb) return;
+      const slots = ['a', 'b'].filter(s => state[s]);
+      if (slots.length === 0) { topCb.checked = true; topCb.indeterminate = false; return; }
+      const onCount = slots.filter(s => _gamutState[s].pointsOn).length;
+      if (onCount === 0) { topCb.checked = false; topCb.indeterminate = false; }
+      else if (onCount === slots.length) { topCb.checked = true; topCb.indeterminate = false; }
+      else { topCb.checked = false; topCb.indeterminate = true; }
     }
 
     function setMeshDensity(slot, val) {
