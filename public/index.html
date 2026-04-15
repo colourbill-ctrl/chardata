@@ -2963,27 +2963,30 @@
       const useVal = document.getElementById('plot-opt-value-color')?.checked;
       const slotColors = ['#4a90e2', '#e24a4a'];
       const slots = ['a', 'b'];
+      // Collect all updates first, then apply in two batched Plotly calls
+      const scatterIdx = [], scatterColors = [];
+      const shellIdx = [], shellVCs = [];
       for (let i = 0; i < _nSpecs; i++) {
         const slot = slots[i];
         const defColor = slotColors[i];
         const gs = _gamutState[slot];
-        // Update scatter marker colors
         if (gs.cachedScatter) {
           const { ax, bx, lx } = gs.cachedScatter;
-          const colors = ax.map((a, vi) =>
+          scatterIdx.push(i);
+          scatterColors.push(ax.map((a, vi) =>
             useHue ? hueToColor(a, bx[vi]) : useVal ? labToRgb(lx[vi], a, bx[vi]) : defColor
-          );
-          Plotly.update(plotEl, { 'marker.color': [colors] }, {}, [i]);
+          ));
         }
-        // Update shell vertex colors (always use vertexcolor to avoid color/vertexcolor property switching)
         if (gs.cachedXYZ?.x.length) {
           const { x: ax2, y: bx2, z: lx2 } = gs.cachedXYZ;
-          const vc = ax2.map((a, vi) =>
+          shellIdx.push(_nSpecs + i);
+          shellVCs.push(ax2.map((a, vi) =>
             useHue ? hueToColor(a, bx2[vi]) : useVal ? labToRgb(lx2[vi], a, bx2[vi]) : defColor
-          );
-          Plotly.update(plotEl, { vertexcolor: [vc] }, {}, [_nSpecs + i]);
+          ));
         }
       }
+      if (scatterIdx.length) Plotly.update(plotEl, { 'marker.color': scatterColors }, {}, scatterIdx);
+      if (shellIdx.length)   Plotly.update(plotEl, { vertexcolor: shellVCs }, {}, shellIdx);
     }
 
     function renderPlot(skipSlice = false) {
@@ -3319,14 +3322,19 @@
     }
 
     function onShellCheckboxChange(val) {
-      ['a', 'b'].forEach(slot => {
-        if (state[slot]) {
-          _gamutState[slot].shellOn = val;
-          const cb = document.getElementById('gs-shell-cb-' + slot);
-          if (cb) cb.checked = val;
-          _applyShellVisible(slot);
+      const plotEl = document.getElementById('plot');
+      const traceIdx = [], visibles = [];
+      ['a', 'b'].forEach((slot, si) => {
+        if (!state[slot]) return;
+        _gamutState[slot].shellOn = val;
+        const cb = document.getElementById('gs-shell-cb-' + slot);
+        if (cb) cb.checked = val;
+        if (si < _nSpecs) {
+          traceIdx.push(_nSpecs + si);
+          visibles.push(_plotVisible[si] && val && !!(_gamutState[slot].cachedXYZ?.x.length));
         }
       });
+      if (plotEl && traceIdx.length) Plotly.update(plotEl, { visible: visibles }, {}, traceIdx);
     }
 
     function syncShellCheckbox() {
@@ -3367,20 +3375,19 @@
     }
 
     function onPointsCheckboxChange(val) {
-      ['a', 'b'].forEach(slot => {
-        if (state[slot]) {
-          _gamutState[slot].pointsOn = val;
-          const cb = document.getElementById('gs-points-cb-' + slot);
-          if (cb) cb.checked = val;
-          const plotEl = document.getElementById('plot');
-          if (plotEl) {
-            const slotIdx = slot === 'a' ? 0 : 1;
-            if (slotIdx < _nSpecs) {
-              Plotly.update(plotEl, { visible: [_plotVisible[slotIdx] && val] }, {}, [slotIdx]);
-            }
-          }
+      const plotEl = document.getElementById('plot');
+      const traceIdx = [], visibles = [];
+      ['a', 'b'].forEach((slot, si) => {
+        if (!state[slot]) return;
+        _gamutState[slot].pointsOn = val;
+        const cb = document.getElementById('gs-points-cb-' + slot);
+        if (cb) cb.checked = val;
+        if (si < _nSpecs) {
+          traceIdx.push(si);
+          visibles.push(_plotVisible[si] && val);
         }
       });
+      if (plotEl && traceIdx.length) Plotly.update(plotEl, { visible: visibles }, {}, traceIdx);
     }
 
     function syncPointsCheckbox() {
