@@ -698,6 +698,7 @@
       <div class="blade-section">
         <div class="blade-label">Background</div>
         <select id="bg-theme" class="blade-select" onchange="onBgThemeChange(this.value)">
+          <option value="system">System</option>
           <option value="light">Light</option>
           <option value="dark">Dark</option>
         </select>
@@ -808,11 +809,36 @@
       };
     }
 
-    function onBgThemeChange(val) {
-      document.body.classList.toggle('dark', val === 'dark');
-      localStorage.setItem('bgTheme', val);
+    let _systemThemeListener = null;
+
+    function _applyDark(dark) {
+      document.body.classList.toggle('dark', dark);
       renderPlot(true);
       renderSlicePlot();
+    }
+
+    function _attachSystemListener() {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      _systemThemeListener = e => _applyDark(e.matches);
+      mq.addEventListener('change', _systemThemeListener);
+    }
+
+    function _detachSystemListener() {
+      if (_systemThemeListener) {
+        window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', _systemThemeListener);
+        _systemThemeListener = null;
+      }
+    }
+
+    function onBgThemeChange(val) {
+      localStorage.setItem('bgTheme', val);
+      _detachSystemListener();
+      if (val === 'system') {
+        _applyDark(window.matchMedia('(prefers-color-scheme: dark)').matches);
+        _attachSystemListener();
+      } else {
+        _applyDark(val === 'dark');
+      }
     }
 
     let _hasExtracted = false;
@@ -915,10 +941,15 @@
 
     // Apply background theme (before first render so plots get correct colors)
     (function() {
-      const savedTheme = localStorage.getItem('bgTheme') ?? 'dark';
-      document.body.classList.toggle('dark', savedTheme === 'dark');
+      const savedTheme = localStorage.getItem('bgTheme') ?? 'system';
       const bgSel = document.getElementById('bg-theme');
       if (bgSel) bgSel.value = savedTheme;
+      if (savedTheme === 'system') {
+        document.body.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches);
+        _attachSystemListener();
+      } else {
+        document.body.classList.toggle('dark', savedTheme === 'dark');
+      }
     })();
 
     // Persist ΔE method
