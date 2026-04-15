@@ -505,6 +505,13 @@
     body.dark #result > div[style*="inline-flex"] div > div:last-child { color: #e0e0e0 !important; }
     /* File card items in file select */
     body.dark .file-card { background: #2a2b2e !important; border-color: #38393e !important; color: #ccc !important; }
+    /* Extract tab checkbox labels */
+    body.dark #extract-wrap label { color: #ccc !important; }
+    /* G7 report */
+    body.dark #validate-result th { background: #2a2b2e !important; color: #bbb !important; border-color: #38393e !important; }
+    body.dark #validate-result td { border-color: #38393e !important; }
+    body.dark #validate-result summary { color: #aaa !important; }
+    body.dark #validate-result span[style*="color:#777"] { color: #999 !important; }
   </style>
 </head>
 <body>
@@ -1719,11 +1726,11 @@
         return (Math.atan2(bv, av) * 180 / Math.PI + 360) % 360;
       }
 
-      const arrow = i => _expSortCol === i ? (_expSortDir === 'asc' ? ' ↑' : ' ↓') : '';
+      const arrow = i => `<span style="display:inline-block;width:1em;text-align:right;opacity:0.6;">${_expSortCol === i ? (_expSortDir === 'asc' ? '↑' : '↓') : ''}</span>`;
       const colHeaderCells = [
-        ...a.colorants.map((c, i) => `<th onclick="sortExpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
-        ...LAB_LABELS.map((l, i) => `<th onclick="sortExpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
-        ...CH_LABELS.map((l, i) => `<th onclick="sortExpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`)
+        ...a.colorants.map((c, i) => `<th title="Click to sort" onclick="sortExpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
+        ...LAB_LABELS.map((l, i) => `<th title="Click to sort" onclick="sortExpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
+        ...CH_LABELS.map((l, i) => `<th title="Click to sort" onclick="sortExpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`)
       ].join('');
       document.getElementById('exp-col-headers').innerHTML = colHeaderCells;
 
@@ -2746,15 +2753,15 @@
       }
 
       // Column headers with sort indicators
-      const arrow = i => _cmpSortCol === i ? (_cmpSortDir === 'asc' ? ' ↑' : ' ↓') : '';
+      const arrow = i => `<span style="display:inline-block;width:1em;text-align:right;opacity:0.6;">${_cmpSortCol === i ? (_cmpSortDir === 'asc' ? '↑' : '↓') : ''}</span>`;
       const colHeaderCells = [
-        ...displayColorants.map((c, i) => `<th onclick="sortCmpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
-        ...LAB_LABELS.map((l, i) => `<th onclick="sortCmpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
-        ...CH_LABELS.map((l, i) => `<th onclick="sortCmpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`),
-        ...LAB_LABELS.map((l, i) => `<th onclick="sortCmpTable(${colorantCount + 5 + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + 5 + i)}</th>`),
-        ...CH_LABELS.map((l, i) => `<th onclick="sortCmpTable(${colorantCount + 8 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 8 + i)}</th>`),
-        `<th onclick="sortCmpTable(${colorantCount + 10})" style="${PR}${TH}${VL}cursor:pointer;">${fmtMethod(method)}${arrow(colorantCount + 10)}</th>`,
-        `<th onclick="sortCmpTable(${colorantCount + 11})" style="${PR}${TH}cursor:pointer;">ΔH*${arrow(colorantCount + 11)}</th>`
+        ...displayColorants.map((c, i) => `<th title="Click to sort" onclick="sortCmpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
+        ...LAB_LABELS.map((l, i) => `<th title="Click to sort" onclick="sortCmpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
+        ...CH_LABELS.map((l, i) => `<th title="Click to sort" onclick="sortCmpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`),
+        ...LAB_LABELS.map((l, i) => `<th title="Click to sort" onclick="sortCmpTable(${colorantCount + 5 + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + 5 + i)}</th>`),
+        ...CH_LABELS.map((l, i) => `<th title="Click to sort" onclick="sortCmpTable(${colorantCount + 8 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 8 + i)}</th>`),
+        `<th title="Click to sort" onclick="sortCmpTable(${colorantCount + 10})" style="${PR}${TH}${VL}cursor:pointer;">${fmtMethod(method)}${arrow(colorantCount + 10)}</th>`,
+        `<th title="Click to sort" onclick="sortCmpTable(${colorantCount + 11})" style="${PR}${TH}cursor:pointer;">ΔH*${arrow(colorantCount + 11)}</th>`
       ].join('');
       document.getElementById('cmp-col-headers').innerHTML = colHeaderCells;
 
