@@ -3089,11 +3089,11 @@
       const zRange = (zMin === Infinity) ? [0, 100] : [Math.min(0, zMin), zMax + (zMax - zMin) * 0.05 || 5];
       _plotAxisRanges = { xRange, yRange, zRange };
 
-      // Custom axis lines — 3 lines through (0,0,0) + end labels
+      // Custom axis lines — 3 lines through (0,0,0) + tick marks + end labels
       const _th = getPlotTheme();
       const _mkLine = (x, y, z) => ({
         type: 'scatter3d', mode: 'lines', x, y, z,
-        line: { color: _th.lineColor, width: 3 },
+        line: { color: _th.lineColor, width: 6 },
         hoverinfo: 'none', showlegend: false
       });
       const _mkLabel = (x, y, z, text) => ({
@@ -3101,10 +3101,44 @@
         textfont: { color: _th.fontColor, size: 14 },
         hoverinfo: 'none', showlegend: false
       });
+      // Compute nice tick interval targeting ~8 ticks over a span
+      const _niceInterval = span => {
+        const raw = span / 8;
+        const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+        const norm = raw / mag;
+        return mag * (norm < 1.5 ? 1 : norm < 3.5 ? 2 : norm < 7.5 ? 5 : 10);
+      };
+      // Generate tick positions within range (skip values within epsilon of 0)
+      const _tickPositions = (range, interval) => {
+        const ticks = [];
+        const start = Math.ceil((range[0] + 1e-9) / interval) * interval;
+        for (let t = start; t < range[1] - 1e-9; t += interval)
+          if (Math.abs(t) > interval * 0.01) ticks.push(parseFloat(t.toFixed(8)));
+        return ticks;
+      };
+      // Build a single scatter3d trace of tick marks (null-separated segments)
+      const _mkTicks = (positions, axis, tickLen) => {
+        const xs = [], ys = [], zs = [];
+        positions.forEach(p => {
+          if (axis === 'x') {
+            xs.push(p, p, null); ys.push(-tickLen, tickLen, null); zs.push(0, 0, null);
+          } else if (axis === 'y') {
+            xs.push(-tickLen, tickLen, null); ys.push(p, p, null); zs.push(0, 0, null);
+          } else {
+            xs.push(-tickLen, tickLen, null); ys.push(0, 0, null); zs.push(p, p, null);
+          }
+        });
+        return { type: 'scatter3d', mode: 'lines', x: xs, y: ys, z: zs,
+          line: { color: _th.lineColor, width: 3 }, hoverinfo: 'none', showlegend: false };
+      };
+      const _tickLen = Math.max(xRange[1]-xRange[0], yRange[1]-yRange[0], zRange[1]-zRange[0]) * 0.025;
       allTraces.push(
-        _mkLine([xRange[0], xRange[1]], [0, 0], [0, 0]),   // a* axis
-        _mkLine([0, 0], [yRange[0], yRange[1]], [0, 0]),   // b* axis
-        _mkLine([0, 0], [0, 0], [0, zRange[1]]),           // L* axis
+        _mkLine([xRange[0], xRange[1]], [0, 0], [0, 0]),
+        _mkLine([0, 0], [yRange[0], yRange[1]], [0, 0]),
+        _mkLine([0, 0], [0, 0], [0, zRange[1]]),
+        _mkTicks(_tickPositions(xRange, _niceInterval(xRange[1]-xRange[0])), 'x', _tickLen),
+        _mkTicks(_tickPositions(yRange, _niceInterval(yRange[1]-yRange[0])), 'y', _tickLen),
+        _mkTicks(_tickPositions(zRange, _niceInterval(zRange[1]-zRange[0])), 'z', _tickLen),
         _mkLabel(xRange[1], 0, 0, 'a*'),
         _mkLabel(0, yRange[1], 0, 'b*'),
         _mkLabel(0, 0, zRange[1], 'L*')
