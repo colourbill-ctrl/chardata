@@ -448,6 +448,63 @@
     .slice-controls label { display:flex; align-items:center; gap:4px; cursor:pointer; }
     .slice-controls input[type=range] { width:90px; }
     .slice-controls input[type=number] { width:46px; padding:1px 3px; font-size:11px; border:1px solid #ccc; border-radius:3px; }
+
+    /* ── Dark mode ── */
+    body.dark { background: #1a1b1e; color: #d0d0d0; }
+    body.dark .panel { background: #242529; box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+    body.dark .panel.dragover { background: #1e2a3e; }
+    body.dark .panel h2 { color: #888; }
+    body.dark .file-info { color: #999; }
+    body.dark .file-name { color: #ccc; }
+    body.dark .row-count { color: #666; }
+    body.dark .file-type { color: #5a9ad4; }
+    body.dark #panel-a-empty, body.dark #panel-b-empty { color: #44454a !important; }
+    body.dark #blade, body.dark #file-select-blade { background: #1e1f22; }
+    body.dark #blade-content, body.dark #file-select-blade-content { color: #ccc; }
+    body.dark #file-select-blade-header { color: #bbb; border-color: #3a3b40; }
+    body.dark #file-select-empty { color: #555; border-color: #3a3b40 !important; }
+    body.dark .blade-label { color: #666; }
+    body.dark .blade-select { background: linear-gradient(to bottom,#2c2d31,#232427); color: #ddd; border-color: #444; border-bottom-color: #555; }
+    body.dark .blade-select:hover { background: linear-gradient(to bottom,#33343a,#2a2b2e); }
+    body.dark .blade-radio { color: #ccc; }
+    body.dark .seg-btn-inactive { background: linear-gradient(to bottom,#2e2f33,#262729); color: #777; border-color: #444; border-bottom-color: #555; box-shadow: 0 2px 3px rgba(0,0,0,0.3); }
+    body.dark .seg-btn-inactive:hover { background: linear-gradient(to bottom,#363739,#2e2f32); }
+    body.dark #plot-controls-box { background: rgba(26,27,30,0.96) !important; border-color: #3c3d42 !important; color: #bbb !important; }
+    body.dark #plot-controls-box label { color: #bbb; }
+    body.dark #plot-custom-legend > div:first-child,
+    body.dark #slice-custom-legend > div:first-child { color: #777 !important; }
+    body.dark .gamut-panel { background: #1e1f22 !important; border-color: #38393e !important; color: #bbb !important; }
+    body.dark .gamut-section-label { color: #666 !important; border-color: #38393e !important; }
+    body.dark .gamut-lighting-label { color: #666 !important; }
+    body.dark .gamut-light-row span:first-child { color: #888 !important; }
+    body.dark .gamut-light-row .light-readout { color: #777 !important; }
+    body.dark .legend-item-row { background: rgba(30,31,35,0.92) !important; border-color: #46474d !important; }
+    body.dark .legend-gear-btn { border-color: #46474d !important; color: #888 !important; }
+    body.dark .legend-gear-btn:hover { background: #1e2a40 !important; color: #6aacf0 !important; }
+    body.dark .legend-name { color: #ddd !important; }
+    body.dark .slice-controls { color: #888; border-color: #38393e; }
+    body.dark .slice-controls input[type=number] { background: #2a2b2e; color: #ccc; border-color: #444; }
+    /* Section accordion headers — inline bg:#f0f2f5 overridden */
+    body.dark #plot-section > div:first-child,
+    body.dark #slice-section > div:first-child { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
+    body.dark #plot-wrap { border-color: #38393e !important; }
+    body.dark #slice-section > div:nth-child(2) { border-color: #38393e !important; }
+    /* Result area dynamic content */
+    body.dark #result > p { color: #777 !important; }
+    body.dark #result div[onclick*="toggleValidate"],
+    body.dark #result div[onclick*="toggleCmpTable"],
+    body.dark #result div[onclick*="toggleExtract"] { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
+    body.dark #validate-wrap, body.dark #extract-wrap, body.dark #cmp-table-wrap { border-color: #38393e !important; background: #1e1f22; }
+    body.dark #validate-result { background: #1c1d20 !important; border-color: #38393e !important; color: #ccc !important; }
+    body.dark #result table { color: #ccc; }
+    body.dark #result thead th { color: #888 !important; border-color: #38393e !important; }
+    body.dark #result tbody { color: #ccc !important; }
+    /* Summary stats box */
+    body.dark #result > div[style*="inline-flex"] { background: #2a2b2e !important; border-color: #38393e !important; }
+    body.dark #result > div[style*="inline-flex"] div > div:first-child { color: #666 !important; }
+    body.dark #result > div[style*="inline-flex"] div > div:last-child { color: #e0e0e0 !important; }
+    /* File card items in file select */
+    body.dark .file-card { background: #2a2b2e !important; border-color: #38393e !important; color: #ccc !important; }
   </style>
 </head>
 <body>
@@ -627,6 +684,17 @@
           <option value="M2">M2 (UV cut)</option>
         </select>
       </div>
+
+      <div style="border-top:1px solid #eee;margin:4px 0;"></div>
+      <div style="font-size:11px;font-weight:bold;color:#aaa;text-transform:uppercase;letter-spacing:0.04em;">Display</div>
+
+      <div class="blade-section">
+        <div class="blade-label">Background</div>
+        <select id="bg-theme" class="blade-select" onchange="onBgThemeChange(this.value)">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -696,6 +764,7 @@
     let _spectralPopupData = [];
     let _plotRowMap = [];        // _plotRowMap[curveNumber][pointIndex] → row index in state[slot].rows
     let _plotClickHandler = null;
+    let _plotHandlerAttached = false;
     let _plotLegendHandler = null;
     let _plotVisible = [];       // per-trace visibility for scatter traces, preserved across re-renders
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
@@ -709,6 +778,35 @@
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } }
     };
     let _suppressDismiss = false;
+
+    // ── Theme ────────────────────────────────────────────────────────────────
+    function getPlotTheme() {
+      const dark = document.body.classList.contains('dark');
+      return dark ? {
+        paperBg:   '#242529',
+        plotBg:    '#1c1d20',
+        sceneBg:   '#242529',
+        gridColor: '#35363d',
+        lineColor: '#55566a',
+        tickColor: '#888',
+        fontColor: '#aaa'
+      } : {
+        paperBg:   '#fff',
+        plotBg:    '#fafafa',
+        sceneBg:   '#fff',
+        gridColor: '#d0d0d8',
+        lineColor: '#aaa',
+        tickColor: '#666',
+        fontColor: '#555'
+      };
+    }
+
+    function onBgThemeChange(val) {
+      document.body.classList.toggle('dark', val === 'dark');
+      localStorage.setItem('bgTheme', val);
+      renderPlot(true);
+      renderSlicePlot();
+    }
 
     let _hasExtracted = false;
     let _fileViewerSlot = 'a';
@@ -807,6 +905,14 @@
 
     // Apply initial mode (explore is default)
     applyMode();
+
+    // Apply background theme (before first render so plots get correct colors)
+    (function() {
+      const savedTheme = localStorage.getItem('bgTheme') ?? 'dark';
+      document.body.classList.toggle('dark', savedTheme === 'dark');
+      const bgSel = document.getElementById('bg-theme');
+      if (bgSel) bgSel.value = savedTheme;
+    })();
 
     // Persist ΔE method
     const deMethod = document.getElementById('de-method');
@@ -2842,10 +2948,45 @@
         document.getElementById('plot-opt-value-color').checked = false;
       if (which === 'value' && document.getElementById('plot-opt-value-color').checked)
         document.getElementById('plot-opt-hue-color').checked = false;
-      renderPlot();
+      recolorPlot();
     }
 
-    function renderPlot() {
+    function hueToColor(av, bv) {
+      const h = (Math.atan2(bv, av) * 180 / Math.PI + 360) % 360;
+      return `hsl(${h.toFixed(1)},90%,45%)`;
+    }
+
+    function recolorPlot() {
+      const plotEl = document.getElementById('plot');
+      if (!plotEl || _nSpecs === 0) return;
+      const useHue = document.getElementById('plot-opt-hue-color')?.checked;
+      const useVal = document.getElementById('plot-opt-value-color')?.checked;
+      const slotColors = ['#4a90e2', '#e24a4a'];
+      const slots = ['a', 'b'];
+      for (let i = 0; i < _nSpecs; i++) {
+        const slot = slots[i];
+        const defColor = slotColors[i];
+        const gs = _gamutState[slot];
+        // Update scatter marker colors
+        if (gs.cachedScatter) {
+          const { ax, bx, lx } = gs.cachedScatter;
+          const colors = ax.map((a, vi) =>
+            useHue ? hueToColor(a, bx[vi]) : useVal ? labToRgb(lx[vi], a, bx[vi]) : defColor
+          );
+          Plotly.update(plotEl, { 'marker.color': [colors] }, {}, [i]);
+        }
+        // Update shell vertex colors (always use vertexcolor to avoid color/vertexcolor property switching)
+        if (gs.cachedXYZ?.x.length) {
+          const { x: ax2, y: bx2, z: lx2 } = gs.cachedXYZ;
+          const vc = ax2.map((a, vi) =>
+            useHue ? hueToColor(a, bx2[vi]) : useVal ? labToRgb(lx2[vi], a, bx2[vi]) : defColor
+          );
+          Plotly.update(plotEl, { vertexcolor: [vc] }, {}, [_nSpecs + i]);
+        }
+      }
+    }
+
+    function renderPlot(skipSlice = false) {
       const { a, b } = state;
       document.getElementById('plot-section').style.display = '';
       document.getElementById('plot-tab-label').textContent =
@@ -2865,11 +3006,6 @@
           if (cb) cb.checked = false;
         }
       }
-
-      const hueToColor = (av, bv) => {
-        const h = (Math.atan2(bv, av) * 180 / Math.PI + 360) % 360;
-        return `hsl(${h.toFixed(1)},90%,45%)`;
-      };
 
       // Build trace + record which original row index each plotted point came from
       const buildTrace = (data, name, defaultColor) => {
@@ -2906,6 +3042,8 @@
         built.tr.visible = _plotVisible[i] && gs.pointsOn;
         built.tr.showlegend = false;
         _plotRowMap.push(built.rowMap);
+        // Cache a* / b* / L* arrays for fast color recomputation
+        gs.cachedScatter = { ax: built.tr.x, bx: built.tr.y, lx: built.tr.z };
         return built.tr;
       });
 
@@ -2914,15 +3052,13 @@
         const gs = _gamutState[spec.slot];
         const hasCache = !!(gs.cachedXYZ && gs.cachedXYZ.x.length);
         const li = gs.lighting;
-        // Compute per-vertex colors matching the scatter point coloring
-        let shellColor = spec.color;
+        // Always use vertexcolor so recolorPlot() can update colors without switching trace properties
         let vertexcolor;
-        if (hasCache && (useHueColor || useValueColor)) {
-          const { x: ax, y: bx, z: lx } = gs.cachedXYZ; // x=a*, y=b*, z=L*
+        if (hasCache) {
+          const { x: ax, y: bx, z: lx } = gs.cachedXYZ;
           vertexcolor = ax.map((a, vi) =>
-            useHueColor ? hueToColor(a, bx[vi]) : labToRgb(lx[vi], a, bx[vi])
+            useHueColor ? hueToColor(a, bx[vi]) : useValueColor ? labToRgb(lx[vi], a, bx[vi]) : spec.color
           );
-          shellColor = undefined;
         }
         const tr = {
           type: 'mesh3d', name: spec.name + ' shell', showlegend: false, alphahull: gs.meshDensity,
@@ -2935,7 +3071,6 @@
           lighting: { ambient: li.ambient, diffuse: li.diffuse, specular: li.specular, roughness: li.roughness }
         };
         if (vertexcolor) tr.vertexcolor = vertexcolor;
-        else tr.color = shellColor;
         return tr;
       });
 
@@ -2953,6 +3088,27 @@
       const yRange = (yMin === Infinity) ? [-128, 128] : pad(yMin, yMax);
       const zRange = (zMin === Infinity) ? [0, 100] : [Math.min(0, zMin), zMax + (zMax - zMin) * 0.05 || 5];
       _plotAxisRanges = { xRange, yRange, zRange };
+
+      // Custom axis lines — 3 lines through (0,0,0) + end labels
+      const _th = getPlotTheme();
+      const _mkLine = (x, y, z) => ({
+        type: 'scatter3d', mode: 'lines', x, y, z,
+        line: { color: _th.lineColor, width: 3 },
+        hoverinfo: 'none', showlegend: false
+      });
+      const _mkLabel = (x, y, z, text) => ({
+        type: 'scatter3d', mode: 'text', x: [x], y: [y], z: [z], text: [text],
+        textfont: { color: _th.fontColor, size: 14 },
+        hoverinfo: 'none', showlegend: false
+      });
+      allTraces.push(
+        _mkLine([xRange[0], xRange[1]], [0, 0], [0, 0]),   // a* axis
+        _mkLine([0, 0], [yRange[0], yRange[1]], [0, 0]),   // b* axis
+        _mkLine([0, 0], [0, 0], [0, zRange[1]]),           // L* axis
+        _mkLabel(xRange[1], 0, 0, 'a*'),
+        _mkLabel(0, yRange[1], 0, 'b*'),
+        _mkLabel(0, 0, zRange[1], 'L*')
+      );
 
       // Build gamut panel HTML for a given spec
       const gamutPanelHTML = (spec) => {
@@ -2996,7 +3152,7 @@
         const on = _plotVisible[i];
         return `<div style="display:flex;flex-direction:column;gap:3px;">
           <div class="legend-item legend-item-row" style="${on ? '' : 'opacity:0.45;'}">
-            <button class="legend-gear-btn" onclick="event.stopPropagation();toggleGamutPanel('${spec.slot}')">&#9881;&#xFE0E;</button>
+            <button class="legend-gear-btn" title="Dataset Settings" onclick="event.stopPropagation();toggleGamutPanel('${spec.slot}')">&#9881;&#xFE0E;</button>
             <div class="legend-item-left" ${toggleable ? `onclick="togglePlotTrace(${i})"` : ''}>
               <span class="legend-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
               <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
@@ -3022,18 +3178,26 @@
         customLegendEl.innerHTML = legendItemHTML(traceSpecs[0], 0, false);
       }
 
+      const _axisBase = {
+        showbackground: false,
+        showgrid: false,
+        showline: false,
+        zeroline: false,
+        tickfont: { color: _th.tickColor },
+        title: { text: '' }
+      };
       Plotly.react(plotEl, allTraces, {
         margin: { t: 30, r: 10, b: 10, l: 10 },
         scene: {
-          xaxis: { title: 'a*', range: xRange },
-          yaxis: { title: 'b*', range: yRange },
-          zaxis: { title: 'L*', range: zRange }
+          bgcolor: _th.sceneBg,
+          xaxis: { ..._axisBase, range: xRange },
+          yaxis: { ..._axisBase, range: yRange },
+          zaxis: { ..._axisBase, range: zRange }
         },
         showlegend: false,
-        paper_bgcolor: '#fff'
-      }, { responsive: true }).then(() => {
-        // Attach plot click handler (remove previous one first)
-        if (_plotClickHandler) plotEl.removeListener('plotly_click', _plotClickHandler);
+        paper_bgcolor: _th.paperBg
+      }, { responsive: true });
+      if (!_plotHandlerAttached) {
         _plotClickHandler = function(evtData) {
           if (!document.getElementById('plot-opt-spectral')?.checked) return;
           if (!evtData.points || evtData.points.length === 0) return;
@@ -3044,7 +3208,8 @@
           if (!rowMap) return;
           const rowIdx = rowMap[ptNum];
           if (rowIdx === undefined) return;
-          const slot = curveNum === 0 ? a : b;
+          const slot = curveNum === 0 ? state.a : state.b;
+          if (!slot) return;
           const color = curveNum === 0 ? '#4a90e2' : '#e24a4a';
           const spec = extractSpectral(slot.headers, slot.rows[rowIdx]);
           _suppressDismiss = true;
@@ -3053,8 +3218,9 @@
           showSpectralPopup(cx, cy, { wavelengths: spec.wavelengths, values: spec.values, label: buildSpectralLabel(slot.name, slot.headers, slot.rows[rowIdx], slot.colorants), color });
         };
         plotEl.on('plotly_click', _plotClickHandler);
-      });
-      renderSlicePlot();
+        _plotHandlerAttached = true;
+      }
+      if (!skipSlice) renderSlicePlot();
     }
 
     function togglePlotTrace(i) {
@@ -3102,10 +3268,20 @@
       }
     }
 
+    function _applyShellVisible(slot) {
+      const plotEl = document.getElementById('plot');
+      if (!plotEl) return;
+      const slotIdx = slot === 'a' ? 0 : 1;
+      if (slotIdx >= _nSpecs) return;
+      const gs = _gamutState[slot];
+      const visible = _plotVisible[slotIdx] && gs.shellOn && !!(gs.cachedXYZ?.x.length);
+      Plotly.update(plotEl, { visible: [visible] }, {}, [_nSpecs + slotIdx]);
+    }
+
     function setShellOn(slot, val) {
       _gamutState[slot].shellOn = val;
       syncShellCheckbox();
-      applyGamutUpdate(slot);
+      _applyShellVisible(slot);
     }
 
     function onShellCheckboxChange(val) {
@@ -3114,7 +3290,7 @@
           _gamutState[slot].shellOn = val;
           const cb = document.getElementById('gs-shell-cb-' + slot);
           if (cb) cb.checked = val;
-          applyGamutUpdate(slot);
+          _applyShellVisible(slot);
         }
       });
     }
@@ -3191,18 +3367,23 @@
       const num = document.getElementById('gs-density-n-' + slot);
       if (slider) slider.value = val;
       if (num) num.value = val;
-      applyGamutUpdate(slot);
+      const plotEl = document.getElementById('plot');
+      if (!plotEl) return;
+      const slotIdx = slot === 'a' ? 0 : 1;
+      if (slotIdx < _nSpecs) Plotly.update(plotEl, { alphahull: [val] }, {}, [_nSpecs + slotIdx]);
     }
 
     function setGamutAlpha(slot, val) {
       val = Math.max(0, Math.min(100, Math.round(val)));
       _gamutState[slot].alpha = val;
-      // Sync slider and number input
       const slider = document.getElementById('gs-alpha-r-' + slot);
       const num = document.getElementById('gs-alpha-n-' + slot);
       if (slider) slider.value = val;
       if (num) num.value = val;
-      applyGamutUpdate(slot);
+      const plotEl = document.getElementById('plot');
+      if (!plotEl) return;
+      const slotIdx = slot === 'a' ? 0 : 1;
+      if (slotIdx < _nSpecs) Plotly.update(plotEl, { opacity: [val / 100] }, {}, [_nSpecs + slotIdx]);
     }
 
     function buildGamutCache(slot) {
@@ -3228,10 +3409,15 @@
     function setLighting(slot, prop, val) {
       val = parseFloat(val) / 100;   // slider is 0-100, state stores 0.0-1.0
       _gamutState[slot].lighting[prop] = val;
-      // Sync readout span
       const readout = document.getElementById('gs-' + prop + '-v-' + slot);
       if (readout) readout.textContent = Math.round(val * 100) + '%';
-      applyGamutUpdate(slot);
+      const plotEl = document.getElementById('plot');
+      if (!plotEl) return;
+      const slotIdx = slot === 'a' ? 0 : 1;
+      if (slotIdx < _nSpecs) {
+        const li = _gamutState[slot].lighting;
+        Plotly.update(plotEl, { lighting: [{ ambient: li.ambient, diffuse: li.diffuse, specular: li.specular, roughness: li.roughness }] }, {}, [_nSpecs + slotIdx]);
+      }
     }
 
     function applyGamutUpdate(slot) {
@@ -3428,13 +3614,15 @@
       const xAxisRange = pr ? (axis === 'L' ? pr.xRange : axis === 'a' ? pr.yRange : pr.xRange) : undefined;
       const yAxisRange = pr ? (axis === 'L' ? pr.yRange : pr.zRange) : undefined;
 
+      const _th2 = getPlotTheme();
       const layout = {
         margin: { t: 20, r: 20, b: 50, l: 50 },
-        xaxis: { title: xlabel, range: xAxisRange },
-        yaxis: { title: ylabel, range: yAxisRange },
+        xaxis: { title: xlabel, range: xAxisRange, color: _th2.tickColor, gridcolor: _th2.gridColor, linecolor: _th2.lineColor, zerolinecolor: _th2.gridColor },
+        yaxis: { title: ylabel, range: yAxisRange, color: _th2.tickColor, gridcolor: _th2.gridColor, linecolor: _th2.lineColor, zerolinecolor: _th2.gridColor },
         showlegend: false,
-        paper_bgcolor: '#fff',
-        plot_bgcolor: '#fafafa'
+        paper_bgcolor: _th2.paperBg,
+        plot_bgcolor: _th2.plotBg,
+        font: { color: _th2.fontColor }
       };
       // Lock aspect ratio for a*-b* plane so the gamut shape isn't distorted
       if (axis === 'L') {
