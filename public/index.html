@@ -608,7 +608,7 @@
       </div>
       <div style="position:relative;">
         <div id="plot" style="width:100%;height:600px;"></div>
-        <div id="plot-busy" style="display:none;position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.55);color:#fff;padding:4px 12px;border-radius:12px;font-size:12px;letter-spacing:0.02em;pointer-events:none;z-index:25;">Computing&#8230;</div>
+        <div id="plot-busy" style="display:none;position:absolute;top:10px;left:10px;white-space:nowrap;background:rgba(0,0,0,0.55);color:#fff;padding:4px 12px;border-radius:12px;font-size:12px;letter-spacing:0.02em;pointer-events:none;z-index:25;">Computing&#8230;</div>
       </div>
     </div>
   </div>
@@ -2998,7 +2998,7 @@
       return `hsl(${h.toFixed(1)},90%,45%)`;
     }
 
-    function showPlotBusy() { const el = document.getElementById('plot-busy'); if (el) el.style.display = ''; }
+    function showPlotBusy() { const el = document.getElementById('plot-busy'); if (el) el.style.display = 'block'; }
     function hidePlotBusy() { const el = document.getElementById('plot-busy'); if (el) el.style.display = 'none'; }
 
     function recolorPlot() {
