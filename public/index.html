@@ -512,6 +512,7 @@
     body.dark #validate-result td { border-color: #38393e !important; }
     body.dark #validate-result summary { color: #aaa !important; }
     body.dark #validate-result span[style*="color:#777"] { color: #999 !important; }
+    body.dark #copyright-bar { color: rgba(255,255,255,0.35) !important; }
   </style>
 </head>
 <body>
@@ -605,7 +606,10 @@
           </label>
         </div>
       </div>
-      <div id="plot" style="width:100%;height:600px;"></div>
+      <div style="position:relative;">
+        <div id="plot" style="width:100%;height:600px;"></div>
+        <div id="plot-busy" style="display:none;position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.55);color:#fff;padding:4px 12px;border-radius:12px;font-size:12px;letter-spacing:0.02em;pointer-events:none;z-index:25;">Computing&#8230;</div>
+      </div>
     </div>
   </div>
 
@@ -2994,6 +2998,9 @@
       return `hsl(${h.toFixed(1)},90%,45%)`;
     }
 
+    function showPlotBusy() { const el = document.getElementById('plot-busy'); if (el) el.style.display = ''; }
+    function hidePlotBusy() { const el = document.getElementById('plot-busy'); if (el) el.style.display = 'none'; }
+
     function recolorPlot() {
       const plotEl = document.getElementById('plot');
       if (!plotEl || _nSpecs === 0) return;
@@ -3064,6 +3071,7 @@
         });
         return {
           tr: { type: 'scatter3d', mode: 'markers', name, x: xs, y: ys, z: zs,
+                hovertemplate: 'L*: %{z:.2f}<br>a*: %{x:.2f}<br>b*: %{y:.2f}<extra></extra>',
                 marker: { size: 3, color: colors, opacity: 0.8,
                           symbol: 'circle' } },
           rowMap
@@ -3106,8 +3114,8 @@
           x: hasCache ? gs.cachedXYZ.x : [],
           y: hasCache ? gs.cachedXYZ.y : [],
           z: hasCache ? gs.cachedXYZ.z : [],
-          opacity: gs.alpha / 100,
-          visible: _plotVisible[i] && gs.shellOn && hasCache,
+          opacity: gs.shellOn ? gs.alpha / 100 : 0,
+          visible: _plotVisible[i] && hasCache,
           flatshading: false, hoverinfo: 'skip',
           lighting: { ambient: li.ambient, diffuse: li.diffuse, specular: li.specular, roughness: li.roughness }
         };
@@ -3261,7 +3269,8 @@
         tickfont: { color: _th.tickColor },
         title: { text: '' }
       };
-      Plotly.react(plotEl, allTraces, {
+      showPlotBusy();
+      const _layout = {
         margin: { t: 30, r: 10, b: 10, l: 10 },
         scene: {
           bgcolor: _th.sceneBg,
@@ -3271,31 +3280,36 @@
         },
         showlegend: false,
         paper_bgcolor: _th.paperBg
-      }, { responsive: true });
-      if (!_plotHandlerAttached) {
-        _plotClickHandler = function(evtData) {
-          if (!document.getElementById('plot-opt-spectral')?.checked) return;
-          if (!evtData.points || evtData.points.length === 0) return;
-          const pt = evtData.points[0];
-          const curveNum = pt.curveNumber;
-          const ptNum = pt.pointNumber;
-          const rowMap = _plotRowMap[curveNum];
-          if (!rowMap) return;
-          const rowIdx = rowMap[ptNum];
-          if (rowIdx === undefined) return;
-          const slot = curveNum === 0 ? state.a : state.b;
-          if (!slot) return;
-          const color = curveNum === 0 ? '#4a90e2' : '#e24a4a';
-          const spec = extractSpectral(slot.headers, slot.rows[rowIdx]);
-          _suppressDismiss = true;
-          const cx = (pt.event && pt.event.clientX != null) ? pt.event.clientX : window.innerWidth  / 2;
-          const cy = (pt.event && pt.event.clientY != null) ? pt.event.clientY : window.innerHeight / 2;
-          showSpectralPopup(cx, cy, { wavelengths: spec.wavelengths, values: spec.values, label: buildSpectralLabel(slot.name, slot.headers, slot.rows[rowIdx], slot.colorants), color });
-        };
-        plotEl.on('plotly_click', _plotClickHandler);
-        _plotHandlerAttached = true;
-      }
-      if (!skipSlice) renderSlicePlot();
+      };
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        Plotly.react(plotEl, allTraces, _layout, { responsive: true }).then(() => {
+          hidePlotBusy();
+          if (!_plotHandlerAttached) {
+            _plotClickHandler = function(evtData) {
+              if (!document.getElementById('plot-opt-spectral')?.checked) return;
+              if (!evtData.points || evtData.points.length === 0) return;
+              const pt = evtData.points[0];
+              const curveNum = pt.curveNumber;
+              const ptNum = pt.pointNumber;
+              const rowMap = _plotRowMap[curveNum];
+              if (!rowMap) return;
+              const rowIdx = rowMap[ptNum];
+              if (rowIdx === undefined) return;
+              const slot = curveNum === 0 ? state.a : state.b;
+              if (!slot) return;
+              const color = curveNum === 0 ? '#4a90e2' : '#e24a4a';
+              const spec = extractSpectral(slot.headers, slot.rows[rowIdx]);
+              _suppressDismiss = true;
+              const cx = (pt.event && pt.event.clientX != null) ? pt.event.clientX : window.innerWidth  / 2;
+              const cy = (pt.event && pt.event.clientY != null) ? pt.event.clientY : window.innerHeight / 2;
+              showSpectralPopup(cx, cy, { wavelengths: spec.wavelengths, values: spec.values, label: buildSpectralLabel(slot.name, slot.headers, slot.rows[rowIdx], slot.colorants), color });
+            };
+            plotEl.on('plotly_click', _plotClickHandler);
+            _plotHandlerAttached = true;
+          }
+          if (!skipSlice) renderSlicePlot();
+        });
+      }));
     }
 
     function togglePlotTrace(i) {
@@ -3314,8 +3328,12 @@
       const shellIdx = _nSpecs + i;
       const slotKey = i === 0 ? 'a' : 'b';
       const gs = _gamutState[slotKey];
-      if (gs.shellOn && gs.cachedXYZ) {
-        Plotly.update(plotEl, { visible: [on] }, {}, [shellIdx]);
+      if (gs.cachedXYZ) {
+        if (on) {
+          Plotly.update(plotEl, { visible: [true], opacity: [gs.shellOn ? gs.alpha / 100 : 0] }, {}, [shellIdx]);
+        } else {
+          Plotly.update(plotEl, { visible: [false] }, {}, [shellIdx]);
+        }
       }
       // Refresh custom legend appearance
       const items = document.querySelectorAll('#plot-custom-legend .legend-item');
@@ -3349,8 +3367,12 @@
       const slotIdx = slot === 'a' ? 0 : 1;
       if (slotIdx >= _nSpecs) return;
       const gs = _gamutState[slot];
-      const visible = _plotVisible[slotIdx] && gs.shellOn && !!(gs.cachedXYZ?.x.length);
-      Plotly.update(plotEl, { visible: [visible] }, {}, [_nSpecs + slotIdx]);
+      if (!gs.cachedXYZ?.x.length) return;
+      if (!_plotVisible[slotIdx]) {
+        Plotly.update(plotEl, { visible: [false] }, {}, [_nSpecs + slotIdx]);
+      } else {
+        Plotly.update(plotEl, { visible: [true], opacity: [gs.shellOn ? gs.alpha / 100 : 0] }, {}, [_nSpecs + slotIdx]);
+      }
     }
 
     function setShellOn(slot, val) {
@@ -3361,7 +3383,7 @@
 
     function onShellCheckboxChange(val) {
       const plotEl = document.getElementById('plot');
-      const traceIdx = [], visibles = [];
+      const traceIdx = [], opacities = [];
       ['a', 'b'].forEach((slot, si) => {
         if (!state[slot]) return;
         _gamutState[slot].shellOn = val;
@@ -3369,10 +3391,10 @@
         if (cb) cb.checked = val;
         if (si < _nSpecs) {
           traceIdx.push(_nSpecs + si);
-          visibles.push(_plotVisible[si] && val && !!(_gamutState[slot].cachedXYZ?.x.length));
+          opacities.push(val ? _gamutState[slot].alpha / 100 : 0);
         }
       });
-      if (plotEl && traceIdx.length) Plotly.update(plotEl, { visible: visibles }, {}, traceIdx);
+      if (plotEl && traceIdx.length) Plotly.update(plotEl, { opacity: opacities }, {}, traceIdx);
     }
 
     function syncShellCheckbox() {
@@ -3449,7 +3471,12 @@
       const plotEl = document.getElementById('plot');
       if (!plotEl) return;
       const slotIdx = slot === 'a' ? 0 : 1;
-      if (slotIdx < _nSpecs) Plotly.update(plotEl, { alphahull: [val] }, {}, [_nSpecs + slotIdx]);
+      if (slotIdx < _nSpecs) {
+        showPlotBusy();
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          Plotly.update(plotEl, { alphahull: [val] }, {}, [_nSpecs + slotIdx]).then(hidePlotBusy);
+        }));
+      }
     }
 
     function setGamutAlpha(slot, val) {
@@ -3462,7 +3489,8 @@
       const plotEl = document.getElementById('plot');
       if (!plotEl) return;
       const slotIdx = slot === 'a' ? 0 : 1;
-      if (slotIdx < _nSpecs) Plotly.update(plotEl, { opacity: [val / 100] }, {}, [_nSpecs + slotIdx]);
+      const gs = _gamutState[slot];
+      if (slotIdx < _nSpecs && gs.shellOn) Plotly.update(plotEl, { opacity: [val / 100] }, {}, [_nSpecs + slotIdx]);
     }
 
     function buildGamutCache(slot) {
@@ -3757,7 +3785,7 @@
     style="display:none;position:fixed;z-index:1000;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.18);padding:12px;">
     <div id="spectral-plot-div" style="width:420px;height:260px;"></div>
   </div>
-  <div style="position:fixed;bottom:8px;left:50%;transform:translateX(-50%);
+  <div id="copyright-bar" style="position:fixed;bottom:8px;left:50%;transform:translateX(-50%);
               z-index:800;pointer-events:none;user-select:none;
               font-size:11px;color:rgba(0,0,0,0.22);white-space:nowrap;
               font-family:sans-serif;letter-spacing:0.02em;">
