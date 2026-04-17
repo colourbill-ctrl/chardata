@@ -80,7 +80,7 @@ If required columns are missing, a warning lists what is absent. The app still l
 
 ## 3. Settings panel
 
-Open Settings by clicking the **⚙** button on the right edge of the screen (or the hamburger icon on mobile).
+Open Settings by clicking the **⚙** button on the right edge of the screen (or the gear icon on mobile). A **?** help button sits directly below ⚙ and opens this help page in a new tab.
 
 ### ΔE Method
 
@@ -92,7 +92,7 @@ Selects the colour difference formula used throughout the app.
 | ΔE94 | CIE 1994 — weighted by chroma |
 | ΔE00 | CIE 2000 — most perceptually uniform, industry standard |
 
-The selection is remembered between sessions.
+The selection is remembered between sessions. Changing the method immediately updates the Compare table and the Estimate fit statistics (without refitting the model).
 
 ### Filter Duplicates
 
@@ -187,17 +187,17 @@ Click **Generate model**. A "Computing…" message is shown while the fit runs (
 #### Model fitting strategy
 
 - The fitter starts at degree 2 and steps up to a maximum of degree 5 (or the number of colorants, whichever is lower).
-- At each degree, ΔE00 fit statistics are computed on the training data.
-- Fitting stops and keeps the best model found when a higher degree yields a worse fit (mean ΔE00 is the primary criterion, then std dev, then max).
+- At each degree, fit statistics are computed using the selected ΔE method.
+- Fitting stops and keeps the best model found when a higher degree yields a worse fit (mean ΔE is the primary criterion, then std dev, then max).
 - The degree falls back automatically if there are insufficient data points for a given degree.
 
 #### Fit statistics
 
 | Statistic | Description |
 |---|---|
-| Mean ΔE00 | Average colour error across all data points |
-| Min ΔE00 | Best-case colour error |
-| Max ΔE00 | Worst-case colour error |
+| Mean ΔE | Average colour error across all data points |
+| Min ΔE | Best-case colour error |
+| Max ΔE | Worst-case colour error |
 | Std Dev | Spread of the error distribution |
 | Points fitted | Number of rows used for the fit |
 
@@ -211,7 +211,7 @@ Below the stats, a table allows you to dial in colorant values:
 - **Model** column shows the predicted L\*, a\*, b\* for the current colorant values.
 - **Nearest in dataset** column shows the L\*, a\*, b\* (and colorant values) of the closest patch in the dataset by Euclidean distance in colorant space.
 
-Click **Regenerate** to refit the model (e.g. after changing settings).
+Click **Regenerate** to refit the model (e.g. after loading a new dataset). Note: changing the ΔE method in Settings updates the displayed statistics immediately without refitting — only click Regenerate if you want to refit from scratch using the new method's stopping criterion.
 
 ---
 
