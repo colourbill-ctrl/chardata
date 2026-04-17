@@ -968,7 +968,11 @@
     const deMethod = document.getElementById('de-method');
     const saved = localStorage.getItem('deMethod');
     if (saved) deMethod.value = saved;
-    deMethod.addEventListener('change', () => localStorage.setItem('deMethod', deMethod.value));
+    deMethod.addEventListener('change', () => {
+      localStorage.setItem('deMethod', deMethod.value);
+      if (_mode === 'compare' && state.a && state.b) runCompare();
+      if (_mode === 'explore') recomputeEstimateStats();
+    });
 
     function standardizeHeaders(headers) {
       const RENAMES = { CMYK_C: 'CYAN', CMYK_M: 'MAGENTA', CMYK_Y: 'YELLOW', CMYK_K: 'BLACK' };
@@ -3629,12 +3633,12 @@
       return aug.map(row => row[F]);
     }
 
-    // Compute ΔE00 fit statistics for a candidate model over the training points.
-    function _modelStats(coeffsL, coeffsA, coeffsB, norm, pts, deg) {
+    // Compute fit statistics for a candidate model over the training points using the given ΔE method.
+    function _modelStats(coeffsL, coeffsA, coeffsB, norm, pts, deg, method) {
       const deVals = pts.map((p, i) => {
         const f = _polyFeatures(norm[i], deg);
         const dot = c => c.reduce((s, ci, j) => s + ci * f[j], 0);
-        return deltaE00(p.L, p.a, p.b, dot(coeffsL), dot(coeffsA), dot(coeffsB));
+        return calcDeltaE(method, p.L, p.a, p.b, dot(coeffsL), dot(coeffsA), dot(coeffsB));
       });
       const mean = deVals.reduce((s, v) => s + v, 0) / deVals.length;
       const stdev = Math.sqrt(deVals.reduce((s, v) => s + (v - mean) ** 2, 0) / deVals.length);
@@ -3654,9 +3658,10 @@
 
     // Fit a polynomial model mapping device colorants → L*, a*, b*.
     // Starts at degree 2, steps up to min(colorants.length, POLY_FIT_MAX_DEGREE).
-    // Stops and returns the best model when a higher degree yields worse ΔE00 fit.
+    // Stops and returns the best model when a higher degree yields worse fit (using current ΔE method).
     // Returns a model object with coefficients and fit stats, or null on failure.
     function fitPolynomialModel(headers, rows, colorants) {
+      const method = document.getElementById('de-method').value;
       const iC = colorants.map(c => headers.indexOf(c));
       const iL = headers.indexOf('LAB_L'), iA = headers.indexOf('LAB_A'), iB = headers.indexOf('LAB_B');
       if (iL < 0 || iA < 0 || iB < 0 || iC.some(i => i < 0)) return null;
@@ -3680,8 +3685,8 @@
         const coeffsL = _solveNE(X, pts.map(p => p.L));
         const coeffsA = _solveNE(X, pts.map(p => p.a));
         const coeffsB = _solveNE(X, pts.map(p => p.b));
-        const stats = _modelStats(coeffsL, coeffsA, coeffsB, norm, pts, deg);
-        const candidate = { colorants: colorants.slice(), mins, ranges, nPts: pts.length, degree: deg, stats, coeffsL, coeffsA, coeffsB };
+        const stats = _modelStats(coeffsL, coeffsA, coeffsB, norm, pts, deg, method);
+        const candidate = { colorants: colorants.slice(), mins, ranges, nPts: pts.length, degree: deg, method, stats, coeffsL, coeffsA, coeffsB };
         if (!best || _statsBetter(stats, best.stats)) {
           best = candidate;
         } else {
@@ -3728,11 +3733,12 @@
 
       // ── Area 1: fit statistics (pre-computed during model fitting) ──
       const { mean: deMean, max: deMax, min: deMin, stdev: deStd } = _estimateModel.stats;
+      const deLabel = fmtMethod(_estimateModel.method);
       const statsHTML = `
         <div style="display:inline-flex;gap:32px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px 24px;font-size:13px;flex-wrap:wrap;">
-          <div><div style="color:#888;margin-bottom:2px;">Mean ΔE00</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMean.toFixed(2)}</div></div>
-          <div><div style="color:#888;margin-bottom:2px;">Min ΔE00</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMin.toFixed(2)}</div></div>
-          <div><div style="color:#888;margin-bottom:2px;">Max ΔE00</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMax.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">Mean ${deLabel}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMean.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">Min ${deLabel}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMin.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">Max ${deLabel}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMax.toFixed(2)}</div></div>
           <div><div style="color:#888;margin-bottom:2px;">Std Dev</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deStd.toFixed(2)}</div></div>
           <div><div style="color:#888;margin-bottom:2px;">Points fitted</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${_estimateModel.nPts}</div></div>
         </div>`;
@@ -3789,6 +3795,31 @@
         ${statsHTML}
         ${tableHTML}
       </div>`;
+    }
+
+    // Recompute fit statistics on the existing model coefficients using the current ΔE method.
+    // Called when the ΔE method changes — does NOT refit the model.
+    function recomputeEstimateStats() {
+      if (!_estimateModel || !state.a) return;
+      const method = document.getElementById('de-method').value;
+      const { headers, rows } = state.a;
+      const iC = _estimateModel.colorants.map(c => headers.indexOf(c));
+      const iL = headers.indexOf('LAB_L'), iA = headers.indexOf('LAB_A'), iB = headers.indexOf('LAB_B');
+      if (iL < 0 || iA < 0 || iB < 0 || iC.some(i => i < 0)) return;
+      const pts = [];
+      for (const r of rows) {
+        const cs = iC.map(i => parseFloat(r[i]));
+        const L = parseFloat(r[iL]), a = parseFloat(r[iA]), b = parseFloat(r[iB]);
+        if (cs.some(isNaN) || isNaN(L) || isNaN(a) || isNaN(b)) continue;
+        pts.push({ cs, L, a, b });
+      }
+      if (!pts.length) return;
+      const norm = pts.map(p => p.cs.map((v, i) => (v - _estimateModel.mins[i]) / _estimateModel.ranges[i]));
+      _estimateModel.stats = _modelStats(_estimateModel.coeffsL, _estimateModel.coeffsA, _estimateModel.coeffsB, norm, pts, _estimateModel.degree, method);
+      _estimateModel.method = method;
+      const wrap = document.getElementById('est-wrap');
+      if (wrap) wrap.innerHTML = buildEstimateHTML();
+      updateEstimate();
     }
 
     // Fit the model and refresh the Estimate section content.
