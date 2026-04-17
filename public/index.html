@@ -490,13 +490,16 @@
     body.dark #slice-section > div:first-child { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
     body.dark #plot-wrap { border-color: #38393e !important; }
     body.dark #plot-controls-body > div[style*="border-top"] { border-color: #38393e !important; }
+    #est-wrap input[type=number]::-webkit-inner-spin-button,
+    #est-wrap input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     body.dark #slice-section > div:nth-child(2) { border-color: #38393e !important; }
     /* Result area dynamic content */
     body.dark #result > p { color: #777 !important; }
     body.dark #result div[onclick*="toggleValidate"],
     body.dark #result div[onclick*="toggleCmpTable"],
-    body.dark #result div[onclick*="toggleExtract"] { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
-    body.dark #validate-wrap, body.dark #extract-wrap, body.dark #cmp-table-wrap { border-color: #38393e !important; background: #1e1f22; }
+    body.dark #result div[onclick*="toggleExtract"],
+    body.dark #result div[onclick*="toggleEstimate"] { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
+    body.dark #validate-wrap, body.dark #extract-wrap, body.dark #cmp-table-wrap, body.dark #est-wrap { border-color: #38393e !important; background: #1e1f22; }
     body.dark #validate-result { background: #1c1d20 !important; border-color: #38393e !important; color: #ccc !important; }
     body.dark #result table { color: #ccc; }
     body.dark #result thead th { color: #888 !important; border-color: #38393e !important; }
@@ -3578,19 +3581,21 @@
     }
 
     // ── Polynomial estimate model ─────────────────────────────────────────────
-    // Degree of polynomial feature expansion for the colorant→LAB model.
-    // 2 = bias + linear + quadratic + pairwise cross terms.
-    // Change here to experiment with a different degree (refitting happens automatically).
-    const POLY_FIT_DEGREE = 2;
+    // Maximum degree to attempt for the polynomial feature expansion.
+    // The fitter will try this degree first and drop down automatically if there are
+    // insufficient data points, stopping at degree 1 (pure linear).
+    const POLY_FIT_DEGREE = 4;
 
-    // Build a degree-2 feature vector from an array of normalised inputs.
-    // For n colorants: 1 bias + n linear + n quadratic + n(n-1)/2 pairwise cross = total F features.
-    function _polyFeatures(xs) {
-      const f = [1];
-      for (const x of xs) f.push(x);
-      for (const x of xs) f.push(x * x);
-      for (let i = 0; i < xs.length; i++)
-        for (let j = i + 1; j < xs.length; j++) f.push(xs[i] * xs[j]);
+    // Build a feature vector of all monomials up to the given degree from normalised inputs.
+    // Uses combinations-with-repetition so the count equals C(n+d, d).
+    function _polyFeatures(xs, degree) {
+      const f = [1]; // degree-0 bias
+      function gen(minIdx, d, product) {
+        f.push(product);
+        if (d === degree) return;
+        for (let i = minIdx; i < xs.length; i++) gen(i, d + 1, product * xs[i]);
+      }
+      for (let i = 0; i < xs.length; i++) gen(i, 1, xs[i]);
       return f;
     }
 
@@ -3623,10 +3628,9 @@
       return aug.map(row => row[F]);
     }
 
-    // Fit a degree-POLY_FIT_DEGREE polynomial mapping device colorants → L*, a*, b*.
-    // Uses deduplicated rows from state. Returns a model object with retrievable
-    // coefficients (coeffsL/A/B), normalisation info (mins/ranges), and metadata.
-    // Returns null if there are insufficient data points to determine the model.
+    // Fit a polynomial model mapping device colorants → L*, a*, b*.
+    // Attempts POLY_FIT_DEGREE first; drops degree by 1 until the system is determined.
+    // Returns a model object with retrievable coefficients, or null if even degree 1 fails.
     function fitPolynomialModel(headers, rows, colorants) {
       const iC = colorants.map(c => headers.indexOf(c));
       const iL = headers.indexOf('LAB_L'), iA = headers.indexOf('LAB_A'), iB = headers.indexOf('LAB_B');
@@ -3639,24 +3643,27 @@
         pts.push({ cs, L, a, b });
       }
       if (!pts.length) return null;
-      const mins  = colorants.map((_, ci) => Math.min(...pts.map(p => p.cs[ci])));
-      const maxs  = colorants.map((_, ci) => Math.max(...pts.map(p => p.cs[ci])));
+      const mins   = colorants.map((_, ci) => Math.min(...pts.map(p => p.cs[ci])));
+      const maxs   = colorants.map((_, ci) => Math.max(...pts.map(p => p.cs[ci])));
       const ranges = mins.map((mn, i) => (maxs[i] - mn) || 1);
-      const X = pts.map(p => _polyFeatures(p.cs.map((v, i) => (v - mins[i]) / ranges[i])));
-      const F = X[0].length;
-      if (pts.length < F) return null; // underdetermined
-      return {
-        colorants: colorants.slice(), mins, ranges, nPts: pts.length, degree: POLY_FIT_DEGREE,
-        coeffsL: _solveNE(X, pts.map(p => p.L)),
-        coeffsA: _solveNE(X, pts.map(p => p.a)),
-        coeffsB: _solveNE(X, pts.map(p => p.b))
-      };
+      const norm   = pts.map(p => p.cs.map((v, i) => (v - mins[i]) / ranges[i]));
+      for (let deg = POLY_FIT_DEGREE; deg >= 1; deg--) {
+        const X = norm.map(xs => _polyFeatures(xs, deg));
+        if (pts.length < X[0].length) continue; // underdetermined — try lower degree
+        return {
+          colorants: colorants.slice(), mins, ranges, nPts: pts.length, degree: deg,
+          coeffsL: _solveNE(X, pts.map(p => p.L)),
+          coeffsA: _solveNE(X, pts.map(p => p.a)),
+          coeffsB: _solveNE(X, pts.map(p => p.b))
+        };
+      }
+      return null;
     }
 
     // Evaluate the model for given colorant values (same units / scale as training data).
     function evalPolynomialModel(model, colorantValues) {
-      const { coeffsL, coeffsA, coeffsB, mins, ranges } = model;
-      const f = _polyFeatures(colorantValues.map((v, i) => (v - mins[i]) / ranges[i]));
+      const { coeffsL, coeffsA, coeffsB, mins, ranges, degree } = model;
+      const f = _polyFeatures(colorantValues.map((v, i) => (v - mins[i]) / ranges[i]), degree);
       const dot = c => c.reduce((s, ci, i) => s + ci * f[i], 0);
       return { L: dot(coeffsL), a: dot(coeffsA), b: dot(coeffsB) };
     }
@@ -3682,7 +3689,6 @@
 
     // Build the HTML content for the Estimate section (called inside renderExplore).
     function buildEstimateHTML() {
-      const RO = 'font-family:monospace;font-size:12px;background:#f4f4f4;border:1px solid #ddd;border-radius:3px;padding:1px 7px;color:#555;min-width:42px;display:inline-block;text-align:right;';
       if (!_estimateModel) return '<div style="padding:12px 16px;color:#888;font-size:13px;">Model not available — file must have device colorant and LAB columns.</div>';
       const { a } = state;
       if (!a) return '';
@@ -3709,43 +3715,54 @@
           <div><div style="color:#888;margin-bottom:2px;">Points fitted</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${_estimateModel.nPts}</div></div>
         </div>`;
 
-      // ── Area 2: colorant sliders + output ──
+      // ── Area 2: table with aligned columns ──
+      // Shared styles
+      const TH  = 'font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:0.04em;text-align:right;padding-bottom:5px;white-space:nowrap;';
+      const NIF = 'font-family:monospace;font-size:12px;color:#a0b0c8;text-align:right;padding-left:14px;'; // nearest-in-file: lighter, cool-tinted
+      const INP_NUM = 'width:46px;padding:1px 4px;font-size:12px;border:1px solid #ccc;border-radius:3px;text-align:right;-moz-appearance:textfield;';
+
       const colorantRows = _estimateModel.colorants.map(c => {
         const val = _estimateInputs[c] ?? 50;
-        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
-          <span style="min-width:76px;font-size:12px;font-weight:bold;color:#555;">${c}</span>
-          <input type="range" id="est-r-${c}" min="0" max="100" value="${val}" style="width:110px;" oninput="onEstimateInput('${c}',+this.value)">
-          <input type="number" id="est-n-${c}" min="0" max="100" value="${val}" style="width:46px;padding:1px 3px;font-size:12px;border:1px solid #ccc;border-radius:3px;" onchange="onEstimateInput('${c}',+this.value)">
-          <span style="font-size:11px;color:#aaa;margin-left:8px;">Nearest in file:</span>
-          <span id="est-nearest-${c}" style="${RO}">—</span>
-        </div>`;
+        return `<tr>
+          <td style="padding:3px 8px 3px 0;font-size:12px;font-weight:bold;color:#555;white-space:nowrap;">${c}</td>
+          <td style="padding:3px 8px 3px 0;"><input type="range" id="est-r-${c}" min="0" max="100" value="${val}" style="width:110px;" oninput="onEstimateInput('${c}',+this.value)"></td>
+          <td style="text-align:right;padding-right:2px;"><input type="number" id="est-n-${c}" min="0" max="100" value="${val}" style="${INP_NUM}" onchange="onEstimateInput('${c}',+this.value)"></td>
+          <td style="${NIF}"><span id="est-nearest-${c}">—</span></td>
+        </tr>`;
       }).join('');
 
-      const labRow = (label, predId, fileId) =>
-        `<div style="display:flex;align-items:center;gap:0;margin-bottom:4px;">
-          <span style="min-width:28px;font-size:12px;font-weight:bold;color:#555;">${label}</span>
-          <span id="${predId}" style="font-family:monospace;font-size:14px;font-weight:bold;min-width:62px;text-align:right;padding-right:4px;">—</span>
-          <span id="${fileId}" style="${RO}">—</span>
-        </div>`;
+      const labRows = [['L*','L'],['a*','a'],['b*','b']].map(([label, key]) =>
+        `<tr>
+          <td></td>
+          <td style="padding:3px 4px 3px 0;font-size:12px;font-weight:bold;color:#555;text-align:right;">${label}</td>
+          <td style="text-align:right;padding-right:2px;font-family:monospace;font-size:13px;font-weight:bold;"><span id="est-pred-${key}">—</span></td>
+          <td style="${NIF}"><span id="est-file-${key}">—</span></td>
+        </tr>`
+      ).join('');
 
-      const labHTML = `
-        <div style="margin-top:14px;border-top:1px solid #eee;padding-top:10px;">
-          <div style="display:flex;align-items:center;margin-bottom:6px;">
-            <span style="min-width:28px;"></span>
-            <span style="min-width:62px;text-align:right;padding-right:4px;font-size:11px;font-weight:bold;color:#aaa;text-transform:uppercase;letter-spacing:0.04em;">Model</span>
-            <span style="font-size:11px;font-weight:bold;color:#aaa;text-transform:uppercase;letter-spacing:0.04em;padding-left:8px;">Nearest in file</span>
-          </div>
-          ${labRow('L*', 'est-pred-L', 'est-file-L')}
-          ${labRow('a*', 'est-pred-a', 'est-file-a')}
-          ${labRow('b*', 'est-pred-b', 'est-file-b')}
-        </div>`;
+      const tableHTML = `
+        <table style="border-collapse:collapse;margin-top:10px;">
+          <thead><tr>
+            <th></th><th></th>
+            <th style="${TH}">Colorant<br>input</th>
+            <th style="${TH}padding-left:14px;">Nearest<br>in file</th>
+          </tr></thead>
+          <tbody>
+            ${colorantRows}
+            <tr><td colspan="4" style="border-top:1px solid #eee;padding-top:4px;"></td></tr>
+            <tr>
+              <th></th><th></th>
+              <th style="${TH}padding-top:4px;">Model</th>
+              <th></th>
+            </tr>
+            ${labRows}
+          </tbody>
+        </table>`;
 
       return `<div style="padding:12px 16px;">
         <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Model fit &mdash; degree ${_estimateModel.degree}, ${_estimateModel.nPts} points</div>
         ${statsHTML}
-        <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin:14px 0 8px;">Colorant input</div>
-        ${colorantRows}
-        ${labHTML}
+        ${tableHTML}
       </div>`;
     }
 
