@@ -130,20 +130,38 @@ CharData accepts <strong>CSV</strong> and <strong>CGATS/IT8</strong> text files.
 </p>
 <h3 id="required-columns">Required columns</h3>
 <p>
-Every file must contain these seven columns (case-insensitive, any order):
+Every file must contain L\<em>a\</em>b* columns and at least one device colorant column:
 </p>
 <table><thead>
 <tr><th>Column</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>CYAN</code></td><td>Cyan device value, 0–100</td></tr>
-<tr><td><code>MAGENTA</code></td><td>Magenta device value, 0–100</td></tr>
-<tr><td><code>YELLOW</code></td><td>Yellow device value, 0–100</td></tr>
-<tr><td><code>BLACK</code></td><td>Black device value, 0–100</td></tr>
 <tr><td><code>LAB_L</code></td><td>CIE L*</td></tr>
 <tr><td><code>LAB_A</code></td><td>CIE a*</td></tr>
 <tr><td><code>LAB_B</code></td><td>CIE b*</td></tr>
+<tr><td><em>(colorant)</em></td><td>At least one device colorant column (e.g. <code>CYAN</code>, <code>7CLR_1</code>)</td></tr>
 </tbody></table>
 <p>
-Additional columns (e.g. extra colorants, spectral data) are accepted and used where relevant.
+Files with spectral data but no pre-computed LAB columns are also accepted — CharData computes L\<em>a\</em>b* from the spectral data automatically (see <a href="#spectral--lab">Settings — Spectral → LAB</a>).
+</p>
+<h3 id="device-colorant-detection">Device colorant detection</h3>
+<p>
+Any column that does not match a known non-colorant pattern is treated as a device colorant. The following are <strong>excluded</strong> from colorant detection:
+</p>
+<table><thead>
+<tr><th>Pattern</th><th>Examples</th></tr></thead><tbody>
+<tr><td><code>LAB_*</code></td><td><code>LAB_L</code>, <code>LAB_A</code>, <code>LAB_B</code></td></tr>
+<tr><td>Spectral wavelength columns</td><td><code>NM380</code>, <code>380_NM</code>, <code>SPECTRAL_NM380</code></td></tr>
+<tr><td><code>SAMPLE*</code></td><td><code>SampleID</code>, <code>SAMPLE_NAME</code></td></tr>
+<tr><td><code>XYZ_*</code></td><td><code>XYZ_X</code>, <code>XYZ_Y</code>, <code>XYZ_Z</code></td></tr>
+<tr><td><code>D_*</code></td><td><code>D_RED</code>, <code>D_GREEN</code></td></tr>
+<tr><td><code>DENSITY*</code></td><td><code>DENSITY_V</code></td></tr>
+<tr><td><code>STATUS_*</code></td><td><code>STATUS_T</code></td></tr>
+<tr><td><code>COLOR_NAME</code>, <code>COLOR_INDEX</code></td><td></td></tr>
+</tbody></table>
+<p>
+Everything else — <code>CYAN</code>, <code>MAGENTA</code>, <code>7CLR_1</code>, <code>ORANGE</code>, etc. — is classified as a device colorant.
+</p>
+<p>
+If all colorant values in the file are in the range \[0, 1\], they are automatically scaled ×100 to the \[0, 100\] range on load.
 </p>
 <h3 id="column-name-aliases">Column name aliases</h3>
 <p>
@@ -182,7 +200,7 @@ Once a file loads successfully, the panel shows:
 <li>Column validation result</li>
 </ul>
 <p>
-If required columns are missing, a warning lists what is absent. The app still loads the file for viewing, but features that require the missing columns will be unavailable.
+If required columns are missing (LAB or no device colorants detected), the file is rejected with a specific error message. The G7 report additionally requires CMYK colorants and will show a targeted error if they are absent.
 </p>
 <hr>
 <h2 id="3-settings-panel">3. Settings panel</h2>

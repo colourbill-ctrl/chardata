@@ -758,7 +758,7 @@
 
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
   <script>
-    const REQUIRED = ['CYAN', 'MAGENTA', 'YELLOW', 'BLACK', 'LAB_L', 'LAB_A', 'LAB_B'];
+    const REQUIRED_LAB = ['LAB_L', 'LAB_A', 'LAB_B'];
 
     // ── Spectral tables: 380–780 nm, 10 nm intervals (41 entries) ─────────────
     // CIE 1931 2° Standard Observer CMFs
@@ -1162,15 +1162,32 @@
       return { ok: errors.length === 0, errors, warnings };
     }
 
+    // Returns true if a (post-standardize) column header is a device colorant.
+    // Excludes: LAB channels, spectral columns (standardized to XXX_NM), SAMPLE* metadata,
+    // XYZ tristimulus, density (D_* / DENSITY*), status channels, and other known non-colorant labels.
     function isDeviceColorant(col) {
       const h = col.toUpperCase();
-      return !h.startsWith('LAB') && !/_NM$/.test(h) && !h.startsWith('SAMPLE');
+      if (h.startsWith('LAB'))      return false; // LAB_L, LAB_A, LAB_B
+      if (/_NM$/.test(h))           return false; // spectral: 380_NM, 730_NM … (post-standardize form)
+      if (h.startsWith('SAMPLE'))   return false; // SAMPLE_ID, SAMPLE_NAME, SAMPLE_LOC …
+      if (h.startsWith('XYZ_'))     return false; // XYZ_X, XYZ_Y, XYZ_Z
+      if (h.startsWith('D_'))       return false; // density: D_RED, D_GREEN …
+      if (h.startsWith('DENSITY'))  return false; // DENSITY_*
+      if (h.startsWith('STATUS_'))  return false; // densitometry status channels
+      if (h === 'COLOR_NAME')       return false;
+      if (h === 'COLOR_INDEX')      return false;
+      return true;
     }
 
-    function validateCSV(headers) {
+    // Called after spectral-to-LAB injection, so LAB columns are guaranteed present
+    // for spectral-only files. LAB check is therefore valid at this point.
+    // colorants is the pre-computed result of headers.filter(isDeviceColorant).
+    function validateCSV(headers, colorants) {
       const upper = headers.map(h => h.toUpperCase());
-      const missing = REQUIRED.filter(r => !upper.includes(r));
-      return { ok: missing.length === 0, missing };
+      const missing = REQUIRED_LAB.filter(r => !upper.includes(r));
+      if (missing.length > 0) return { ok: false, missing };
+      if (colorants.length === 0) return { ok: false, missing: ['(no device colorant columns detected)'] };
+      return { ok: true, missing: [] };
     }
 
     function injectSpectralLab(headers, rows) {
@@ -1292,13 +1309,13 @@
         usedSpectralLab = true;
       }
 
-      const { ok, missing } = validateCSV(headers);
-
       const colorants = headers.filter(isDeviceColorant);
       const colorantIdx = colorants.map(c => headers.indexOf(c));
 
+      const { ok, missing } = validateCSV(headers, colorants);
+
       // Scale device colorants ×100 if all values are in [0, 1]
-      const allInRange = rows.length > 0 && rows.every(row =>
+      const allInRange = rows.length > 0 && colorantIdx.length > 0 && rows.every(row =>
         colorantIdx.every(i => { const v = parseFloat(row[i]); return !isNaN(v) && v >= 0 && v <= 1; })
       );
       if (allInRange) {
@@ -2168,8 +2185,14 @@
       const hi = (name) => data.headers.indexOf(name);
       const cIdx = hi('CYAN'), mIdx = hi('MAGENTA'), yIdx = hi('YELLOW'), kIdx = hi('BLACK');
       const lIdx = hi('LAB_L'), aIdx = hi('LAB_A'), bIdx = hi('LAB_B');
-      if ([cIdx, mIdx, yIdx, kIdx, lIdx, aIdx, bIdx].includes(-1)) {
-        return '<p style="color:#e74c3c;">Required columns missing in Dataset A.</p>';
+      const missingCMYK = [cIdx, mIdx, yIdx, kIdx].includes(-1);
+      const missingLab  = [lIdx, aIdx, bIdx].includes(-1);
+      if (missingCMYK || missingLab) {
+        const name = data.name ? ` "${data.name}"` : '';
+        const msgs = [];
+        if (missingCMYK) msgs.push(`Missing CMYK device colorants in Dataset A${name}.`);
+        if (missingLab)  msgs.push(`Missing L*a*b* data in Dataset A${name}.`);
+        return msgs.map(m => `<p style="color:#e74c3c;">${m}</p>`).join('');
       }
 
       // ── 2. Locate anchor patches ────────────────────────────────────────────
@@ -2989,8 +3012,8 @@
       const colorantSpan = displayColorants.length;
       const spanningRow = `<tr>
         <th colspan="${colorantSpan}" style="padding:4px 0;text-align:center;${TH}">Device Colorants</th>
-        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">Dataset A</th>
-        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">Dataset B</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">${a.name}</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">${b.name}</th>
         <th colspan="2" style="padding:4px 0;text-align:center;${TH}${VL}">Difference</th>
       </tr>`;
 
@@ -3001,7 +3024,7 @@
       _cmpSortedIdx = Array.from({ length: matches.length }, (_, i) => i);
 
       resultEl.innerHTML = `
-        <p style="margin-bottom:8px;font-size:13px;color:#555;">${matches.length} matching row${matches.length !== 1 ? 's' : ''}</p>
+        <p style="margin-bottom:8px;font-size:13px;color:#555;">${matches.length} matching data point${matches.length !== 1 ? 's' : ''}</p>
         ${summaryBox}
         <div onclick="toggleValidate()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
           <span>Validate</span><span id="validate-arrow">▶</span>

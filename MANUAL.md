@@ -28,19 +28,35 @@ CharData accepts **CSV** and **CGATS/IT8** text files. CGATS is also published a
 
 ### Required columns
 
-Every file must contain these seven columns (case-insensitive, any order):
+Every file must contain L\*a\*b\* columns and at least one device colorant column:
 
 | Column | Description |
 |---|---|
-| `CYAN` | Cyan device value, 0–100 |
-| `MAGENTA` | Magenta device value, 0–100 |
-| `YELLOW` | Yellow device value, 0–100 |
-| `BLACK` | Black device value, 0–100 |
 | `LAB_L` | CIE L* |
 | `LAB_A` | CIE a* |
 | `LAB_B` | CIE b* |
+| *(colorant)* | At least one device colorant column (e.g. `CYAN`, `7CLR_1`) |
 
-Additional columns (e.g. extra colorants, spectral data) are accepted and used where relevant.
+Files with spectral data but no pre-computed LAB columns are also accepted — CharData computes L\*a\*b\* from the spectral data automatically (see [Settings — Spectral → LAB](#spectral--lab)).
+
+### Device colorant detection
+
+Any column that does not match a known non-colorant pattern is treated as a device colorant. The following are **excluded** from colorant detection:
+
+| Pattern | Examples |
+|---|---|
+| `LAB_*` | `LAB_L`, `LAB_A`, `LAB_B` |
+| Spectral wavelength columns | `NM380`, `380_NM`, `SPECTRAL_NM380` |
+| `SAMPLE*` | `SampleID`, `SAMPLE_NAME` |
+| `XYZ_*` | `XYZ_X`, `XYZ_Y`, `XYZ_Z` |
+| `D_*` | `D_RED`, `D_GREEN` |
+| `DENSITY*` | `DENSITY_V` |
+| `STATUS_*` | `STATUS_T` |
+| `COLOR_NAME`, `COLOR_INDEX` | |
+
+Everything else — `CYAN`, `MAGENTA`, `7CLR_1`, `ORANGE`, etc. — is classified as a device colorant.
+
+If all colorant values in the file are in the range \[0, 1\], they are automatically scaled ×100 to the \[0, 100\] range on load.
 
 ### Column name aliases
 
@@ -74,7 +90,7 @@ Once a file loads successfully, the panel shows:
 - Number of rows (after deduplication, if enabled)
 - Column validation result
 
-If required columns are missing, a warning lists what is absent. The app still loads the file for viewing, but features that require the missing columns will be unavailable.
+If required columns are missing (LAB or no device colorants detected), the file is rejected with a specific error message. The G7 report additionally requires CMYK colorants and will show a targeted error if they are absent.
 
 ---
 
