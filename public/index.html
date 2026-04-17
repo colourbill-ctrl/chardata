@@ -87,7 +87,7 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
       overflow: hidden; text-decoration: none;
     }
-    #kofi-btn img { height: 22px; width: auto; display: block; }
+    #kofi-btn img { height: 30px; width: auto; display: block; }
     #kofi-btn:hover { opacity: 0.88; }
     #kofi-msg {
       position: fixed; top: 44px; z-index: 899;
@@ -553,7 +553,7 @@
 
   <div class="panels">
     <div class="panel" id="panel-a" title="Drag-and-drop files from file system or File Select here">
-      <h2>File A</h2>
+      <h2>Dataset A</h2>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button class="validate-btn" id="show-file-a" onclick="showFile('a')" disabled>Display File</button>
       </div>
@@ -568,7 +568,7 @@
     </div>
 
     <div class="panel" id="panel-b" title="Drag-and-drop files from file system or File Select here">
-      <h2>File B</h2>
+      <h2>Dataset B</h2>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button class="validate-btn" id="show-file-b" onclick="showFile('b')" disabled>Display File</button>
       </div>
@@ -875,7 +875,7 @@
       document.getElementById('seg-explore').className = 'seg-btn ' + (isExplore ? 'seg-btn-active' : 'seg-btn-inactive');
       document.getElementById('seg-compare').className = 'seg-btn ' + (isExplore ? 'seg-btn-inactive' : 'seg-btn-active');
       document.getElementById('panel-b').style.display = isExplore ? 'none' : '';
-      document.querySelector('#panel-a h2').textContent = 'File A';
+      document.querySelector('#panel-a h2').textContent = 'Dataset A';
       document.getElementById('result').innerHTML = '';
       document.getElementById('plot-section').style.display = 'none';
 
@@ -1301,11 +1301,11 @@
         if (perFileValueCb) perFileValueCb.checked = true;
         syncShellCheckbox();
         syncPointsCheckbox();
+        syncColorCheckboxes();
         buildGamutCache(slot);
         if (slot === 'a') {
-          _estimateModel = fitPolynomialModel(state.a.headers, state.a.rows, state.a.colorants);
+          _estimateModel = null;
           _estimateInputs = {};
-          if (_estimateModel) _estimateModel.colorants.forEach(c => { _estimateInputs[c] = 50; });
         }
         document.getElementById('show-file-' + slot).disabled = false;
       } else {
@@ -1379,8 +1379,8 @@
       if (!sel) return;
       const prev = sel.value;
       sel.innerHTML = '';
-      if (state.a) { const o = document.createElement('option'); o.value = 'a'; o.textContent = 'File A: ' + state.a.name; sel.appendChild(o); }
-      if (state.b) { const o = document.createElement('option'); o.value = 'b'; o.textContent = 'File B: ' + state.b.name; sel.appendChild(o); }
+      if (state.a) { const o = document.createElement('option'); o.value = 'a'; o.textContent = 'Dataset A: ' + state.a.name; sel.appendChild(o); }
+      if (state.b) { const o = document.createElement('option'); o.value = 'b'; o.textContent = 'Dataset B: ' + state.b.name; sel.appendChild(o); }
       if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
     }
 
@@ -2133,18 +2133,18 @@
       const cIdx = hi('CYAN'), mIdx = hi('MAGENTA'), yIdx = hi('YELLOW'), kIdx = hi('BLACK');
       const lIdx = hi('LAB_L'), aIdx = hi('LAB_A'), bIdx = hi('LAB_B');
       if ([cIdx, mIdx, yIdx, kIdx, lIdx, aIdx, bIdx].includes(-1)) {
-        return '<p style="color:#e74c3c;">Required columns missing in File A.</p>';
+        return '<p style="color:#e74c3c;">Required columns missing in Dataset A.</p>';
       }
 
       // ── 2. Locate anchor patches ────────────────────────────────────────────
       const find = (C, M, Y, K) => g7FindPatch(data.rows, cIdx, mIdx, yIdx, kIdx, C, M, Y, K);
 
       const paperHit = find(0, 0, 0, 0);
-      if (!paperHit) return '<p style="color:#e74c3c;">Paper white patch (0,0,0,0) not found in File A.</p>';
+      if (!paperHit) return '<p style="color:#e74c3c;">Paper white patch (0,0,0,0) not found in Dataset A.</p>';
       const kSolidHit  = find(0, 0, 0, 100);
       const cmySolidHit = find(100, 100, 100, 0);
-      if (!kSolidHit)   return '<p style="color:#e74c3c;">100K solid patch not found in File A.</p>';
-      if (!cmySolidHit) return '<p style="color:#e74c3c;">100CMY solid patch not found in File A.</p>';
+      if (!kSolidHit)   return '<p style="color:#e74c3c;">100K solid patch not found in Dataset A.</p>';
+      if (!cmySolidHit) return '<p style="color:#e74c3c;">100CMY solid patch not found in Dataset A.</p>';
 
       const L_paper = parseFloat(paperHit.row[lIdx]);
       const a_paper = parseFloat(paperHit.row[aIdx]);
@@ -2951,8 +2951,8 @@
       const colorantSpan = displayColorants.length;
       const spanningRow = `<tr>
         <th colspan="${colorantSpan}" style="padding:4px 0;text-align:center;${TH}">Device Colorants</th>
-        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">File A</th>
-        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">File B</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">Dataset A</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">Dataset B</th>
         <th colspan="2" style="padding:4px 0;text-align:center;${TH}${VL}">Difference</th>
       </tr>`;
 
@@ -3581,10 +3581,9 @@
     }
 
     // ── Polynomial estimate model ─────────────────────────────────────────────
-    // Maximum degree to attempt for the polynomial feature expansion.
-    // The fitter will try this degree first and drop down automatically if there are
-    // insufficient data points, stopping at degree 1 (pure linear).
-    const POLY_FIT_DEGREE = 4;
+    // Default polynomial degree = number of device colorants, capped at POLY_FIT_MAX_DEGREE (5).
+    // The fitter starts at degree 2, steps up, and stops when a higher degree yields worse fit.
+    const POLY_FIT_MAX_DEGREE = 5;
 
     // Build a feature vector of all monomials up to the given degree from normalised inputs.
     // Uses combinations-with-repetition so the count equals C(n+d, d).
@@ -3628,9 +3627,32 @@
       return aug.map(row => row[F]);
     }
 
+    // Compute ΔE00 fit statistics for a candidate model over the training points.
+    function _modelStats(coeffsL, coeffsA, coeffsB, norm, pts, deg) {
+      const deVals = pts.map((p, i) => {
+        const f = _polyFeatures(norm[i], deg);
+        const dot = c => c.reduce((s, ci, j) => s + ci * f[j], 0);
+        return deltaE00(p.L, p.a, p.b, dot(coeffsL), dot(coeffsA), dot(coeffsB));
+      });
+      const mean = deVals.reduce((s, v) => s + v, 0) / deVals.length;
+      const stdev = Math.sqrt(deVals.reduce((s, v) => s + (v - mean) ** 2, 0) / deVals.length);
+      const max = Math.max(...deVals);
+      return { mean, stdev, max };
+    }
+
+    // Returns true if stats a is strictly better than stats b (mean → stdev → max).
+    function _statsBetter(a, b) {
+      if (a.mean  < b.mean  - 1e-6) return true;
+      if (a.mean  > b.mean  + 1e-6) return false;
+      if (a.stdev < b.stdev - 1e-6) return true;
+      if (a.stdev > b.stdev + 1e-6) return false;
+      return a.max < b.max - 1e-6;
+    }
+
     // Fit a polynomial model mapping device colorants → L*, a*, b*.
-    // Attempts POLY_FIT_DEGREE first; drops degree by 1 until the system is determined.
-    // Returns a model object with retrievable coefficients, or null if even degree 1 fails.
+    // Starts at degree 2, steps up to min(colorants.length, POLY_FIT_MAX_DEGREE).
+    // Stops and returns the best model when a higher degree yields worse ΔE00 fit.
+    // Returns a model object with coefficients and fit stats, or null on failure.
     function fitPolynomialModel(headers, rows, colorants) {
       const iC = colorants.map(c => headers.indexOf(c));
       const iL = headers.indexOf('LAB_L'), iA = headers.indexOf('LAB_A'), iB = headers.indexOf('LAB_B');
@@ -3647,17 +3669,23 @@
       const maxs   = colorants.map((_, ci) => Math.max(...pts.map(p => p.cs[ci])));
       const ranges = mins.map((mn, i) => (maxs[i] - mn) || 1);
       const norm   = pts.map(p => p.cs.map((v, i) => (v - mins[i]) / ranges[i]));
-      for (let deg = POLY_FIT_DEGREE; deg >= 1; deg--) {
+      const maxDeg = Math.min(colorants.length, POLY_FIT_MAX_DEGREE);
+      let best = null;
+      for (let deg = 2; deg <= maxDeg; deg++) {
         const X = norm.map(xs => _polyFeatures(xs, deg));
-        if (pts.length < X[0].length) continue; // underdetermined — try lower degree
-        return {
-          colorants: colorants.slice(), mins, ranges, nPts: pts.length, degree: deg,
-          coeffsL: _solveNE(X, pts.map(p => p.L)),
-          coeffsA: _solveNE(X, pts.map(p => p.a)),
-          coeffsB: _solveNE(X, pts.map(p => p.b))
-        };
+        if (pts.length < X[0].length) break; // underdetermined — no point trying higher degrees
+        const coeffsL = _solveNE(X, pts.map(p => p.L));
+        const coeffsA = _solveNE(X, pts.map(p => p.a));
+        const coeffsB = _solveNE(X, pts.map(p => p.b));
+        const stats = _modelStats(coeffsL, coeffsA, coeffsB, norm, pts, deg);
+        const candidate = { colorants: colorants.slice(), mins, ranges, nPts: pts.length, degree: deg, stats, coeffsL, coeffsA, coeffsB };
+        if (!best || _statsBetter(stats, best.stats)) {
+          best = candidate;
+        } else {
+          break; // higher degree is worse — stop
+        }
       }
-      return null;
+      return best;
     }
 
     // Evaluate the model for given colorant values (same units / scale as training data).
@@ -3689,24 +3717,14 @@
 
     // Build the HTML content for the Estimate section (called inside renderExplore).
     function buildEstimateHTML() {
-      if (!_estimateModel) return '<div style="padding:12px 16px;color:#888;font-size:13px;">Model not available — file must have device colorant and LAB columns.</div>';
+      if (!_estimateModel) return `<div style="padding:12px 16px;">
+        <button class="validate-btn" onclick="generateEstimateModel()">Generate model</button>
+      </div>`;
       const { a } = state;
       if (!a) return '';
 
-      // ── Area 1: fit statistics (ΔE00 model vs deduplicated file) ──
-      const iC = _estimateModel.colorants.map(c => a.headers.indexOf(c));
-      const iL = a.headers.indexOf('LAB_L'), iA = a.headers.indexOf('LAB_A'), iB = a.headers.indexOf('LAB_B');
-      const deVals = [];
-      for (const r of a.rows) {
-        const cs = iC.map(i => parseFloat(r[i]));
-        const L = parseFloat(r[iL]), av = parseFloat(r[iA]), bv = parseFloat(r[iB]);
-        if (cs.some(isNaN) || isNaN(L) || isNaN(av) || isNaN(bv)) continue;
-        const pred = evalPolynomialModel(_estimateModel, cs);
-        deVals.push(deltaE00(L, av, bv, pred.L, pred.a, pred.b));
-      }
-      const deMean = deVals.reduce((s, v) => s + v, 0) / deVals.length;
-      const deMax  = Math.max(...deVals);
-      const deStd  = Math.sqrt(deVals.reduce((s, v) => s + (v - deMean) ** 2, 0) / deVals.length);
+      // ── Area 1: fit statistics (pre-computed during model fitting) ──
+      const { mean: deMean, max: deMax, stdev: deStd } = _estimateModel.stats;
       const statsHTML = `
         <div style="display:inline-flex;gap:32px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px 24px;font-size:13px;flex-wrap:wrap;">
           <div><div style="color:#888;margin-bottom:2px;">Mean ΔE00</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMean.toFixed(2)}</div></div>
@@ -3745,7 +3763,7 @@
           <thead><tr>
             <th></th><th></th>
             <th style="${TH}">Colorant<br>input</th>
-            <th style="${TH}padding-left:14px;">Nearest<br>in file</th>
+            <th style="${TH}padding-left:14px;">Nearest<br>in dataset</th>
           </tr></thead>
           <tbody>
             ${colorantRows}
@@ -3760,10 +3778,33 @@
         </table>`;
 
       return `<div style="padding:12px 16px;">
-        <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Model fit &mdash; degree ${_estimateModel.degree}, ${_estimateModel.nPts} points</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <span style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:0.04em;">Model fit &mdash; degree ${_estimateModel.degree}, ${_estimateModel.nPts} points</span>
+          <button class="validate-btn" style="font-size:11px;padding:2px 8px;" onclick="generateEstimateModel()">&#8635; Regenerate</button>
+        </div>
         ${statsHTML}
         ${tableHTML}
       </div>`;
+    }
+
+    // Fit the model and refresh the Estimate section content.
+    function generateEstimateModel() {
+      if (!state.a) return;
+      const wrap = document.getElementById('est-wrap');
+      if (wrap) wrap.innerHTML = `<div style="padding:12px 16px;color:#888;font-size:12px;">Computing&hellip;</div>`;
+      setTimeout(() => {
+        try {
+          _estimateModel = fitPolynomialModel(state.a.headers, state.a.rows, state.a.colorants);
+          if (_estimateModel) _estimateModel.colorants.forEach(c => { if (!(_estimateInputs[c] >= 0)) _estimateInputs[c] = 50; });
+          if (wrap) wrap.innerHTML = buildEstimateHTML();
+          updateEstimate();
+        } catch (e) {
+          if (wrap) wrap.innerHTML = `<div style="padding:12px 16px;">
+            <span style="color:#c04040;font-size:12px;">Model fit failed: ${e.message || e}</span>
+            <button class="validate-btn" style="font-size:11px;padding:2px 8px;margin-left:10px;" onclick="generateEstimateModel()">Retry</button>
+          </div>`;
+        }
+      }, 0);
     }
 
     // Update the live estimate output (called on slider change and after section opens).
@@ -3988,8 +4029,8 @@
 
       // Determine which slots have data to show
       const allSpecs = [];
-      if (_gamutState.a.cachedXYZ) allSpecs.push({ slot: 'a', color: '#4a90e2', name: a ? a.name : 'File A' });
-      if (_mode === 'compare' && _gamutState.b.cachedXYZ) allSpecs.push({ slot: 'b', color: '#e24a4a', name: b ? b.name : 'File B' });
+      if (_gamutState.a.cachedXYZ) allSpecs.push({ slot: 'a', color: '#4a90e2', name: a ? a.name : 'Dataset A' });
+      if (_mode === 'compare' && _gamutState.b.cachedXYZ) allSpecs.push({ slot: 'b', color: '#e24a4a', name: b ? b.name : 'Dataset B' });
 
       if (sectionEl) sectionEl.style.display = '';
 
