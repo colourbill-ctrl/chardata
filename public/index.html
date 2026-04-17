@@ -777,6 +777,8 @@
     let _cmpSortCol = null, _cmpSortDir = 'asc', _cmpData = null, _cmpSortedIdx = null;
     let _expSortCol = null, _expSortDir = 'asc', _expData = null, _expSortedIdx = null;
     let _spectralPopupData = [];
+    let _estimateModel = null;  // polynomial model for slot 'a', set on file load
+    let _estimateInputs = {};   // { colorantName: 0–100 } for Estimate section sliders
     let _plotRowMap = [];        // _plotRowMap[curveNumber][pointIndex] → row index in state[slot].rows
     let _plotClickHandler = null;
     let _plotHandlerAttached = false;
@@ -1297,6 +1299,11 @@
         syncShellCheckbox();
         syncPointsCheckbox();
         buildGamutCache(slot);
+        if (slot === 'a') {
+          _estimateModel = fitPolynomialModel(state.a.headers, state.a.rows, state.a.colorants);
+          _estimateInputs = {};
+          if (_estimateModel) _estimateModel.colorants.forEach(c => { _estimateInputs[c] = 50; });
+        }
         document.getElementById('show-file-' + slot).disabled = false;
       } else {
         validEl.innerHTML += `<div>Missing: ${missing.join(', ')}</div>`;
@@ -2344,7 +2351,7 @@
       const resultEl = document.getElementById('result');
 
       // Preserve open/closed state of collapsible sections across re-renders
-      const _openSections = new Set(['extract-wrap', 'cmp-table-wrap'].filter(id => {
+      const _openSections = new Set(['extract-wrap', 'cmp-table-wrap', 'est-wrap'].filter(id => {
         const el = document.getElementById(id);
         return el && el.style.display !== 'none';
       }));
@@ -2418,6 +2425,12 @@
             <thead>${spanningRow}<tr id="exp-col-headers"></tr></thead>
             <tbody id="exp-table-body" style="font-family:monospace;color:#333;"></tbody>
           </table>
+        </div>
+        <div onclick="toggleEstimate()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span>Estimate</span><span id="est-arrow">&#9658;</span>
+        </div>
+        <div id="est-wrap" style="display:none;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;">
+          ${buildEstimateHTML()}
         </div>`;
 
       // Restore previously open sections
@@ -2430,6 +2443,7 @@
 
       renderExpTable();
       renderPlot();
+      updateEstimate();
     }
 
     function toggleColorantDelete(colorant) {
@@ -2717,6 +2731,16 @@
       const hidden = wrap.style.display === 'none';
       wrap.style.display = hidden ? '' : 'none';
       arrow.textContent = hidden ? '▼' : '▶';
+    }
+
+    function toggleEstimate() {
+      const wrap = document.getElementById('est-wrap');
+      const arrow = document.getElementById('est-arrow');
+      if (!wrap) return;
+      const hidden = wrap.style.display === 'none';
+      wrap.style.display = hidden ? '' : 'none';
+      arrow.textContent = hidden ? '\u25bc' : '\u25b6';
+      if (hidden) updateEstimate();
     }
 
     function sortCmpTable(colIdx) {
@@ -3551,6 +3575,207 @@
       const slotIdx = slot === 'a' ? 0 : 1;
       const gs = _gamutState[slot];
       if (slotIdx < _nSpecs && gs.shellOn) Plotly.update(plotEl, { opacity: [val / 100] }, {}, [_nSpecs + slotIdx]);
+    }
+
+    // ── Polynomial estimate model ─────────────────────────────────────────────
+    // Degree of polynomial feature expansion for the colorant→LAB model.
+    // 2 = bias + linear + quadratic + pairwise cross terms.
+    // Change here to experiment with a different degree (refitting happens automatically).
+    const POLY_FIT_DEGREE = 2;
+
+    // Build a degree-2 feature vector from an array of normalised inputs.
+    // For n colorants: 1 bias + n linear + n quadratic + n(n-1)/2 pairwise cross = total F features.
+    function _polyFeatures(xs) {
+      const f = [1];
+      for (const x of xs) f.push(x);
+      for (const x of xs) f.push(x * x);
+      for (let i = 0; i < xs.length; i++)
+        for (let j = i + 1; j < xs.length; j++) f.push(xs[i] * xs[j]);
+      return f;
+    }
+
+    // Solve normal equations (X'X)β = X'y via Gauss-Jordan with partial pivoting.
+    // X: array of F-length feature vectors; y: array of scalar targets. Returns F coefficients.
+    function _solveNE(X, y) {
+      const N = y.length, F = X[0].length;
+      const XtX = Array.from({ length: F }, () => new Float64Array(F));
+      const Xty = new Float64Array(F);
+      for (let i = 0; i < N; i++)
+        for (let j = 0; j < F; j++) {
+          Xty[j] += X[i][j] * y[i];
+          for (let k = j; k < F; k++) XtX[j][k] += X[i][j] * X[i][k];
+        }
+      for (let j = 1; j < F; j++) for (let k = 0; k < j; k++) XtX[j][k] = XtX[k][j];
+      const aug = XtX.map((row, i) => [...row, Xty[i]]);
+      for (let col = 0; col < F; col++) {
+        let mx = col;
+        for (let r = col + 1; r < F; r++) if (Math.abs(aug[r][col]) > Math.abs(aug[mx][col])) mx = r;
+        [aug[col], aug[mx]] = [aug[mx], aug[col]];
+        if (Math.abs(aug[col][col]) < 1e-12) continue;
+        const p = aug[col][col];
+        for (let k = col; k <= F; k++) aug[col][k] /= p;
+        for (let r = 0; r < F; r++) {
+          if (r === col || Math.abs(aug[r][col]) < 1e-15) continue;
+          const fv = aug[r][col];
+          for (let k = col; k <= F; k++) aug[r][k] -= fv * aug[col][k];
+        }
+      }
+      return aug.map(row => row[F]);
+    }
+
+    // Fit a degree-POLY_FIT_DEGREE polynomial mapping device colorants → L*, a*, b*.
+    // Uses deduplicated rows from state. Returns a model object with retrievable
+    // coefficients (coeffsL/A/B), normalisation info (mins/ranges), and metadata.
+    // Returns null if there are insufficient data points to determine the model.
+    function fitPolynomialModel(headers, rows, colorants) {
+      const iC = colorants.map(c => headers.indexOf(c));
+      const iL = headers.indexOf('LAB_L'), iA = headers.indexOf('LAB_A'), iB = headers.indexOf('LAB_B');
+      if (iL < 0 || iA < 0 || iB < 0 || iC.some(i => i < 0)) return null;
+      const pts = [];
+      for (const r of rows) {
+        const cs = iC.map(i => parseFloat(r[i]));
+        const L = parseFloat(r[iL]), a = parseFloat(r[iA]), b = parseFloat(r[iB]);
+        if (cs.some(isNaN) || isNaN(L) || isNaN(a) || isNaN(b)) continue;
+        pts.push({ cs, L, a, b });
+      }
+      if (!pts.length) return null;
+      const mins  = colorants.map((_, ci) => Math.min(...pts.map(p => p.cs[ci])));
+      const maxs  = colorants.map((_, ci) => Math.max(...pts.map(p => p.cs[ci])));
+      const ranges = mins.map((mn, i) => (maxs[i] - mn) || 1);
+      const X = pts.map(p => _polyFeatures(p.cs.map((v, i) => (v - mins[i]) / ranges[i])));
+      const F = X[0].length;
+      if (pts.length < F) return null; // underdetermined
+      return {
+        colorants: colorants.slice(), mins, ranges, nPts: pts.length, degree: POLY_FIT_DEGREE,
+        coeffsL: _solveNE(X, pts.map(p => p.L)),
+        coeffsA: _solveNE(X, pts.map(p => p.a)),
+        coeffsB: _solveNE(X, pts.map(p => p.b))
+      };
+    }
+
+    // Evaluate the model for given colorant values (same units / scale as training data).
+    function evalPolynomialModel(model, colorantValues) {
+      const { coeffsL, coeffsA, coeffsB, mins, ranges } = model;
+      const f = _polyFeatures(colorantValues.map((v, i) => (v - mins[i]) / ranges[i]));
+      const dot = c => c.reduce((s, ci, i) => s + ci * f[i], 0);
+      return { L: dot(coeffsL), a: dot(coeffsA), b: dot(coeffsB) };
+    }
+
+    // Find the row in rows whose colorants are closest to colorantValues (Euclidean distance).
+    // Returns { colorants[], L, a, b } for the nearest row, or null if no valid rows.
+    function findNearestInFile(colorantValues, headers, rows, colorants) {
+      const iC = colorants.map(c => headers.indexOf(c));
+      const iL = headers.indexOf('LAB_L'), iA = headers.indexOf('LAB_A'), iB = headers.indexOf('LAB_B');
+      let bestDist = Infinity, bestRow = null;
+      for (const row of rows) {
+        const cs = iC.map(i => parseFloat(row[i]));
+        if (cs.some(isNaN)) continue;
+        const dist = cs.reduce((s, v, i) => s + (v - colorantValues[i]) ** 2, 0);
+        if (dist < bestDist) { bestDist = dist; bestRow = row; }
+      }
+      if (!bestRow) return null;
+      return {
+        colorants: iC.map(i => parseFloat(bestRow[i])),
+        L: parseFloat(bestRow[iL]), a: parseFloat(bestRow[iA]), b: parseFloat(bestRow[iB])
+      };
+    }
+
+    // Build the HTML content for the Estimate section (called inside renderExplore).
+    function buildEstimateHTML() {
+      const RO = 'font-family:monospace;font-size:12px;background:#f4f4f4;border:1px solid #ddd;border-radius:3px;padding:1px 7px;color:#555;min-width:42px;display:inline-block;text-align:right;';
+      if (!_estimateModel) return '<div style="padding:12px 16px;color:#888;font-size:13px;">Model not available — file must have device colorant and LAB columns.</div>';
+      const { a } = state;
+      if (!a) return '';
+
+      // ── Area 1: fit statistics (ΔE00 model vs deduplicated file) ──
+      const iC = _estimateModel.colorants.map(c => a.headers.indexOf(c));
+      const iL = a.headers.indexOf('LAB_L'), iA = a.headers.indexOf('LAB_A'), iB = a.headers.indexOf('LAB_B');
+      const deVals = [];
+      for (const r of a.rows) {
+        const cs = iC.map(i => parseFloat(r[i]));
+        const L = parseFloat(r[iL]), av = parseFloat(r[iA]), bv = parseFloat(r[iB]);
+        if (cs.some(isNaN) || isNaN(L) || isNaN(av) || isNaN(bv)) continue;
+        const pred = evalPolynomialModel(_estimateModel, cs);
+        deVals.push(deltaE00(L, av, bv, pred.L, pred.a, pred.b));
+      }
+      const deMean = deVals.reduce((s, v) => s + v, 0) / deVals.length;
+      const deMax  = Math.max(...deVals);
+      const deStd  = Math.sqrt(deVals.reduce((s, v) => s + (v - deMean) ** 2, 0) / deVals.length);
+      const statsHTML = `
+        <div style="display:inline-flex;gap:32px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px 24px;font-size:13px;flex-wrap:wrap;">
+          <div><div style="color:#888;margin-bottom:2px;">Mean ΔE00</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMean.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">Max ΔE00</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMax.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">Std Dev</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deStd.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">Points fitted</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${_estimateModel.nPts}</div></div>
+        </div>`;
+
+      // ── Area 2: colorant sliders + output ──
+      const colorantRows = _estimateModel.colorants.map(c => {
+        const val = _estimateInputs[c] ?? 50;
+        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+          <span style="min-width:76px;font-size:12px;font-weight:bold;color:#555;">${c}</span>
+          <input type="range" id="est-r-${c}" min="0" max="100" value="${val}" style="width:110px;" oninput="onEstimateInput('${c}',+this.value)">
+          <input type="number" id="est-n-${c}" min="0" max="100" value="${val}" style="width:46px;padding:1px 3px;font-size:12px;border:1px solid #ccc;border-radius:3px;" onchange="onEstimateInput('${c}',+this.value)">
+          <span style="font-size:11px;color:#aaa;margin-left:8px;">Nearest in file:</span>
+          <span id="est-nearest-${c}" style="${RO}">—</span>
+        </div>`;
+      }).join('');
+
+      const labRow = (label, predId, fileId) =>
+        `<div style="display:flex;align-items:center;gap:0;margin-bottom:4px;">
+          <span style="min-width:28px;font-size:12px;font-weight:bold;color:#555;">${label}</span>
+          <span id="${predId}" style="font-family:monospace;font-size:14px;font-weight:bold;min-width:62px;text-align:right;padding-right:4px;">—</span>
+          <span id="${fileId}" style="${RO}">—</span>
+        </div>`;
+
+      const labHTML = `
+        <div style="margin-top:14px;border-top:1px solid #eee;padding-top:10px;">
+          <div style="display:flex;align-items:center;margin-bottom:6px;">
+            <span style="min-width:28px;"></span>
+            <span style="min-width:62px;text-align:right;padding-right:4px;font-size:11px;font-weight:bold;color:#aaa;text-transform:uppercase;letter-spacing:0.04em;">Model</span>
+            <span style="font-size:11px;font-weight:bold;color:#aaa;text-transform:uppercase;letter-spacing:0.04em;padding-left:8px;">Nearest in file</span>
+          </div>
+          ${labRow('L*', 'est-pred-L', 'est-file-L')}
+          ${labRow('a*', 'est-pred-a', 'est-file-a')}
+          ${labRow('b*', 'est-pred-b', 'est-file-b')}
+        </div>`;
+
+      return `<div style="padding:12px 16px;">
+        <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Model fit &mdash; degree ${_estimateModel.degree}, ${_estimateModel.nPts} points</div>
+        ${statsHTML}
+        <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin:14px 0 8px;">Colorant input</div>
+        ${colorantRows}
+        ${labHTML}
+      </div>`;
+    }
+
+    // Update the live estimate output (called on slider change and after section opens).
+    function updateEstimate() {
+      if (!_estimateModel || !state.a) return;
+      const vals = _estimateModel.colorants.map(c => _estimateInputs[c] ?? 50);
+      const pred = evalPolynomialModel(_estimateModel, vals);
+      const near = findNearestInFile(vals, state.a.headers, state.a.rows, _estimateModel.colorants);
+      _estimateModel.colorants.forEach((c, i) => {
+        const el = document.getElementById('est-nearest-' + c);
+        if (el) el.textContent = near ? near.colorants[i].toFixed(1) : '—';
+      });
+      const channels = [['L','L'],['a','a'],['b','b']];
+      channels.forEach(([key]) => {
+        const pEl = document.getElementById('est-pred-' + key);
+        const fEl = document.getElementById('est-file-' + key);
+        if (pEl) pEl.textContent = isFinite(pred[key]) ? pred[key].toFixed(2) : '—';
+        if (fEl) fEl.textContent = near && isFinite(near[key]) ? near[key].toFixed(2) : '—';
+      });
+    }
+
+    // Handle colorant slider/number input change.
+    function onEstimateInput(colorant, val) {
+      _estimateInputs[colorant] = val;
+      const slider = document.getElementById('est-r-' + colorant);
+      const number = document.getElementById('est-n-' + colorant);
+      if (slider && +slider.value !== val) slider.value = val;
+      if (number && +number.value !== val) number.value = val;
+      updateEstimate();
     }
 
     // ── Voxel surface filter tuning parameters ───────────────────────────────
