@@ -87,7 +87,7 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
       overflow: hidden; text-decoration: none;
     }
-    #kofi-btn img { height: 30px; width: auto; display: block; }
+    #kofi-btn img { height: 22px; width: auto; display: block; }
     #kofi-btn:hover { opacity: 0.88; }
     #kofi-msg {
       position: fixed; top: 44px; z-index: 899;
@@ -483,11 +483,13 @@
     body.dark .legend-gear-btn:hover { background: #1e2a40 !important; color: #6aacf0 !important; }
     body.dark .legend-name { color: #ddd !important; }
     body.dark .slice-controls { color: #888; border-color: #38393e; }
+    body.dark #slice-custom-legend { border-color: #38393e !important; }
     body.dark .slice-controls input[type=number] { background: #2a2b2e; color: #ccc; border-color: #444; }
     /* Section accordion headers — inline bg:#f0f2f5 overridden */
     body.dark #plot-section > div:first-child,
     body.dark #slice-section > div:first-child { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
     body.dark #plot-wrap { border-color: #38393e !important; }
+    body.dark #plot-controls-body > div[style*="border-top"] { border-color: #38393e !important; }
     body.dark #slice-section > div:nth-child(2) { border-color: #38393e !important; }
     /* Result area dynamic content */
     body.dark #result > p { color: #777 !important; }
@@ -542,8 +544,8 @@
   <!-- Main content -->
   <div id="main-content">
   <div id="seg-row" style="display:inline-flex;gap:6px;margin-bottom:24px;">
-    <button id="seg-explore" onclick="setMode('explore')" class="seg-btn seg-btn-active" style="border-radius:6px 6px 6px 6px;">Explore Char Data</button>
-    <button id="seg-compare" onclick="setMode('compare')" class="seg-btn seg-btn-inactive" style="border-radius:6px 6px 6px 6px;">Compare Char Data</button>
+    <button id="seg-explore" onclick="setMode('explore')" class="seg-btn seg-btn-active" style="border-radius:6px 6px 6px 6px;">Explore</button>
+    <button id="seg-compare" onclick="setMode('compare')" class="seg-btn seg-btn-inactive" style="border-radius:6px 6px 6px 6px;">Compare</button>
   </div>
 
   <div class="panels">
@@ -601,6 +603,7 @@
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
             <input type="checkbox" id="plot-opt-value-color" onchange="onPlotColorChange('value')" checked> Color by value
           </label>
+          <div style="border-top:1px solid #ddd;margin:2px 0;"></div>
           <label id="plot-opt-spectral-label" style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
             <input type="checkbox" id="plot-opt-spectral"> Show spectral data when point selected
           </label>
@@ -618,7 +621,7 @@
       <span id="slice-tab-label">Gamut Slice (2D)</span><span id="slice-arrow">&#9660;</span>
     </div>
     <div id="slice-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;position:relative;">
-      <div id="slice-custom-legend" style="position:absolute;top:38px;left:12px;z-index:10;display:flex;flex-direction:column;gap:4px;max-width:60%;"></div>
+      <div id="slice-custom-legend" style="display:none;flex-direction:row;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 12px;border-bottom:1px solid #eee;"></div>
       <div class="slice-controls">
         <span style="font-weight:bold;">Axis:</span>
         <label><input type="radio" name="slice-axis" value="L" checked onchange="setSliceAxis('L')"> L*</label>
@@ -784,9 +787,9 @@
     const _sliceState = { axis: 'L', value: 50, bandwidth: 5 };
     const _sliceVisible = { a: true, b: true };
     const _gamutState = {
-      a: { shellOn: false, pointsOn: true, alpha: 70, meshDensity: 5, cachedXYZ: null, panelOpen: false,
+      a: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 5, cachedXYZ: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
-      b: { shellOn: false, pointsOn: true, alpha: 70, meshDensity: 5, cachedXYZ: null, panelOpen: false,
+      b: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 5, cachedXYZ: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } }
     };
     let _suppressDismiss = false;
@@ -1281,10 +1284,16 @@
         state[slot] = { headers, rows: dedupedRows, colorants, name: fileName, usedSpectralLab, hasSpectral };
         _gamutState[slot].shellOn = false;
         _gamutState[slot].pointsOn = true;
+        _gamutState[slot].hueOn = false;
+        _gamutState[slot].valueOn = true;
         const perFileCb = document.getElementById('gs-shell-cb-' + slot);
         if (perFileCb) perFileCb.checked = false;
         const perFilePointsCb = document.getElementById('gs-points-cb-' + slot);
         if (perFilePointsCb) perFilePointsCb.checked = true;
+        const perFileHueCb = document.getElementById('gs-hue-cb-' + slot);
+        if (perFileHueCb) perFileHueCb.checked = false;
+        const perFileValueCb = document.getElementById('gs-value-cb-' + slot);
+        if (perFileValueCb) perFileValueCb.checked = true;
         syncShellCheckbox();
         syncPointsCheckbox();
         buildGamutCache(slot);
@@ -2990,6 +2999,17 @@
         document.getElementById('plot-opt-value-color').checked = false;
       if (which === 'value' && document.getElementById('plot-opt-value-color').checked)
         document.getElementById('plot-opt-hue-color').checked = false;
+      const newHue = document.getElementById('plot-opt-hue-color').checked;
+      const newVal = document.getElementById('plot-opt-value-color').checked;
+      ['a', 'b'].forEach(slot => {
+        if (!state[slot]) return;
+        _gamutState[slot].hueOn = newHue;
+        _gamutState[slot].valueOn = newVal;
+        const hcb = document.getElementById('gs-hue-cb-' + slot);
+        const vcb = document.getElementById('gs-value-cb-' + slot);
+        if (hcb) hcb.checked = newHue;
+        if (vcb) vcb.checked = newVal;
+      });
       recolorPlot();
     }
 
@@ -3004,8 +3024,6 @@
     function recolorPlot() {
       const plotEl = document.getElementById('plot');
       if (!plotEl || _nSpecs === 0) return;
-      const useHue = document.getElementById('plot-opt-hue-color')?.checked;
-      const useVal = document.getElementById('plot-opt-value-color')?.checked;
       const slotColors = ['#4a90e2', '#e24a4a'];
       const slots = ['a', 'b'];
       // Collect all updates first, then apply in two batched Plotly calls
@@ -3015,6 +3033,7 @@
         const slot = slots[i];
         const defColor = slotColors[i];
         const gs = _gamutState[slot];
+        const useHue = gs.hueOn, useVal = gs.valueOn;
         if (gs.cachedScatter) {
           const { ax, bx, lx } = gs.cachedScatter;
           scatterIdx.push(i);
@@ -3041,8 +3060,6 @@
         _mode === 'explore' ? '3D Plot: ' + a.name : '3D Plot';
       const plotEl = document.getElementById('plot');
 
-      const useHueColor   = document.getElementById('plot-opt-hue-color')?.checked;
-      const useValueColor = document.getElementById('plot-opt-value-color')?.checked;
 
       // Show spectral checkbox only when at least one active dataset has spectral data
       const hasAnySpectral = a.hasSpectral || (_mode === 'compare' && b && b.hasSpectral);
@@ -3056,7 +3073,7 @@
       }
 
       // Build trace + record which original row index each plotted point came from
-      const buildTrace = (data, name, defaultColor) => {
+      const buildTrace = (data, name, defaultColor, useHue, useVal) => {
         const iA = data.headers.indexOf('LAB_A');
         const iB = data.headers.indexOf('LAB_B');
         const iL = data.headers.indexOf('LAB_L');
@@ -3065,7 +3082,7 @@
           const av = parseFloat(r[iA]), bv = parseFloat(r[iB]), l = parseFloat(r[iL]);
           if (!isNaN(av) && !isNaN(bv) && !isNaN(l)) {
             xs.push(av); ys.push(bv); zs.push(l);
-            colors.push(useHueColor ? hueToColor(av, bv) : useValueColor ? labToRgb(l, av, bv) : defaultColor);
+            colors.push(useHue ? hueToColor(av, bv) : useVal ? labToRgb(l, av, bv) : defaultColor);
             rowMap.push(ri);
           }
         });
@@ -3086,8 +3103,8 @@
 
       _plotRowMap = [];
       const scatterTraces = traceSpecs.map((spec, i) => {
-        const built = buildTrace(spec.data, spec.name, spec.color);
         const gs = _gamutState[spec.slot];
+        const built = buildTrace(spec.data, spec.name, spec.color, gs.hueOn, gs.valueOn);
         built.tr.visible = _plotVisible[i] && gs.pointsOn;
         built.tr.showlegend = false;
         _plotRowMap.push(built.rowMap);
@@ -3109,7 +3126,7 @@
         if (hasCache) {
           const { x: ax, y: bx, z: lx } = shellXYZ;
           vertexcolor = ax.map((a, vi) =>
-            useHueColor ? hueToColor(a, bx[vi]) : useValueColor ? labToRgb(lx[vi], a, bx[vi]) : spec.color
+            gs.hueOn ? hueToColor(a, bx[vi]) : gs.valueOn ? labToRgb(lx[vi], a, bx[vi]) : spec.color
           );
         }
         const tr = {
@@ -3203,6 +3220,8 @@
         return `<div class="gamut-panel" id="gamut-panel-${spec.slot}" style="display:${gs.panelOpen ? 'flex' : 'none'};">
           <div class="gamut-panel-row"><label><input type="checkbox" id="gs-shell-cb-${spec.slot}" onchange="setShellOn('${spec.slot}',this.checked)"${gs.shellOn ? ' checked' : ''}> Show gamut shell</label></div>
           <div class="gamut-panel-row"><label><input type="checkbox" id="gs-points-cb-${spec.slot}" onchange="setPointsOn('${spec.slot}',this.checked)"${gs.pointsOn ? ' checked' : ''}> Show data points</label></div>
+          <div class="gamut-panel-row"><label><input type="checkbox" id="gs-hue-cb-${spec.slot}" onchange="setHueOn('${spec.slot}',this.checked)"${gs.hueOn ? ' checked' : ''}> Color by hue angle</label></div>
+          <div class="gamut-panel-row"><label><input type="checkbox" id="gs-value-cb-${spec.slot}" onchange="setValueOn('${spec.slot}',this.checked)"${gs.valueOn ? ' checked' : ''}> Color by value</label></div>
           <div class="gamut-panel-row">
             <span>Opacity</span>
             <input type="range" id="gs-alpha-r-${spec.slot}" min="0" max="100" value="${gs.alpha}" onchange="setGamutAlpha('${spec.slot}',+this.value)">
@@ -3239,7 +3258,7 @@
         return `<div style="display:flex;flex-direction:column;gap:3px;">
           <div class="legend-item legend-item-row" style="${on ? '' : 'opacity:0.45;'}">
             <button class="legend-gear-btn" title="Dataset Settings" onclick="event.stopPropagation();toggleGamutPanel('${spec.slot}')">&#9881;&#xFE0E;</button>
-            <div class="legend-item-left" ${toggleable ? `onclick="togglePlotTrace(${i})"` : ''}>
+            <div class="legend-item-left" ${toggleable ? `onclick="togglePlotTrace(${i})" title="Click to toggle on/off"` : ''}>
               <span class="legend-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
               <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
             </div>
@@ -3462,6 +3481,44 @@
       if (onCount === 0) { topCb.checked = false; topCb.indeterminate = false; }
       else if (onCount === slots.length) { topCb.checked = true; topCb.indeterminate = false; }
       else { topCb.checked = false; topCb.indeterminate = true; }
+    }
+
+    function setHueOn(slot, val) {
+      _gamutState[slot].hueOn = val;
+      if (val) {
+        _gamutState[slot].valueOn = false;
+        const vcb = document.getElementById('gs-value-cb-' + slot);
+        if (vcb) vcb.checked = false;
+      }
+      syncColorCheckboxes();
+      recolorPlot();
+    }
+
+    function setValueOn(slot, val) {
+      _gamutState[slot].valueOn = val;
+      if (val) {
+        _gamutState[slot].hueOn = false;
+        const hcb = document.getElementById('gs-hue-cb-' + slot);
+        if (hcb) hcb.checked = false;
+      }
+      syncColorCheckboxes();
+      recolorPlot();
+    }
+
+    function syncColorCheckboxes() {
+      const hueCb = document.getElementById('plot-opt-hue-color');
+      const valCb = document.getElementById('plot-opt-value-color');
+      if (!hueCb || !valCb) return;
+      const slots = ['a', 'b'].filter(s => state[s]);
+      if (slots.length === 0) {
+        hueCb.checked = false; hueCb.indeterminate = false;
+        valCb.checked = true;  valCb.indeterminate = false;
+        return;
+      }
+      const hueCount = slots.filter(s => _gamutState[s].hueOn).length;
+      const valCount = slots.filter(s => _gamutState[s].valueOn).length;
+      hueCb.checked = hueCount === slots.length; hueCb.indeterminate = hueCount > 0 && hueCount < slots.length;
+      valCb.checked = valCount === slots.length; valCb.indeterminate = valCount > 0 && valCount < slots.length;
     }
 
     function setMeshDensity(slot, val) {
@@ -3697,7 +3754,7 @@
       if (allSpecs.length === 0) {
         if (tabLabel) tabLabel.textContent = 'Gamut Slice (2D)';
         const legendEl = document.getElementById('slice-custom-legend');
-        if (legendEl) legendEl.innerHTML = '';
+        if (legendEl) { legendEl.innerHTML = ''; legendEl.style.display = 'none'; }
         Plotly.purge(sliceEl);
         sliceEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#aaa;font-size:14px;">No file loaded</div>';
         return;
@@ -3719,15 +3776,16 @@
       if (legendEl) {
         const legendItemHTML = spec => {
           const on = _sliceVisible[spec.slot];
-          return `<div class="legend-item legend-item-row" style="${on ? '' : 'opacity:0.45;'}" onclick="toggleSliceTrace('${spec.slot}')">
+          return `<div class="legend-item legend-item-row" style="${on ? '' : 'opacity:0.45;'}" title="Click to toggle on/off" onclick="toggleSliceTrace('${spec.slot}')">
             <div class="legend-item-left">
               <span class="legend-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
               <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
             </div>
           </div>`;
         };
+        legendEl.style.display = 'flex';
         if (allSpecs.length > 1) {
-          legendEl.innerHTML = '<div style="font-size:11px;color:#555;padding:2px 4px 4px 4px;user-select:none;">Select to toggle file visibility:</div>'
+          legendEl.innerHTML = '<div style="font-size:11px;color:#555;padding:2px 0;margin-right:2px;user-select:none;">Toggle:</div>'
             + allSpecs.map(legendItemHTML).join('');
         } else {
           legendEl.innerHTML = legendItemHTML(allSpecs[0]);
