@@ -36,6 +36,10 @@
       display: flex; flex-direction: column; gap: 20px;
     }
     #blade.collapsed #blade-content { display: none; }
+    #blade-tab {
+      display: flex; flex-direction: column; align-items: center;
+      margin-top: 20px; gap: 6px; flex-shrink: 0;
+    }
     #blade-toggle {
       width: 38px; height: 34px; flex-shrink: 0;
       background: linear-gradient(to bottom, #f5f5f5, #e0e0e0);
@@ -43,7 +47,6 @@
       border-radius: 5px; cursor: pointer;
       font-size: 16px; color: #666; padding: 0;
       display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 2px;
-      align-self: flex-start; margin-top: 20px;
       box-shadow: 0 2px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
       transition: all 0.08s ease;
     }
@@ -51,6 +54,30 @@
     #blade-toggle:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); transform: translateY(1px); }
     #blade-toggle .blade-arrow { font-size: 14px; line-height: 1; }
     #blade-toggle .blade-icon { font-size: 16px; line-height: 1; color: #6aabd8; }
+    #blade-help-btn {
+      width: 38px; height: 34px; flex-shrink: 0;
+      background: linear-gradient(to bottom, #f5f5f5, #e0e0e0);
+      border: 1px solid #bbb; border-bottom: 3px solid #999;
+      border-radius: 5px; cursor: pointer;
+      font-size: 15px; font-weight: bold; color: #666; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+      transition: all 0.08s ease;
+    }
+    #blade-help-btn:hover { background: linear-gradient(to bottom, #fff, #e8e8e8); color: #4a90e2; }
+    #blade-help-btn:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); transform: translateY(1px); }
+    #mobile-help-btn {
+      display: none;
+      position: fixed; top: 64px; right: 12px; z-index: 1001;
+      width: 44px; height: 44px; border-radius: 8px;
+      border: 1px solid #2a6ab5; border-bottom: 3px solid #1f52a0;
+      background: linear-gradient(to bottom, #4a90e2, #2a6ab5);
+      color: #fff; font-size: 18px; font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+      align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
     #scroll-top-btn {
       position: fixed; top: 12px; right: 220px; z-index: 900;
       padding: 4px 10px; border-radius: 5px;
@@ -196,10 +223,11 @@
       #blade #blade-content { display: flex !important; overflow-y: auto; flex: 1; }
 
       /* Hide desktop toggle strips */
-      #fs-blade-toggle, #blade-toggle { display: none !important; }
+      #fs-blade-toggle, #blade-toggle, #blade-help-btn { display: none !important; }
       /* Show mobile controls */
       #mobile-fab-files { display: flex; }
       #mobile-hamburger { display: flex; }
+      #mobile-help-btn { display: flex; }
       #mobile-backdrop.active { display: block; }
       #scroll-top-btn { right: 12px !important; }
       #kofi-group { right: 72px !important; transform: scale(0.85); transform-origin: top right; }
@@ -645,7 +673,10 @@
 
   <!-- Right settings blade -->
   <div id="blade">
-    <button id="blade-toggle" title="Settings"><span class="blade-arrow">&#8250;</span><span class="blade-icon">&#9881;&#xFE0E;</span></button>
+    <div id="blade-tab">
+      <button id="blade-toggle" title="Settings"><span class="blade-arrow">&#8250;</span><span class="blade-icon">&#9881;&#xFE0E;</span></button>
+      <button id="blade-help-btn" title="Help" onclick="window.open('help.html','_blank')">?</button>
+    </div>
     <div id="blade-content">
       <div style="font-size:15px;font-weight:bold;color:#333;">Settings</div>
 
@@ -723,6 +754,7 @@
   <span style="font-size:22px;line-height:1;">&#128193;</span>
 </button>
 <button id="mobile-hamburger" title="Settings">&#9881;&#xFE0E;</button>
+<button id="mobile-help-btn" title="Help" onclick="window.open('help.html','_blank')">?</button>
 
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
   <script>
