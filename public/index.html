@@ -3101,19 +3101,22 @@
         const gs = _gamutState[spec.slot];
         const hasCache = !!(gs.cachedXYZ && gs.cachedXYZ.x.length);
         const li = gs.lighting;
+        // Use voxel-filtered shell point cloud for alphahull if available;
+        // fall back to the full cache. The full cachedXYZ is never modified.
+        const shellXYZ = (gs.cachedXYZShell) ? gs.cachedXYZShell : gs.cachedXYZ;
         // Always use vertexcolor so recolorPlot() can update colors without switching trace properties
         let vertexcolor;
         if (hasCache) {
-          const { x: ax, y: bx, z: lx } = gs.cachedXYZ;
+          const { x: ax, y: bx, z: lx } = shellXYZ;
           vertexcolor = ax.map((a, vi) =>
             useHueColor ? hueToColor(a, bx[vi]) : useValueColor ? labToRgb(lx[vi], a, bx[vi]) : spec.color
           );
         }
         const tr = {
           type: 'mesh3d', name: spec.name + ' shell', showlegend: false, alphahull: gs.meshDensity,
-          x: hasCache ? gs.cachedXYZ.x : [],
-          y: hasCache ? gs.cachedXYZ.y : [],
-          z: hasCache ? gs.cachedXYZ.z : [],
+          x: hasCache ? shellXYZ.x : [],
+          y: hasCache ? shellXYZ.y : [],
+          z: hasCache ? shellXYZ.z : [],
           opacity: gs.shellOn ? gs.alpha / 100 : 0,
           visible: _plotVisible[i] && hasCache,
           flatshading: false, hoverinfo: 'skip',
@@ -3493,6 +3496,43 @@
       if (slotIdx < _nSpecs && gs.shellOn) Plotly.update(plotEl, { opacity: [val / 100] }, {}, [_nSpecs + slotIdx]);
     }
 
+    // ── Voxel surface filter tuning parameters ───────────────────────────────
+    // Only apply the filter when the point cloud is large enough to be worth it.
+    const VOXEL_FILTER_MIN_POINTS = 1000;
+    // Voxel size in LAB units. Larger = coarser = more interior points removed.
+    // Err on the side of leaving points in (coarse but not aggressive).
+    const VOXEL_SIZE = 8;
+
+    // Returns a surface-only copy of {x,y,z} by keeping points whose voxel
+    // has at least one empty face-neighbor (6-connected). Interior-only voxels
+    // are dropped. One representative point is kept per occupied surface voxel.
+    function voxelSurfaceFilter(x, y, z) {
+      const n = x.length;
+      // Map each point to a voxel key and record the first point index per voxel.
+      const voxelMap = new Map(); // key -> first point index
+      const voxelOf = new Int32Array(3);
+      for (let i = 0; i < n; i++) {
+        voxelOf[0] = Math.floor(x[i] / VOXEL_SIZE);
+        voxelOf[1] = Math.floor(y[i] / VOXEL_SIZE);
+        voxelOf[2] = Math.floor(z[i] / VOXEL_SIZE);
+        const k = voxelOf[0] + ',' + voxelOf[1] + ',' + voxelOf[2];
+        if (!voxelMap.has(k)) voxelMap.set(k, i);
+      }
+      // For each occupied voxel, check whether any face-neighbor voxel is empty.
+      const dx = [1,-1,0,0,0,0], dy = [0,0,1,-1,0,0], dz = [0,0,0,0,1,-1];
+      const outX = [], outY = [], outZ = [];
+      for (const [k, idx] of voxelMap) {
+        const [cx, cy, cz] = k.split(',').map(Number);
+        let isSurface = false;
+        for (let d = 0; d < 6; d++) {
+          const nk = (cx+dx[d]) + ',' + (cy+dy[d]) + ',' + (cz+dz[d]);
+          if (!voxelMap.has(nk)) { isSurface = true; break; }
+        }
+        if (isSurface) { outX.push(x[idx]); outY.push(y[idx]); outZ.push(z[idx]); }
+      }
+      return { x: outX, y: outY, z: outZ };
+    }
+
     function buildGamutCache(slot) {
       const data = state[slot];
       if (!data || !data.rows || data.rows.length === 0) return;
@@ -3505,7 +3545,15 @@
         const A = parseFloat(r[iA]), B = parseFloat(r[iB]), L = parseFloat(r[iL]);
         if (!isNaN(A) && !isNaN(B) && !isNaN(L)) { x.push(A); y.push(B); z.push(L); }
       });
+      // Keep the full point cloud as the authoritative cache.
       _gamutState[slot].cachedXYZ = { x, y, z };
+      // For the alphahull mesh, use a voxel-surface-filtered copy when the
+      // point count is large enough to benefit. The original data is untouched.
+      if (x.length >= VOXEL_FILTER_MIN_POINTS) {
+        _gamutState[slot].cachedXYZShell = voxelSurfaceFilter(x, y, z);
+      } else {
+        _gamutState[slot].cachedXYZShell = null; // use cachedXYZ directly
+      }
     }
 
     function regenerateGamutShell(slot) {
