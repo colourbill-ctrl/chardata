@@ -15,9 +15,11 @@ CharData is a browser-based tool for loading, exploring, and comparing colour ch
    - [3D Gamut plot](#43-3d-gamut-plot)
    - [2D Gamut slice](#44-2d-gamut-slice)
    - [Estimate section](#45-estimate-section)
+   - [Tone Value](#46-tone-value)
 5. [Compare mode](#5-compare-mode)
    - [Compare table](#51-compare-table)
    - [3D Gamut plot (Compare)](#52-3d-gamut-plot-compare)
+   - [Tone Value (Compare)](#53-tone-value-compare)
 6. [Mobile](#6-mobile)
 
 ---
@@ -229,6 +231,50 @@ Below the stats, a table allows you to dial in colorant values:
 
 Click **Regenerate** to refit the model (e.g. after loading a new dataset). Note: changing the ΔE method in Settings updates the displayed statistics immediately without refitting — only click Regenerate if you want to refit from scratch using the new method's stopping criterion.
 
+### 4.6 Tone Value
+
+The **Tone Value** section analyses the tonal response of each primary colorant — how the printed tone value relates to the input ink percentage. It appears in the result area between the Data Table and Estimate sections.
+
+#### Controls
+
+A collapsible side panel (click ◀ to collapse, ▶ to expand) contains:
+
+| Control | Description |
+|---|---|
+| Tone Method | Murray-Davies (spectral density) or Colorimetric Tone Value (CTV, ISO 20654) |
+| Filter | Status densitometer filter channel: T, E, I, or A (Murray-Davies only) |
+| Graph Type | Transfer — TV (%) vs ink%; or Gain — TV minus ink% |
+| Colorant checkboxes | Toggle individual colorant curves on/off |
+
+#### Tone Method
+
+**Murray-Davies** computes tone value from spectral reflectance data using a simulated densitometer filter. The filter channel used depends on the colorant:
+
+| Colorant | Filter channel |
+|---|---|
+| CYAN | Red (R) |
+| MAGENTA | Green (G) |
+| YELLOW | Blue (B) |
+| BLACK and others | Visual (V) |
+
+Paper (lowest ink%) and solid (highest ink%) patches in the primary tone ramp serve as reference points.
+
+**Colorimetric Tone Value (CTV)** follows ISO 20654, computing tone value from CIE L\* values only. Spectral data is not required, but a primary tone ramp must be present.
+
+#### Graph types
+
+**Transfer** — plots tone value (%) on the Y-axis against ink% on the X-axis. Ideal linear response is a straight diagonal from (0,0) to (100,100). A curve above the diagonal indicates dot gain; below indicates dot loss.
+
+**Gain** — plots TV − ink% (percentage points) on the Y-axis. Zero represents ideal linear response; positive values = dot gain; negative = dot loss. The gain is always zero at 0% and 100% ink by definition.
+
+#### Y-axis range
+
+The Y-axis range is computed from the data for the current dataset, method, and filter combination, then fixed. In Gain mode the range is determined from interior tone steps only (excluding 0% and 100% endpoints), with padding for readability.
+
+#### Availability
+
+Tone Value requires rows where only a single colorant is non-zero at a time (a primary tone ramp). Murray-Davies additionally requires spectral reflectance columns in the file; if spectral data is absent the chart prompts you to switch to CTV.
+
 ---
 
 ## 5. Compare mode
@@ -268,6 +314,14 @@ The compare table includes filter controls to narrow down the rows shown:
 ### 5.2 3D Gamut plot (Compare)
 
 The 3D plot in Compare mode shows both datasets overlaid in L\*a\*b\* space. Dataset A is shown in blue, Dataset B in red. All the same controls as Explore mode apply, with per-slot gear panels for independent control of each dataset's shell/points/colour mode.
+
+### 5.3 Tone Value (Compare)
+
+The Tone Value section also appears in Compare mode, below the Comparison Table. Both datasets are plotted on the same chart: Dataset A uses solid lines, Dataset B uses dashed lines in a slightly darker shade of the same colour.
+
+The side panel includes two additional checkboxes — **Show Dataset A** and **Show Dataset B** — to toggle all curves from either dataset at once.
+
+All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work identically to [Explore mode](#46-tone-value).
 
 ---
 
