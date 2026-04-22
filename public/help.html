@@ -69,12 +69,14 @@
           <li><a href="#43-3d-gamut-plot">3D Gamut plot</a></li>
           <li><a href="#44-2d-gamut-slice">2D Gamut slice</a></li>
           <li><a href="#45-estimate-section">Estimate section</a></li>
+          <li><a href="#46-tone-value">Tone Value</a></li>
         </ol>
       </li>
       <li><a href="#5-compare-mode">Compare mode</a>
         <ol>
           <li><a href="#51-compare-table">Compare table</a></li>
           <li><a href="#52-3d-gamut-plot-compare">3D Gamut plot (Compare)</a></li>
+          <li><a href="#53-tone-value-compare">Tone Value (Compare)</a></li>
         </ol>
       </li>
       <li><a href="#6-mobile">Mobile</a></li>
@@ -289,7 +291,7 @@ Switches the app between <strong>Light</strong>, <strong>Dark</strong>, and <str
 <hr>
 <h2 id="4-explore-mode">4. Explore mode</h2>
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 370"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 394"
   style="width:100%;max-width:720px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
 
 <style>
@@ -326,10 +328,10 @@ text.t3   { fill:var(--tx3); font-size:10px; }
 text.tW   { fill:var(--txW); }
 text.tA   { fill:var(--txA); font-weight:bold; }
 </style>
-<rect x="0" y="0" width="720" height="370" rx="0" class="bg"/><rect x="10" y="10" width="150" height="350" rx="5" class="pnl"/><rect x="10" y="10" width="150" height="22" rx="5" class="hd"/><text x="85" y="25" text-anchor="middle" class="tT">File Select</text><rect x="16" y="38" width="138" height="80" rx="5" class="pnl"/><rect x="16" y="38" width="138" height="18" rx="5" class="hd"/><text x="85" y="50" text-anchor="middle" class="tB">Dataset A  ✓</text><text x="85" y="66" text-anchor="middle" class="t3">profile.csv</text><text x="85" y="78" text-anchor="middle" class="t3">1 200 rows</text><text x="85" y="90" text-anchor="middle" class="t3">CMYK + Spectral</text><rect x="22" y="122" width="126" height="14" rx="3" class="btn"/><text x="85" y="132" text-anchor="middle" class="t3">Dataset B  (empty)</text><rect x="168" y="10" width="542" height="350" rx="5" class="pnl"/><rect x="176" y="18" width="90" height="22" rx="4" class="act"/><text x="221" y="33" text-anchor="middle" class="tW tB">Explore</text><rect x="272" y="18" width="90" height="22" rx="4" class="btn"/><text x="317" y="33" text-anchor="middle" class="t2">Compare</text><rect x="176" y="50" width="526" height="22" rx="3" class="sec"/><text x="186" y="65" text-anchor="start" class="t2">▶  Data Table</text><rect x="176" y="74" width="526" height="22" rx="3" class="pnl"/><text x="186" y="89" text-anchor="start" class="tA">▼  3D Gamut Plot</text><rect x="176" y="98" width="526" height="22" rx="3" class="pnl"/><text x="186" y="113" text-anchor="start" class="t3">     ☑ Show gamut shell · ☑ Show data points · ☑ Color by hue · ☑ Color by value</text><rect x="176" y="122" width="526" height="22" rx="3" class="pnl"/><text x="186" y="137" text-anchor="start" class="t3">     Shell opacity ░░░░░░░░░░░░░░░░</text><rect x="176" y="146" width="526" height="22" rx="3" class="pnl"/><text x="186" y="161" text-anchor="start" class="t3">     ☐ Show spectral data when point selected</text><rect x="176" y="170" width="526" height="22" rx="3" class="sec"/><text x="186" y="185" text-anchor="start" class="t2">▶  Gamut Slice (2D)</text><rect x="176" y="194" width="526" height="22" rx="3" class="sec"/><text x="186" y="209" text-anchor="start" class="t2">▶  G7 Report</text><rect x="176" y="218" width="526" height="22" rx="3" class="sec"/><text x="186" y="233" text-anchor="start" class="t2">▶  Estimate</text><line x1="221" y1="33" x2="221" y2="3" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<rect x="0" y="0" width="720" height="394" rx="0" class="bg"/><rect x="10" y="10" width="150" height="374" rx="5" class="pnl"/><rect x="10" y="10" width="150" height="22" rx="5" class="hd"/><text x="85" y="25" text-anchor="middle" class="tT">File Select</text><rect x="16" y="38" width="138" height="80" rx="5" class="pnl"/><rect x="16" y="38" width="138" height="18" rx="5" class="hd"/><text x="85" y="50" text-anchor="middle" class="tB">Dataset A  ✓</text><text x="85" y="66" text-anchor="middle" class="t3">profile.csv</text><text x="85" y="78" text-anchor="middle" class="t3">1 200 rows</text><text x="85" y="90" text-anchor="middle" class="t3">CMYK + Spectral</text><rect x="22" y="122" width="126" height="14" rx="3" class="btn"/><text x="85" y="132" text-anchor="middle" class="t3">Dataset B  (empty)</text><rect x="168" y="10" width="542" height="374" rx="5" class="pnl"/><rect x="176" y="18" width="90" height="22" rx="4" class="act"/><text x="221" y="33" text-anchor="middle" class="tW tB">Explore</text><rect x="272" y="18" width="90" height="22" rx="4" class="btn"/><text x="317" y="33" text-anchor="middle" class="t2">Compare</text><rect x="176" y="50" width="526" height="22" rx="3" class="sec"/><text x="186" y="65" text-anchor="start" class="t2">▶  Data Table</text><rect x="176" y="74" width="526" height="22" rx="3" class="sec"/><text x="186" y="89" text-anchor="start" class="t2">▶  Tone Value</text><rect x="176" y="98" width="526" height="22" rx="3" class="pnl"/><text x="186" y="113" text-anchor="start" class="tA">▼  3D Gamut Plot</text><rect x="176" y="122" width="526" height="22" rx="3" class="pnl"/><text x="186" y="137" text-anchor="start" class="t3">     ☑ Show gamut shell · ☑ Show data points · ☑ Color by hue · ☑ Color by value</text><rect x="176" y="146" width="526" height="22" rx="3" class="pnl"/><text x="186" y="161" text-anchor="start" class="t3">     Shell opacity ░░░░░░░░░░░░░░░░</text><rect x="176" y="170" width="526" height="22" rx="3" class="pnl"/><text x="186" y="185" text-anchor="start" class="t3">     ☐ Show spectral data when point selected</text><rect x="176" y="194" width="526" height="22" rx="3" class="sec"/><text x="186" y="209" text-anchor="start" class="t2">▶  Gamut Slice (2D)</text><rect x="176" y="218" width="526" height="22" rx="3" class="sec"/><text x="186" y="233" text-anchor="start" class="t2">▶  G7 Report</text><rect x="176" y="242" width="526" height="22" rx="3" class="sec"/><text x="186" y="257" text-anchor="start" class="t2">▶  Estimate</text><line x1="221" y1="33" x2="221" y2="3" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="221" y="0" text-anchor="end" class="t3">Active mode</text><line x1="186" y1="72" x2="710" y2="72" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
-<text x="710" y="69" text-anchor="start" class="t3">Collapsed section (click to expand)</text><line x1="186" y1="118" x2="710" y2="118" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
-<text x="710" y="115" text-anchor="start" class="t3">Expanded section</text>
+<text x="710" y="69" text-anchor="start" class="t3">Collapsed section (click to expand)</text><line x1="186" y1="142" x2="710" y2="142" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="710" y="139" text-anchor="start" class="t3">Expanded section</text>
 </svg><p>
 Explore mode works with a single dataset (Dataset A). Select it with the <strong>Explore</strong> button at the top.
 </p>
@@ -512,6 +514,97 @@ Below the stats, a table allows you to dial in colorant values:
 <p>
 Click <strong>Regenerate</strong> to refit the model (e.g. after loading a new dataset). Note: changing the ΔE method in Settings updates the displayed statistics immediately without refitting — only click Regenerate if you want to refit from scratch using the new method's stopping criterion.
 </p>
+<h3 id="4-6-tone-value">4.6 Tone Value</h3>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 224"
+  style="width:100%;max-width:720px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
+<style>
+:root{--bg:#f0f2f5;--pnl:#fff;--pnl-bd:#ccd6e0;--hd:#e8edf2;--hd-bd:#c0ccd8;--sec:#f5f6f8;--sec-bd:#dde4ec;--btn:#e8edf2;--btn-bd:#bbb;--tx:#333;--tx2:#555;--tx3:#888;--txA:#1a5a8a;--ln:#dde4ec;}
+@media(prefers-color-scheme:dark){:root{--bg:#1a1c1f;--pnl:#22262e;--pnl-bd:#3a4048;--hd:#252930;--hd-bd:#3a4048;--sec:#1e2128;--sec-bd:#333a44;--btn:#252930;--btn-bd:#444;--tx:#c8cdd4;--tx2:#9aa0a8;--tx3:#555e6a;--txA:#7ab8e8;--ln:#2e3440;}}
+rect.bg{fill:var(--bg);}rect.pnl{fill:var(--pnl);stroke:var(--pnl-bd);stroke-width:1.5;}rect.hd{fill:var(--hd);stroke:var(--hd-bd);stroke-width:1;}rect.sec{fill:var(--sec);stroke:var(--sec-bd);stroke-width:1;}rect.btn{fill:var(--btn);stroke:var(--btn-bd);stroke-width:1;}rect.lnbd{fill:none;stroke:var(--ln);stroke-width:1;}line.div{stroke:var(--ln);stroke-width:1;}text{font-family:Arial,sans-serif;font-size:11px;fill:var(--tx);}text.tT{font-size:13px;font-weight:bold;fill:var(--txA);}text.tB{font-weight:bold;}text.t2{fill:var(--tx2);}text.t3{fill:var(--tx3);font-size:10px;}text.tA{fill:var(--txA);font-weight:bold;}
+</style>
+<rect x="0" y="0" width="720" height="224" rx="0" class="bg"/>
+<!-- Section header bar -->
+<rect x="10" y="10" width="700" height="22" rx="5" class="hd"/><text x="26" y="25" text-anchor="start" class="tA">▼  Tone Value</text>
+<!-- Controls column -->
+<rect x="10" y="34" width="148" height="180" rx="3" class="pnl"/>
+<rect x="10" y="34" width="148" height="18" rx="3" class="hd"/>
+<text x="18" y="47" text-anchor="start" class="t3">Controls</text><text x="152" y="47" text-anchor="end" class="t2">◀</text>
+<!-- Tone Method -->
+<text x="16" y="68" text-anchor="start" class="t3">Tone Method</text>
+<rect x="16" y="72" width="136" height="16" rx="3" class="btn"/><text x="22" y="84" text-anchor="start" class="t3">Murray-Davies ▾</text>
+<!-- Filter -->
+<text x="16" y="100" text-anchor="start" class="t3">Filter</text>
+<rect x="16" y="104" width="136" height="16" rx="3" class="btn"/><text x="22" y="116" text-anchor="start" class="t3">Status T ▾</text>
+<!-- Graph Type -->
+<text x="16" y="132" text-anchor="start" class="t3">Graph Type</text>
+<rect x="16" y="136" width="136" height="16" rx="3" class="btn"/><text x="22" y="148" text-anchor="start" class="t3">Transfer ▾</text>
+<!-- Separator -->
+<line x1="16" y1="160" x2="148" y2="160" class="div"/>
+<!-- Colorant checkboxes -->
+<text x="16" y="175" text-anchor="start" class="t3">☑ CYAN</text>
+<text x="80" y="175" text-anchor="start" class="t3">☑ MAGENTA</text>
+<text x="16" y="189" text-anchor="start" class="t3">☑ YELLOW</text>
+<text x="80" y="189" text-anchor="start" class="t3">☑ BLACK</text>
+<!-- Chart area -->
+<rect x="160" y="34" width="548" height="154" rx="4" class="sec"/>
+<text x="434" y="114" text-anchor="middle" class="tT">Tone Value Chart</text>
+<text x="434" y="132" text-anchor="middle" class="t3">X axis: Input (%)   ·   Y axis: Tone Value % or Gain %</text>
+<!-- Legend strip -->
+<rect x="160" y="190" width="548" height="24" rx="4" class="pnl"/>
+<text x="170" y="206" text-anchor="start" class="t3">— CYAN  — MAGENTA  — YELLOW  — BLACK</text>
+<!-- Annotations -->
+<line x1="152" y1="47" x2="710" y2="47" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="710" y="44" text-anchor="start" class="t3">◀ collapse controls</text>
+<line x1="160" y1="202" x2="710" y2="202" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="710" y="199" text-anchor="start" class="t3">Legend below chart</text>
+</svg>
+<p>
+The <strong>Tone Value</strong> section analyses the tonal response of each primary colorant — how the printed tone value relates to the input ink percentage. It appears between the Data Table and Estimate sections.
+</p>
+<h4>Controls</h4>
+<p>
+A collapsible side panel (click ◀ to collapse, ▶ to expand) contains:
+</p>
+<table><thead>
+<tr><th>Control</th><th>Description</th></tr></thead><tbody>
+<tr><td>Tone Method</td><td>Murray-Davies (spectral density) or Colorimetric Tone Value (CTV, ISO 20654)</td></tr>
+<tr><td>Filter</td><td>Status densitometer filter: T, E, I, or A (Murray-Davies only)</td></tr>
+<tr><td>Graph Type</td><td>Transfer — TV (%) vs ink%; or Gain — TV minus ink%</td></tr>
+<tr><td>Colorant checkboxes</td><td>Toggle individual colorant curves on/off</td></tr>
+</tbody></table>
+<h4>Tone Method</h4>
+<p>
+<strong>Murray-Davies</strong> computes tone value from spectral reflectance using a simulated densitometer filter. The channel used depends on the colorant:
+</p>
+<table><thead>
+<tr><th>Colorant</th><th>Filter channel</th></tr></thead><tbody>
+<tr><td>CYAN</td><td>Red (R)</td></tr>
+<tr><td>MAGENTA</td><td>Green (G)</td></tr>
+<tr><td>YELLOW</td><td>Blue (B)</td></tr>
+<tr><td>BLACK and others</td><td>Visual (V)</td></tr>
+</tbody></table>
+<p>
+Paper (lowest ink%) and solid (highest ink%) patches in the primary tone ramp are used as reference points.
+</p>
+<p>
+<strong>Colorimetric Tone Value (CTV)</strong> follows ISO 20654 and computes tone value from CIE L* values only. No spectral data is required, but the dataset must contain a primary tone ramp for each colorant.
+</p>
+<h4>Graph types</h4>
+<p>
+<strong>Transfer</strong> — plots tone value (%) on the Y-axis against ink% on the X-axis. Ideal linear response is a straight diagonal from (0,0) to (100,100). Curves above the diagonal indicate dot gain; below indicate dot loss.
+</p>
+<p>
+<strong>Gain</strong> — plots TV − ink% (percentage points) on the Y-axis. Zero is ideal linear response; positive values = dot gain; negative = dot loss. By definition gain is always zero at 0% and 100% ink.
+</p>
+<h4>Y-axis range</h4>
+<p>
+The Y-axis range is computed from the data for the current dataset, method, and filter combination, then fixed. In Gain mode the range is determined from interior tone steps only (excluding 0% and 100% endpoints), with padding for readability. The range is recalculated if the dataset, method, or filter changes.
+</p>
+<h4>Availability</h4>
+<p>
+Tone Value requires rows where only a single colorant is non-zero at a time (a primary tone ramp). Murray-Davies additionally requires spectral reflectance columns; if absent the chart prompts you to switch to CTV.
+</p>
 <hr>
 <h2 id="5-compare-mode">5. Compare mode</h2>
 
@@ -596,6 +689,16 @@ The compare table includes filter controls to narrow down the rows shown:
 <h3 id="5-2-3d-gamut-plot-compare">5.2 3D Gamut plot (Compare)</h3>
 <p>
 The 3D plot in Compare mode shows both datasets overlaid in L\<em>a\</em>b* space. Dataset A is shown in blue, Dataset B in red. All the same controls as Explore mode apply, with per-slot gear panels for independent control of each dataset's shell/points/colour mode.
+</p>
+<h3 id="5-3-tone-value-compare">5.3 Tone Value (Compare)</h3>
+<p>
+The Tone Value section also appears in Compare mode, below the Comparison Table. Both datasets are plotted on the same chart: Dataset A uses solid lines, Dataset B uses dashed lines in a slightly darker shade of the same colour.
+</p>
+<p>
+The side panel includes two additional checkboxes — <strong>Show Dataset A</strong> and <strong>Show Dataset B</strong> — to toggle all curves from either dataset at once.
+</p>
+<p>
+All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work identically to <a href="#4-6-tone-value">Explore mode</a>.
 </p>
 <hr>
 <h2 id="6-mobile">6. Mobile</h2>
