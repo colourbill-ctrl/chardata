@@ -18,6 +18,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/admin/app/compare
+            rm -f public/version.txt
             git pull origin main
             git fetch --tags
             git describe --tags --abbrev=0 2>/dev/null > public/version.txt || echo "dev" > public/version.txt
