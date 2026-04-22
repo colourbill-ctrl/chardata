@@ -477,6 +477,17 @@
     .slice-controls input[type=range] { width:90px; }
     .slice-controls input[type=number] { width:46px; padding:1px 3px; font-size:11px; border:1px solid #ccc; border-radius:3px; }
 
+    /* ── Tone Value section ── */
+    #tv-ctrl-col { transition: width 0.18s, min-width 0.18s; overflow: hidden; }
+    #tv-ctrl-sel { width:100%; padding:4px 6px; border:1px solid #bbb; border-bottom:2px solid #999; border-radius:4px; font-size:11px; background:#fff; color:#333; cursor:pointer; }
+    body.dark #tv-ctrl-sel { background:#2a2b2e; color:#ccc; border-color:#555; border-bottom-color:#444; }
+    body.dark #tv-ctrl-col { border-color:#38393e !important; }
+    body.dark #tv-ctrl-col > div:first-child { background:#252629 !important; border-color:#38393e !important; }
+    body.dark #tv-ctrl-body { color:#bbb; background:#1e1f22; }
+    body.dark #tv-section > div:first-child { background:#2a2b2e !important; border-color:#38393e !important; color:#888 !important; }
+    body.dark #tv-wrap { border-color:#38393e !important; }
+    body.dark #tv-plot { background:#1e1f22; }
+
     /* ── Dark mode ── */
     body.dark { background: #1a1b1e; color: #d0d0d0; }
     body.dark .panel { background: #242529; box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
@@ -526,7 +537,8 @@
     body.dark #result div[onclick*="toggleValidate"],
     body.dark #result div[onclick*="toggleCmpTable"],
     body.dark #result div[onclick*="toggleExtract"],
-    body.dark #result div[onclick*="toggleEstimate"] { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
+    body.dark #result div[onclick*="toggleEstimate"],
+    body.dark #result div[onclick*="toggleTv"] { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
     body.dark #validate-wrap, body.dark #extract-wrap, body.dark #cmp-table-wrap, body.dark #est-wrap { border-color: #38393e !important; background: #1e1f22; }
     body.dark #validate-result { background: #1c1d20 !important; border-color: #38393e !important; color: #ccc !important; }
     body.dark #result table { color: #ccc; }
@@ -773,6 +785,25 @@
     const SPD_D50 = [23.94,34.74,49.28,62.43,74.77,87.32,100.00,109.06,116.60,122.49,125.79,128.52,131.00,130.83,132.67,128.53,130.30,133.48,129.60,130.23,126.93,123.11,121.38,121.77,117.93,114.40,113.37,113.90,114.13,109.87,111.05,107.34,121.78,117.66,111.97,107.92,114.51,117.29,89.66,111.57,118.61];
     const SPD_D65 = [49.98,54.65,82.78,91.49,93.43,86.68,104.86,117.01,117.81,114.86,115.92,108.81,109.35,107.80,104.79,107.69,107.68,106.65,105.00,105.38,102.05,98.62,97.97,102.11,98.75,95.17,97.67,99.35,99.61,95.67,96.74,92.64,105.35,101.44,96.36,92.23,97.59,99.76,75.09,94.17,99.92];
 
+    // ── Tone Value: Status densitometer filter spectral weights ──────────────────
+    // Approximate spectral sensitivities at 380–780 nm, 10 nm intervals (41 entries).
+    // R channel (complementary to Cyan), G (Magenta), B (Yellow), V (visual/neutral).
+    // Gaussian approximations per ISO 5-3 channel nomenclature.
+    const _tvG = (mu, sg) => Array.from({length:41}, (_, i) => Math.exp(-0.5 * ((380+10*i-mu)/sg)**2));
+    const TV_STATUS_FILTERS = {
+      T: { R: _tvG(625,30), G: _tvG(535,30), B: _tvG(450,25), V: CMF2_Y },
+      E: { R: _tvG(620,35), G: _tvG(540,35), B: _tvG(447,28), V: CMF2_Y },
+      I: { R: _tvG(632,28), G: _tvG(535,28), B: _tvG(445,25), V: CMF2_Y },
+      A: { R: _tvG(618,38), G: _tvG(545,38), B: _tvG(455,30), V: CMF2_Y }
+    };
+    // Display colors for TV curves: per colorant, per slot (a=solid, b=dashed)
+    const TV_COLORANT_COLORS = {
+      CYAN:    { a:'#0099bb', b:'#007799' },
+      MAGENTA: { a:'#cc0077', b:'#aa0060' },
+      YELLOW:  { a:'#aa8800', b:'#887000' },
+      BLACK:   { a:'#555555', b:'#333333' }
+    };
+
     // ── P2P Target Patch Values  (IDEAlliance G7 System ADS, Appendix A) ────────
     // Tables 3 (column 4, K-only) and 4 (column 5, CMY-only).
     // 25 patches each; index 0 = paper white (all zeros).
@@ -895,6 +926,13 @@
     let _pendingColorantDeletes = new Set();
     let _exportDirHandle = null;
 
+    // Tone Value section persistent state (survives result re-renders)
+    let _tvSectionOpen = true;
+    let _tvCtrlCollapsed = false;
+    let _tvCbStates = {};          // {checkbox-id: checked}
+    let _tvDatasetKey = '';        // changes when dataset/method/filter changes
+    let _tvRangeCache = null;      // { transfer:[y0,y1], gain:[g0,g1] }
+
     let _mode = 'explore';
 
     function setMode(mode) {
@@ -1005,6 +1043,7 @@
       if (_mode === 'compare' && state.a && state.b) runCompare();
       if (_mode === 'explore') recomputeEstimateStats();
     });
+
 
     function standardizeHeaders(headers) {
       const RENAMES = { CMYK_C: 'CYAN', CMYK_M: 'MAGENTA', CMYK_Y: 'YELLOW', CMYK_K: 'BLACK' };
@@ -1390,7 +1429,7 @@
         document.getElementById('plot-section').style.display = 'none';
         renderSlicePlot();
       } else if (_mode === 'explore' && slot === 'a') {
-        renderExplore(); // calls renderSlicePlot internally
+        renderExplore();
       } else {
         renderSlicePlot();
       }
@@ -2407,6 +2446,431 @@
       }
     }
 
+    // ── Tone Value functions ─────────────────────────────────────────────────
+
+    function saveTvDomState() {
+      // Called before result innerHTML is replaced; saves TV section state to JS vars.
+      const wrap = document.getElementById('tv-wrap');
+      if (wrap) _tvSectionOpen = wrap.style.display !== 'none';
+      const col = document.getElementById('tv-ctrl-col');
+      if (col) _tvCtrlCollapsed = col.dataset.collapsed === 'true';
+      document.querySelectorAll('[id^="tv-cb-"],[id="tv-show-a"],[id="tv-show-b"]').forEach(cb => {
+        _tvCbStates[cb.id] = cb.checked;
+      });
+    }
+
+    function buildTvSectionHTML(both) {
+      // Generates TV section HTML injected into result, using saved state vars.
+      const method    = localStorage.getItem('tvMethod')    || 'murray-davies';
+      const filter    = localStorage.getItem('tvFilter')    || 'T';
+      const graphType = localStorage.getItem('tvGraphType') || 'transfer';
+      const showFilter   = method === 'murray-davies';
+      const ctrlVisible  = !_tvCtrlCollapsed;
+      const showA = _tvCbStates['tv-show-a'] !== false; // default true
+      const showB = _tvCbStates['tv-show-b'] !== false;
+      const SS = 'width:100%;padding:4px 6px;border:1px solid #bbb;border-bottom:2px solid #999;border-radius:4px;font-size:11px;background:#fff;color:#333;cursor:pointer;';
+      const LH = 'font-size:11px;font-weight:bold;color:#888;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;';
+      const opt = (v, label, cur) => `<option value="${v}"${cur===v?' selected':''}>${label}</option>`;
+      return `
+        <div id="tv-section" style="margin-top:16px;">
+          <div onclick="toggleTv()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+            <span>Tone Value</span><span id="tv-arrow">${_tvSectionOpen ? '&#9660;' : '&#9658;'}</span>
+          </div>
+          <div id="tv-wrap" style="display:${_tvSectionOpen ? 'flex' : 'none'};border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;min-height:380px;">
+            <div id="tv-ctrl-col" style="width:${ctrlVisible?'190px':'28px'};min-width:${ctrlVisible?'190px':'28px'};border-right:1px solid #ddd;flex-shrink:0;" data-collapsed="${_tvCtrlCollapsed}">
+              <div style="padding:5px 4px 5px 10px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;background:#fafafa;">
+                <span id="tv-ctrl-header-text" style="font-size:12px;font-weight:bold;color:#666;${ctrlVisible?'':'display:none;'}">Controls</span>
+                <button onclick="toggleTvControls()" id="tv-ctrl-toggle-arrow" title="Toggle controls" style="background:none;border:none;cursor:pointer;color:#888;padding:2px 4px;font-size:14px;line-height:1;flex-shrink:0;">${ctrlVisible ? '&#9664;' : '&#9654;'}</button>
+              </div>
+              <div id="tv-ctrl-body" style="${ctrlVisible?'':'display:none;'}padding:8px 10px;display:flex;flex-direction:column;gap:8px;font-size:12px;color:#444;">
+                ${both ? `<div id="tv-dataset-vis">
+                  <div style="${LH}">Datasets</div>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;"><input type="checkbox" id="tv-show-a" ${showA?'checked':''} onchange="renderTvChart()"> Dataset A</label>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;margin-top:2px;"><input type="checkbox" id="tv-show-b" ${showB?'checked':''} onchange="renderTvChart()"> Dataset B</label>
+                  <div style="border-top:1px solid #eee;margin:5px 0;"></div>
+                </div>` : ''}
+                <div>
+                  <div style="${LH}">Tone Method</div>
+                  <select id="tv-method" style="${SS}" onchange="onTvMethodChange()">
+                    ${opt('murray-davies','Spectral Murray-Davies',method)}
+                    ${opt('ctv','Colorimetric Tone Value (CTV)',method)}
+                  </select>
+                </div>
+                <div id="tv-filter-row" style="${showFilter?'':'display:none;'}">
+                  <div style="${LH}">Filter</div>
+                  <select id="tv-filter" style="${SS}" onchange="onTvFilterChange()">
+                    ${opt('T','Status T',filter)}${opt('E','Status E',filter)}${opt('I','Status I',filter)}${opt('A','Status A',filter)}
+                  </select>
+                </div>
+                <div>
+                  <div style="${LH}">Graph Type</div>
+                  <select id="tv-graph-type" style="${SS}" onchange="renderTvChart()">
+                    ${opt('transfer','Transfer',graphType)}${opt('gain','Gain',graphType)}
+                  </select>
+                </div>
+                <div style="border-top:1px solid #ddd;margin:0;"></div>
+                <div id="tv-colorant-checks" style="display:flex;flex-direction:column;gap:3px;"></div>
+              </div>
+            </div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+              <div id="tv-plot" style="width:100%;height:360px;"></div>
+              <div id="tv-legend" style="padding:4px 10px 6px;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11px;color:#555;border-top:1px solid #eee;min-height:22px;"></div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function tvGetFilterWeights(statusType, colorantName) {
+      const filters = TV_STATUS_FILTERS[statusType] || TV_STATUS_FILTERS.T;
+      const upper = (colorantName || '').toUpperCase();
+      if (upper === 'CYAN')    return filters.R;
+      if (upper === 'MAGENTA') return filters.G;
+      if (upper === 'YELLOW')  return filters.B;
+      return filters.V;
+    }
+
+    function tvFilteredReflectance(wavelengths, values, weights) {
+      // wavelengths: nm[], values: reflectances (any scale — ratios cancel in Murray-Davies)
+      // weights: float[41] indexed by (λ−380)/10 for λ in 380…780 nm
+      let num = 0, den = 0;
+      for (let j = 0; j < wavelengths.length; j++) {
+        const wi = Math.round((wavelengths[j] - 380) / 10);
+        if (wi < 0 || wi > 40) continue;
+        const w = weights[wi];
+        const R = values[j];
+        if (R === null || isNaN(R) || w === 0) continue;
+        num += w * R;
+        den += w;
+      }
+      return den > 0 ? num / den : NaN;
+    }
+
+    function tvGetPrimaryRows(dataset, colorantName) {
+      // Returns [{inkPct, spectral:{wavelengths,values}, L, a, b}] sorted by inkPct,
+      // for rows where only colorantName is non-zero.
+      const { headers, rows, colorants } = dataset;
+      const targetPos = colorants.indexOf(colorantName);
+      if (targetPos === -1) return [];
+      const colorantIndices = colorants.map(c => headers.indexOf(c));
+      const targetIdx = colorantIndices[targetPos];
+      const lIdx = headers.indexOf('LAB_L');
+      const aIdx = headers.indexOf('LAB_A');
+      const bIdx = headers.indexOf('LAB_B');
+      const result = [];
+      for (const row of rows) {
+        const allOthersZero = colorantIndices.every((ci, j) => {
+          if (j === targetPos) return true;
+          if (ci === -1) return true;
+          return (parseFloat(row[ci]) || 0) === 0;
+        });
+        if (!allOthersZero) continue;
+        const inkPct = parseFloat(row[targetIdx]);
+        if (isNaN(inkPct)) continue;
+        result.push({
+          inkPct,
+          spectral: extractSpectral(headers, row),
+          L: lIdx !== -1 ? parseFloat(row[lIdx]) : NaN,
+          a: aIdx !== -1 ? parseFloat(row[aIdx]) : NaN,
+          b: bIdx !== -1 ? parseFloat(row[bIdx]) : NaN
+        });
+      }
+      result.sort((x, y) => x.inkPct - y.inkPct);
+      return result;
+    }
+
+    function tvMurrayDavies(primaryRows, statusType, colorantName) {
+      // Murray-Davies TV = (R_paper − R_sample) / (R_paper − R_solid) × 100
+      // Paper = lowest inkPct row (≈0%), Solid = highest inkPct row (≈100%).
+      if (primaryRows.length < 2) return [];
+      const weights = tvGetFilterWeights(statusType, colorantName);
+      const hasSpectral = r => r.spectral.wavelengths.length > 0;
+      const paperRow = primaryRows[0];
+      const solidRow = primaryRows[primaryRows.length - 1];
+      if (!hasSpectral(paperRow) || !hasSpectral(solidRow)) return [];
+      const R_paper = tvFilteredReflectance(paperRow.spectral.wavelengths, paperRow.spectral.values, weights);
+      const R_solid = tvFilteredReflectance(solidRow.spectral.wavelengths, solidRow.spectral.values, weights);
+      if (isNaN(R_paper) || isNaN(R_solid)) return [];
+      const denom = R_paper - R_solid;
+      if (Math.abs(denom) < 1e-12) return [];
+      const result = [];
+      for (const r of primaryRows) {
+        if (!hasSpectral(r)) continue;
+        const R_s = tvFilteredReflectance(r.spectral.wavelengths, r.spectral.values, weights);
+        if (isNaN(R_s)) continue;
+        result.push({ inkPct: r.inkPct, tv: (R_paper - R_s) / denom * 100 });
+      }
+      return result;
+    }
+
+    function tvCTV(primaryRows) {
+      // Colorimetric Tone Value per ISO 20654: (L*_paper − L*_tint) / (L*_paper − L*_solid) × 100
+      if (primaryRows.length < 2) return [];
+      const paperRow = primaryRows[0];
+      const solidRow = primaryRows[primaryRows.length - 1];
+      if (isNaN(paperRow.L) || isNaN(solidRow.L)) return [];
+      const denom = paperRow.L - solidRow.L;
+      if (Math.abs(denom) < 1e-10) return [];
+      return primaryRows.filter(r => !isNaN(r.L))
+        .map(r => ({ inkPct: r.inkPct, tv: (paperRow.L - r.L) / denom * 100 }));
+    }
+
+    function tvColorantColor(name, slot) {
+      const upper = name.toUpperCase();
+      const entry = TV_COLORANT_COLORS[upper];
+      if (entry) return entry[slot] || entry.a;
+      // Hash unknown colorants to HSL
+      let h = 0;
+      for (const c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffffff;
+      const hue = (h & 0xff) * 360 / 256;
+      return `hsl(${Math.round(hue)},55%,${slot === 'b' ? '35' : '45'}%)`;
+    }
+
+    function buildTvColorantCheckboxes() {
+      const container = document.getElementById('tv-colorant-checks');
+      if (!container) return;
+      // Save current states before rebuild
+      const prev = {};
+      container.querySelectorAll('input[type=checkbox]').forEach(cb => { prev[cb.id] = cb.checked; });
+      const both = !!(state.a && state.b);
+      const parts = [];
+      ['a', 'b'].forEach(slot => {
+        const ds = state[slot];
+        if (!ds) return;
+        if (both) {
+          const mt = slot === 'b' ? '6px' : '0';
+          parts.push(`<div style="font-size:11px;color:#888;margin-bottom:2px;margin-top:${mt};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:166px;" title="${ds.name}">${ds.name}</div>`);
+        }
+        ds.colorants.forEach(colorant => {
+          const cbId = `tv-cb-${slot}-${colorant}`;
+          const checked = prev[cbId] !== undefined ? prev[cbId] : true;
+          const color = tvColorantColor(colorant, slot);
+          const swatch = slot === 'b'
+            ? `background:repeating-linear-gradient(90deg,${color} 0,${color} 4px,transparent 4px,transparent 7px);`
+            : `background:${color};`;
+          parts.push(`<label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">` +
+            `<input type="checkbox" id="${cbId}" ${checked?'checked':''} onchange="renderTvChart()">` +
+            `<span style="display:inline-block;width:22px;height:3px;${swatch}border-radius:1px;flex-shrink:0;"></span>` +
+            `<span style="white-space:nowrap;">${colorant}</span></label>`);
+        });
+      });
+      container.innerHTML = parts.join('');
+    }
+
+    function onTvMethodChange() {
+      const methodEl = document.getElementById('tv-method');
+      if (!methodEl) return;
+      const filterRow = document.getElementById('tv-filter-row');
+      if (filterRow) filterRow.style.display = methodEl.value === 'murray-davies' ? '' : 'none';
+      if (methodEl.value) localStorage.setItem('tvMethod', methodEl.value);
+      _tvRangeCache = null; // method change → recompute range
+      renderTvChart();
+    }
+
+    function onTvFilterChange() {
+      const filterEl = document.getElementById('tv-filter');
+      if (filterEl) localStorage.setItem('tvFilter', filterEl.value);
+      _tvRangeCache = null; // filter change → recompute range
+      renderTvChart();
+    }
+
+    function toggleTvControls() {
+      const col = document.getElementById('tv-ctrl-col');
+      const body = document.getElementById('tv-ctrl-body');
+      const headerText = document.getElementById('tv-ctrl-header-text');
+      const arrow = document.getElementById('tv-ctrl-toggle-arrow');
+      if (!col) return;
+      const collapsed = col.dataset.collapsed === 'true';
+      if (collapsed) {
+        col.style.width = '190px'; col.style.minWidth = '190px';
+        if (body) body.style.display = '';
+        if (headerText) headerText.style.display = '';
+        if (arrow) arrow.innerHTML = '&#9664;';
+        col.dataset.collapsed = 'false';
+        _tvCtrlCollapsed = false;
+      } else {
+        col.style.width = '28px'; col.style.minWidth = '28px';
+        if (body) body.style.display = 'none';
+        if (headerText) headerText.style.display = 'none';
+        if (arrow) arrow.innerHTML = '&#9654;';
+        col.dataset.collapsed = 'true';
+        _tvCtrlCollapsed = true;
+      }
+    }
+
+    function toggleTv() {
+      const wrap = document.getElementById('tv-wrap');
+      const arrow = document.getElementById('tv-arrow');
+      if (!wrap) return;
+      const hidden = wrap.style.display === 'none';
+      wrap.style.display = hidden ? 'flex' : 'none';
+      _tvSectionOpen = hidden;
+      if (arrow) arrow.textContent = hidden ? '\u25bc' : '\u25b6';
+      if (hidden) renderTvChart();
+    }
+
+    function renderTvChart() {
+      const plotDiv = document.getElementById('tv-plot');
+      if (!plotDiv || !window.Plotly) return;
+      const methodEl  = document.getElementById('tv-method');
+      const filterEl  = document.getElementById('tv-filter');
+      const graphEl   = document.getElementById('tv-graph-type');
+      if (!methodEl) return;
+      const method     = methodEl.value;
+      const statusType = filterEl ? filterEl.value : 'T';
+      const graphType  = graphEl  ? graphEl.value  : 'transfer';
+
+      // Persist settings
+      localStorage.setItem('tvMethod', method);
+      if (graphEl) localStorage.setItem('tvGraphType', graphType);
+
+      // Build data traces (without reference lines)
+      const dataTraces = [];
+      let anyNoSpectral = false;
+
+      ['a', 'b'].forEach(slot => {
+        const ds = state[slot];
+        if (!ds) return;
+        const showCb = document.getElementById(`tv-show-${slot}`);
+        if (showCb && !showCb.checked) return;
+        const isDash = slot === 'b';
+        ds.colorants.forEach(colorant => {
+          const cb = document.getElementById(`tv-cb-${slot}-${colorant}`);
+          if (cb && !cb.checked) return;
+          const primaryRows = tvGetPrimaryRows(ds, colorant);
+          if (primaryRows.length < 2) return;
+          let points;
+          if (method === 'murray-davies') {
+            if (!ds.hasSpectral) { anyNoSpectral = true; return; }
+            points = tvMurrayDavies(primaryRows, statusType, colorant);
+          } else {
+            points = tvCTV(primaryRows);
+          }
+          if (!points || points.length < 2) return;
+          const x = points.map(p => p.inkPct);
+          const y = graphType === 'gain'
+            ? points.map(p => p.tv - p.inkPct)
+            : points.map(p => p.tv);
+          const color = tvColorantColor(colorant, slot);
+          const label = (state.a && state.b) ? `${colorant}\u00a0(${ds.name})` : colorant;
+          dataTraces.push({ x, y, _color: color, _dash: isDash, _label: label,
+            type:'scatter', mode:'lines+markers', name: label,
+            line:{color, width:2, dash: isDash ? 'dash' : 'solid'}, marker:{color, size:5} });
+        });
+      });
+
+      // Compute Y range from ALL data traces (cached per dataset+method+filter key)
+      const newKey = [state.a?.name, state.a?.rows?.length,
+                      state.b?.name, state.b?.rows?.length,
+                      method, statusType].join('|');
+      if (!_tvRangeCache || _tvDatasetKey !== newKey) {
+        _tvDatasetKey = newKey;
+        let tMin = 0, tMax = 100, gMin = Infinity, gMax = -Infinity;
+        // Scan ALL colorants across ALL datasets (regardless of current checkbox state)
+        ['a', 'b'].forEach(slot => {
+          const ds = state[slot];
+          if (!ds) return;
+          ds.colorants.forEach(colorant => {
+            const primaryRows = tvGetPrimaryRows(ds, colorant);
+            if (primaryRows.length < 2) return;
+            let pts;
+            if (method === 'murray-davies') {
+              if (!ds.hasSpectral) return;
+              pts = tvMurrayDavies(primaryRows, statusType, colorant);
+            } else {
+              pts = tvCTV(primaryRows);
+            }
+            if (!pts || pts.length < 2) return;
+            pts.forEach(p => {
+              if (!isFinite(p.tv)) return;
+              tMin = Math.min(tMin, p.tv);
+              tMax = Math.max(tMax, p.tv);
+              // Gain = TV − ink%; endpoints (0%,100%) give gain=0 by definition,
+              // so exclude them from range to avoid collapsing the scale.
+              if (p.inkPct > 0 && p.inkPct < 100) {
+                const g = p.tv - p.inkPct;
+                gMin = Math.min(gMin, g);
+                gMax = Math.max(gMax, g);
+              }
+            });
+          });
+        });
+        // Fallback if no interior gain points were found
+        if (!isFinite(gMin)) { gMin = 0; gMax = 0; }
+        const pad = (lo, hi, pct) => {
+          const d = Math.max((hi - lo) * pct, 2);
+          return [Math.floor(lo - d), Math.ceil(hi + d)];
+        };
+        const tr = pad(tMin, tMax, 0.06);
+        tr[0] = Math.min(tr[0], 0); tr[1] = Math.max(tr[1], 100);
+        // Gain range: asymmetric — pad each side independently, no forced symmetry
+        const gPad = Math.max((gMax - gMin) * 0.12, 2);
+        const gain = [Math.floor(gMin - gPad), Math.ceil(gMax + gPad)];
+        _tvRangeCache = { transfer: tr, gain };
+      }
+      const yRange = _tvRangeCache[graphType] || (graphType === 'gain' ? [-30, 30] : [0, 105]);
+
+      // Reference line (no legend entry)
+      const refY = graphType === 'transfer' ? [0,100] : [0,0];
+      const allTraces = [...dataTraces,
+        { x:[0,100], y: refY, type:'scatter', mode:'lines', showlegend:false,
+          line:{color:'#bbb',width:1,dash:'dot'}, hoverinfo:'skip' }];
+
+      const yTitle = graphType === 'gain' ? 'Tone Value Gain (%)' : 'Tone Value (%)';
+      const annotations = [];
+      if (dataTraces.length === 0) {
+        const msg = anyNoSpectral
+          ? 'No spectral data \u2014 switch to Colorimetric Tone Value (CTV)'
+          : 'No primary tone steps found.<br>Needs rows with a single non-zero colorant.';
+        annotations.push({ text: msg, xref:'paper', yref:'paper', x:0.5, y:0.5,
+          showarrow:false, font:{size:13,color:'#999'}, align:'center' });
+      }
+
+      const isDark = document.body.classList.contains('dark');
+      const gridColor = isDark ? '#2e2f34' : '#eee';
+      const plotBg    = isDark ? '#1e1f22' : '#fafafa';
+      const paperBg   = isDark ? '#1a1b1e' : '#ffffff';
+      const fontColor = isDark ? '#bbb'    : '#444';
+
+      const layout = {
+        margin: { l:55, r:20, t:16, b:46 },
+        showlegend: false,
+        xaxis: { title:{text:'Input (%)',font:{color:fontColor},standoff:4}, range:[-2,102],
+          showgrid:true, gridcolor:gridColor, zeroline:false, tickfont:{color:fontColor} },
+        yaxis: { title:{text:yTitle,font:{color:fontColor},standoff:4}, range: yRange,
+          autorange: false, showgrid:true, gridcolor:gridColor,
+          zeroline: graphType==='gain', zerolinecolor: isDark ? '#555' : '#ccc',
+          tickfont:{color:fontColor} },
+        plot_bgcolor: plotBg, paper_bgcolor: paperBg,
+        font: { color: fontColor },
+        annotations
+      };
+
+      Plotly.react(plotDiv, allTraces, layout, { responsive:true, displayModeBar:false });
+
+      // Build HTML legend below plot
+      const legendEl = document.getElementById('tv-legend');
+      if (legendEl) {
+        const isDark2 = document.body.classList.contains('dark');
+        const txtColor = isDark2 ? '#aaa' : '#555';
+        let html = dataTraces.map(t => {
+          const sw = t._dash
+            ? `background:repeating-linear-gradient(90deg,${t._color} 0,${t._color} 5px,transparent 5px,transparent 9px);`
+            : `background:${t._color};`;
+          return `<span style="display:flex;align-items:center;gap:5px;white-space:nowrap;color:${txtColor};">` +
+            `<span style="display:inline-block;width:22px;height:3px;${sw}border-radius:1px;flex-shrink:0;"></span>` +
+            `<span>${t._label}</span></span>`;
+        }).join('');
+        if (graphType === 'transfer') {
+          html += `<span style="display:flex;align-items:center;gap:5px;white-space:nowrap;color:${txtColor};">` +
+            `<span style="display:inline-block;width:22px;height:2px;background:repeating-linear-gradient(90deg,#bbb 0,#bbb 4px,transparent 4px,transparent 7px);flex-shrink:0;"></span>` +
+            `<span style="color:${isDark2?'#777':'#aaa'};">Ideal</span></span>`;
+        }
+        legendEl.innerHTML = html;
+        legendEl.style.borderTopColor = isDark2 ? '#38393e' : '#eee';
+        legendEl.style.color = txtColor;
+      }
+    }
+
     function renderExplore() {
       if (!state.a) return;
       const { a } = state;
@@ -2437,6 +2901,7 @@
       _expData = { a, aColIdx, aLabIdx, PR, TH, VL };
       _expSortedIdx = Array.from({ length: a.rows.length }, (_, i) => i);
 
+      saveTvDomState();
       resultEl.innerHTML = `
         <div onclick="toggleExtract()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
           <span>Extract</span><span id="extract-arrow">▶</span>
@@ -2488,6 +2953,7 @@
             <tbody id="exp-table-body" style="font-family:monospace;color:#333;"></tbody>
           </table>
         </div>
+        ${buildTvSectionHTML(false)}
         <div onclick="toggleEstimate()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
           <span>Estimate</span><span id="est-arrow">&#9658;</span>
         </div>
@@ -2506,6 +2972,8 @@
       renderExpTable();
       renderPlot();
       updateEstimate();
+      buildTvColorantCheckboxes();
+      renderTvChart();
     }
 
     function toggleColorantDelete(colorant) {
@@ -3023,6 +3491,7 @@
       _cmpData = { matches, deRaw, dhRaw, a, b, displayColorants, aLabIdx, bLabIdx, method, PR, TH, VL };
       _cmpSortedIdx = Array.from({ length: matches.length }, (_, i) => i);
 
+      saveTvDomState();
       resultEl.innerHTML = `
         <p style="margin-bottom:8px;font-size:13px;color:#555;">${matches.length} matching data point${matches.length !== 1 ? 's' : ''}</p>
         ${summaryBox}
@@ -3048,11 +3517,14 @@
             <thead>${spanningRow}<tr id="cmp-col-headers"></tr></thead>
             <tbody id="cmp-table-body" style="font-family:monospace;color:#333;"></tbody>
           </table>
-        </div>`;
+        </div>
+        ${buildTvSectionHTML(true)}`;
 
       renderCmpTable();
       renderPlot();
       updateValidateFileLabel();
+      buildTvColorantCheckboxes();
+      renderTvChart();
     }
 
     function togglePlot() {
