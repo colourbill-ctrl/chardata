@@ -441,7 +441,7 @@
     .file-card-badge.badge-b { background: #e2924a; }
     .file-card-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #file-select-empty {
-      font-size: 12px; color: #bbb; text-align: center;
+      font-size: 12px; color: #999; text-align: center;
       margin-top: 16px; pointer-events: none;
     }
     .file-card-delete {
@@ -497,11 +497,11 @@
     body.dark .file-name { color: #ccc; }
     body.dark .row-count { color: #666; }
     body.dark .file-type { color: #5a9ad4; }
-    body.dark #panel-a-empty, body.dark #panel-b-empty { color: #44454a !important; }
+    body.dark #panel-a-empty, body.dark #panel-b-empty { color: #666 !important; }
     body.dark #blade, body.dark #file-select-blade { background: #1e1f22; }
     body.dark #blade-content, body.dark #file-select-blade-content { color: #ccc; }
     body.dark #file-select-blade-header { color: #bbb; border-color: #3a3b40; }
-    body.dark #file-select-empty { color: #555; border-color: #3a3b40 !important; }
+    body.dark #file-select-empty { color: #777; border-color: #3a3b40 !important; }
     body.dark .blade-label { color: #666; }
     body.dark .blade-select { background: linear-gradient(to bottom,#2c2d31,#232427); color: #ddd; border-color: #444; border-bottom-color: #555; }
     body.dark .blade-select:hover { background: linear-gradient(to bottom,#33343a,#2a2b2e); }
@@ -597,7 +597,7 @@
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button class="validate-btn" id="show-file-a" onclick="showFile('a')" disabled data-i18n="display_file">Display File</button>
       </div>
-      <div id="panel-a-empty" style="position:absolute;top:16px;right:16px;font-size:11px;color:#bbb;text-align:right;pointer-events:none;line-height:1.4;"><span data-i18n="drag_line1">Drag files here from</span><br><span data-i18n="drag_line2">File Select pane or file system</span></div>
+      <div id="panel-a-empty" style="position:absolute;top:16px;right:16px;font-size:11px;color:#999;text-align:right;pointer-events:none;line-height:1.4;"><span data-i18n="drag_line1">Drag files here from</span><br><span data-i18n="drag_line2">File Select pane or file system</span></div>
       <div class="file-info" id="info-a">
         <div class="file-name" id="name-a"></div>
         <div class="file-type" id="type-a"></div>
@@ -612,7 +612,7 @@
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button class="validate-btn" id="show-file-b" onclick="showFile('b')" disabled data-i18n="display_file">Display File</button>
       </div>
-      <div id="panel-b-empty" style="position:absolute;top:16px;right:16px;font-size:11px;color:#bbb;text-align:right;pointer-events:none;line-height:1.4;"><span data-i18n="drag_line1">Drag files here from</span><br><span data-i18n="drag_line2">File Select pane or file system</span></div>
+      <div id="panel-b-empty" style="position:absolute;top:16px;right:16px;font-size:11px;color:#999;text-align:right;pointer-events:none;line-height:1.4;"><span data-i18n="drag_line1">Drag files here from</span><br><span data-i18n="drag_line2">File Select pane or file system</span></div>
       <div class="file-info" id="info-b">
         <div class="file-name" id="name-b"></div>
         <div class="file-type" id="type-b"></div>
@@ -5539,7 +5539,7 @@
       if (_gamutState.a.cachedXYZ) allSpecs.push({ slot: 'a', color: '#4a90e2', name: a ? a.name : 'Dataset A' });
       if (_mode === 'compare' && _gamutState.b.cachedXYZ) allSpecs.push({ slot: 'b', color: '#e24a4a', name: b ? b.name : 'Dataset B' });
 
-      if (sectionEl) sectionEl.style.display = '';
+      if (sectionEl) sectionEl.style.display = (state.a || state.b) ? '' : 'none';
 
       if (allSpecs.length === 0) {
         if (tabLabel) tabLabel.textContent = t('gamut_slice');
