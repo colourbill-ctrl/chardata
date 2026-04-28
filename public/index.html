@@ -584,7 +584,7 @@
       <div id="file-select-add-btn-wrap" style="display:flex;align-items:flex-start;gap:6px;">
         <label class="file-label" for="file-select-input"
                style="display:block;text-align:center;font-size:12px;padding:6px 10px;flex:1;">
-          <span style="white-space:nowrap" data-i18n="choose_file">Choose char data file</span><br><span style="white-space:nowrap">(CGATS or CSV)</span>
+          <span style="white-space:nowrap" data-i18n="choose_file">Choose char data file</span><br><span style="white-space:nowrap">(CGATS, CSV)</span>
         </label>
         <button id="file-sort-btn" onclick="toggleFileSort()" data-i18n-title="sort_alpha" title="Sort files alphabetically"
                 style="padding:5px 7px;font-size:13px;line-height:1;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;cursor:pointer;color:#555;box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);transition:all 0.08s ease;flex-shrink:0;">&#8597;</button>
@@ -907,7 +907,7 @@
         model_failed:'Model fit failed: {msg}', retry:'Retry',
         spectral_click_hint:'Click on L*a*b* color to display spectral graph.',
         scroll_top:'Scroll to top', top_btn:'Top', help:'Help',
-        about:'About CharData', kofi_support:'Support on Ko-fi',
+        about:'About CharData', kofi_support:'Support on Ko-fi', kofi_btn_label:'Buy me a coffee',
         reflectance:'Reflectance',
         kofi_msg:'CharData is free for the color community. If it helps you, a small Ko-fi donation helps keep it running.',
       },
@@ -996,7 +996,7 @@
         model_failed:'Échec de l\u2019ajustement\u00a0: {msg}', retry:'Réessayer',
         spectral_click_hint:'Cliquez sur une couleur L*a*b* pour afficher le graphique spectral.',
         scroll_top:'Haut de page', top_btn:'Haut', help:'Aide',
-        about:'À propos de CharData', kofi_support:'Soutenir sur Ko-fi',
+        about:'À propos de CharData', kofi_support:'Soutenir sur Ko-fi', kofi_btn_label:'Offrez-moi un café',
         reflectance:'Réflectance',
         kofi_msg:'CharData est gratuit pour la communauté couleur. Si cela vous aide, un don Ko-fi aide à maintenir le service.',
       },
@@ -1085,7 +1085,7 @@
         model_failed:'Modellanpassung fehlgeschlagen: {msg}', retry:'Wiederholen',
         spectral_click_hint:'Auf L*a*b*-Farbe klicken für Spektraldiagramm.',
         scroll_top:'Nach oben', top_btn:'Oben', help:'Hilfe',
-        about:'Über CharData', kofi_support:'Ko-fi unterstützen',
+        about:'Über CharData', kofi_support:'Ko-fi unterstützen', kofi_btn_label:'Kauf mir einen Kaffee',
         reflectance:'Reflexionsgrad',
         kofi_msg:'CharData ist für die Farbgemeinschaft kostenlos. Eine kleine Ko-fi-Spende hilft, den Dienst am Laufen zu halten.',
       },
@@ -1174,7 +1174,7 @@
         model_failed:'Adattamento modello fallito: {msg}', retry:'Riprova',
         spectral_click_hint:'Clicca su un colore L*a*b* per visualizzare il grafico spettrale.',
         scroll_top:'Torna su', top_btn:'Su', help:'Guida',
-        about:'Informazioni su CharData', kofi_support:'Sostieni su Ko-fi',
+        about:'Informazioni su CharData', kofi_support:'Sostieni su Ko-fi', kofi_btn_label:'Offrimi un caffè',
         reflectance:'Riflettanza',
         kofi_msg:'CharData è gratuito per la comunità del colore. Un piccolo contributo Ko-fi aiuta a mantenerlo attivo.',
       },
@@ -1263,7 +1263,7 @@
         model_failed:'Fallo en ajuste de modelo: {msg}', retry:'Reintentar',
         spectral_click_hint:'Haga clic en un color L*a*b* para ver el gráfico espectral.',
         scroll_top:'Ir arriba', top_btn:'Arriba', help:'Ayuda',
-        about:'Acerca de CharData', kofi_support:'Apoyar en Ko-fi',
+        about:'Acerca de CharData', kofi_support:'Apoyar en Ko-fi', kofi_btn_label:'Invítame a un café',
         reflectance:'Reflectancia',
         kofi_msg:'CharData es gratuito para la comunidad del color. Una pequeña donación en Ko-fi ayuda a mantenerlo.',
       },
@@ -1352,7 +1352,7 @@
         model_failed:'Falha no ajuste de modelo: {msg}', retry:'Tentar novamente',
         spectral_click_hint:'Clique numa cor L*a*b* para ver o gráfico espectral.',
         scroll_top:'Subir', top_btn:'Topo', help:'Ajuda',
-        about:'Sobre CharData', kofi_support:'Apoiar no Ko-fi',
+        about:'Sobre CharData', kofi_support:'Apoiar no Ko-fi', kofi_btn_label:'Pague-me um café',
         reflectance:'Reflectância',
         kofi_msg:'CharData é gratuito para a comunidade de cor. Uma pequena doação no Ko-fi ajuda a manter o serviço.',
       },
@@ -1441,7 +1441,7 @@
         model_failed:'Falha no ajuste de modelo: {msg}', retry:'Tentar novamente',
         spectral_click_hint:'Clique em uma cor L*a*b* para ver o gráfico espectral.',
         scroll_top:'Voltar ao topo', top_btn:'Topo', help:'Ajuda',
-        about:'Sobre o CharData', kofi_support:'Apoiar no Ko-fi',
+        about:'Sobre o CharData', kofi_support:'Apoiar no Ko-fi', kofi_btn_label:'Me pague um café',
         reflectance:'Reflectância',
         kofi_msg:'CharData é gratuito para a comunidade de cor. Uma pequena doação no Ko-fi ajuda a mantê-lo no ar.',
       },
@@ -1530,7 +1530,7 @@
         model_failed:'模型拟合失败：{msg}', retry:'重试',
         spectral_click_hint:'点击 L*a*b* 颜色可显示光谱图。',
         scroll_top:'回到顶部', top_btn:'顶部', help:'帮助',
-        about:'关于 CharData', kofi_support:'对Ko-fi的支持',
+        about:'关于 CharData', kofi_support:'对Ko-fi的支持', kofi_btn_label:'请我喝咖啡',
         reflectance:'反射率',
         kofi_msg:'CharData 免费向色彩行业社群开放使用。若本工具对你有所帮助，欢迎小额赞助支持我们持续运营。',
       },
@@ -1619,7 +1619,7 @@
         model_failed:'模型擬合失敗：{msg}', retry:'重試',
         spectral_click_hint:'點擊 L*a*b* 顏色可顯示光譜圖。',
         scroll_top:'回到頂部', top_btn:'頂部', help:'說明',
-        about:'關於 CharData', kofi_support:'對Ko-fi的支持',
+        about:'關於 CharData', kofi_support:'對Ko-fi的支持', kofi_btn_label:'請我喝咖啡',
         reflectance:'反射率',
         kofi_msg:'CharData 免費向色彩行業社群開放使用。若本工具對你有所幫助，歡迎小額贊助支持我們持續運營。',
       },
@@ -1708,7 +1708,7 @@
         model_failed:'モデル適合失敗：{msg}', retry:'再試行',
         spectral_click_hint:'L*a*b* カラーをクリックすると分光グラフが表示されます。',
         scroll_top:'トップへ', top_btn:'トップ', help:'ヘルプ',
-        about:'CharData について', kofi_support:'Ko-fi でサポート',
+        about:'CharData について', kofi_support:'Ko-fi でサポート', kofi_btn_label:'コーヒーをおごってください',
         reflectance:'反射率',
         kofi_msg:'CharData はカラーコミュニティのために無料で提供されています。役立つ場合、Ko-fi での少額の寄付が継続に役立ちます。',
       },
@@ -1797,7 +1797,7 @@
         model_failed:'모델 적합 실패: {msg}', retry:'다시 시도',
         spectral_click_hint:'L*a*b* 색상을 클릭하면 분광 그래프가 표시됩니다.',
         scroll_top:'맨 위로', top_btn:'위로', help:'도움말',
-        about:'CharData 정보', kofi_support:'Ko-fi에서 지원',
+        about:'CharData 정보', kofi_support:'Ko-fi에서 지원', kofi_btn_label:'커피 한 잔 사주세요',
         reflectance:'반사율',
         kofi_msg:'CharData는 색채 커뮤니티를 위해 무료로 제공됩니다. 도움이 되셨다면 Ko-fi 소액 후원이 운영에 도움이 됩니다.',
       },
@@ -6152,6 +6152,8 @@
       const sel = document.getElementById('lang-select');
       if (sel) sel.value = _lang;
       applyTranslations();
+      // Elements after </script> (Ko-fi, scroll-top) don't exist yet — re-apply once DOM is complete.
+      document.addEventListener('DOMContentLoaded', applyTranslations);
     })();
 
     // Re-resolve when the OS locale changes while the page is open.
@@ -6165,7 +6167,7 @@
   </script>
   <div id="kofi-group">
     <button id="kofi-info-btn" onclick="toggleKofiMsg()" data-i18n-title="about" title="About CharData">ℹ</button>
-    <a id="kofi-btn" href="https://ko-fi.com/williamli54527" target="_blank" rel="noopener" data-i18n-title="kofi_support" title="Support on Ko-fi"><span class="kofi-icon">&#9749;</span><span class="kofi-label" data-i18n="kofi_support">Support on Ko-fi</span></a>
+    <a id="kofi-btn" href="https://ko-fi.com/williamli54527" target="_blank" rel="noopener" data-i18n-title="kofi_support" title="Support on Ko-fi"><span class="kofi-icon">&#9749;</span><span class="kofi-label" data-i18n="kofi_btn_label">Buy me a coffee</span></a>
   </div>
   <div id="kofi-msg" style="display:none;" data-i18n="kofi_msg">CharData is free for the color community. If it helps you, a small Ko-fi donation helps keep it running.</div>
   <button id="scroll-top-btn" data-i18n-title="scroll_top" title="Scroll to top"
