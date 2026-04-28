@@ -32,7 +32,7 @@
     }
     #blade.collapsed { width: 38px; min-width: 38px; }
     #blade-content {
-      flex: 1; padding: 24px 16px; overflow: hidden;
+      flex: 1; padding: 24px 16px; overflow-y: auto;
       display: flex; flex-direction: column; gap: 20px;
     }
     #blade.collapsed #blade-content { display: none; }
@@ -108,13 +108,15 @@
     }
     #kofi-info-btn:hover { background: linear-gradient(to bottom, #f0f0f0, #d8d8d8); }
     #kofi-btn {
-      display: flex; align-items: center;
-      padding: 0; border-radius: 0 5px 5px 0;
-      background: none; border: 1px solid #e0a060; border-left: none; border-bottom: 3px solid #c07840;
+      display: flex; align-items: center; gap: 5px;
+      padding: 0 10px 0 8px; height: 30px; border-radius: 0 5px 5px 0;
+      background: linear-gradient(to bottom, #fff8f0, #ffe8cc);
+      border: 1px solid #e0a060; border-left: none; border-bottom: 3px solid #c07840;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
-      overflow: hidden; text-decoration: none;
+      text-decoration: none; white-space: nowrap;
     }
-    #kofi-btn img { height: 30px; width: auto; display: block; }
+    #kofi-btn .kofi-icon { font-size: 16px; line-height: 1; }
+    #kofi-btn .kofi-label { font-size: 12px; font-weight: bold; color: #a04010; }
     #kofi-btn:hover { opacity: 0.88; }
     #kofi-msg {
       position: fixed; top: 44px; z-index: 899;
@@ -531,6 +533,10 @@
     body.dark .slice-controls { color: #888; border-color: #38393e; }
     body.dark #slice-custom-legend { border-color: #38393e !important; }
     body.dark .slice-controls input[type=number] { background: #2a2b2e; color: #ccc; border-color: #444; }
+    body.dark #kofi-btn { background: linear-gradient(to bottom, #2e2418, #241c10); border-color: #7a5030; border-bottom-color: #5a3820; }
+    body.dark #kofi-btn .kofi-label { color: #c88050; }
+    body.dark #kofi-info-btn { background: linear-gradient(to bottom, #2a2b2e, #222325); color: #888; border-color: #444; }
+    body.dark #kofi-msg { background: #1e1a14; border-color: #7a5030; color: #c88050; }
     /* Section accordion headers — inline bg:#f0f2f5 overridden */
     body.dark #plot-section > div:first-child,
     body.dark #slice-section > div:first-child { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
@@ -588,7 +594,7 @@
         <div id="file-select-empty"><span data-i18n="drop_line1">Drop files here</span><br><span data-i18n="drop_line2">or use button above</span></div>
       </div>
     </div>
-    <button id="fs-blade-toggle" title="File Select: Drop or load files here to select."><span class="fs-icon"><svg width="13" height="16" viewBox="0 0 13 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1.5C1 1.22 1.22 1 1.5 1H8L12 5V14.5C12 14.78 11.78 15 11.5 15H1.5C1.22 15 1 14.78 1 14.5V1.5Z" fill="#a8d4f0" stroke="#6aabd8" stroke-width="1"/><path d="M8 1V5H12" fill="#c8e8f8" stroke="#6aabd8" stroke-width="1" stroke-linejoin="round"/></svg></span><span class="fs-arrow">&#8250;</span></button>
+    <button id="fs-blade-toggle" data-i18n-title="fs_blade_tooltip" title="File Select: Drop or load files here to select."><span class="fs-icon"><svg width="13" height="16" viewBox="0 0 13 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1.5C1 1.22 1.22 1 1.5 1H8L12 5V14.5C12 14.78 11.78 15 11.5 15H1.5C1.22 15 1 14.78 1 14.5V1.5Z" fill="#a8d4f0" stroke="#6aabd8" stroke-width="1"/><path d="M8 1V5H12" fill="#c8e8f8" stroke="#6aabd8" stroke-width="1" stroke-linejoin="round"/></svg></span><span class="fs-arrow">&#8250;</span></button>
   </div>
 
   <!-- Main content -->
@@ -599,8 +605,8 @@
   </div>
 
   <div class="panels">
-    <div class="panel" id="panel-a" title="Drag-and-drop files from file system or File Select here">
-      <h2>Dataset A</h2>
+    <div class="panel" id="panel-a" data-i18n-title="panel_drop" title="Drag-and-drop files from file system or File Select here">
+      <h2 data-i18n-slot="A">Dataset A</h2>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button class="validate-btn" id="show-file-a" onclick="showFile('a')" disabled data-i18n="display_file">Display File</button>
       </div>
@@ -615,8 +621,8 @@
       <div id="status-a" class="dataset-status"></div>
     </div>
 
-    <div class="panel" id="panel-b" title="Drag-and-drop files from file system or File Select here">
-      <h2>Dataset B</h2>
+    <div class="panel" id="panel-b" data-i18n-title="panel_drop" title="Drag-and-drop files from file system or File Select here">
+      <h2 data-i18n-slot="B">Dataset B</h2>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button class="validate-btn" id="show-file-b" onclick="showFile('b')" disabled data-i18n="display_file">Display File</button>
       </div>
@@ -637,7 +643,7 @@
     <div onclick="togglePlot()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;display:flex;justify-content:space-between;align-items:center;user-select:none;">
       <span id="plot-tab-label" data-i18n="plot_3d">3D Plot</span><span id="plot-arrow">▼</span>
     </div>
-    <div id="plot-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;position:relative;">
+    <div id="plot-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;position:relative;overflow:hidden;">
       <div id="plot-busy" style="display:none;position:absolute;top:10px;right:10px;white-space:nowrap;background:rgba(0,0,0,0.55);color:#fff;padding:4px 12px;border-radius:12px;font-size:12px;letter-spacing:0.02em;pointer-events:none;z-index:30;" data-i18n="computing">Computing&#8230;</div>
       <div style="position:relative;">
         <div id="plot" style="width:100%;height:600px;"></div>
@@ -672,7 +678,7 @@
     <div onclick="toggleSlice()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;display:flex;justify-content:space-between;align-items:center;user-select:none;">
       <span id="slice-tab-label" data-i18n="gamut_slice">Gamut Slice (2D)</span><span id="slice-arrow">&#9660;</span>
     </div>
-    <div id="slice-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;position:relative;">
+    <div id="slice-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;position:relative;overflow:hidden;">
       <div id="slice-custom-legend" style="display:none;flex-direction:row;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 12px;border-bottom:1px solid #eee;"></div>
       <div class="slice-controls">
         <span style="font-weight:bold;" data-i18n="axis">Axis:</span>
@@ -833,7 +839,7 @@
         gamut_slice:'Gamut Slice (2D)', axis:'Axis:', val:'Value:',
         no_file:'No file loaded',
         tone_value:'Tone Value', tone_method:'Tone Method',
-        spectral_md:'Spectral Murray-Davies', ctv:'Colorimetric Tone Value (CTV)',
+        spectral_md:'Spectral Murray-Davies', ctv:'Colour Tone Value (CTV)',
         filter:'Filter', graph_type:'Graph Type', transfer:'Transfer', gain:'Gain',
         ideal:'Ideal', datasets:'Datasets',
         validate:'Validate', comparison_table:'Comparison Table',
@@ -847,6 +853,11 @@
         format:'Format', cancel:'Cancel', save:'Save',
         select_folder:'Select folder', browse_folder:'Browse for folder',
         folder_not_supported:'Folder picker not supported in this browser',
+        fs_blade_tooltip:'File Select: Drop or load files here to select.',
+        panel_drop:'Drag-and-drop files from file system or File Select here',
+        click_to_sort:'Click to sort', click_spectral:'Click to view spectral',
+        toggle_controls:'Toggle controls', remove_item:'Remove {item}',
+        click_toggle:'Click to toggle on/off',
         export_dest_ph:'Export destination folder\u2026',
         file_invalid:'File is neither CSV nor CGATS/ISO28178 format',
         valid:'\u2713 Valid',
@@ -861,6 +872,7 @@
         no_match:'No comparable inkings between selected files.',
         match_count:'{n} matching data point', match_count_pl:'{n} matching data points',
         mean_de:'Mean {method}', min_de:'Min {method}', max_de:'Max {method}', std_dev:'Std Dev',
+        points_fitted:'Points fitted', dataset_slot:'Dataset {slot}',
         device_colorants_hdr:'Device Colorants', difference:'Difference',
         opacity:'Opacity', regen_shell:'\u21bb Regenerate Shell',
         mesh:'Mesh', density:'Density', lighting:'Lighting',
@@ -880,11 +892,11 @@
         g7_overall:'G7 Overall:', scale:'Scale', tolerance:'Tolerance',
         k_black:'K (Black)', k_patches_n:'K patches ({n})', cmy_patches_n:'CMY patches ({n})',
         k_pct:'K%', l_meas:'L* meas', l_aim:'L* aim', meas_lbl:'meas', aim_lbl:'aim',
-        no_spectral_ctv:'No spectral data \u2014 switch to Colorimetric Tone Value (CTV)',
+        no_spectral_ctv:'No spectral data \u2014 switch to Colour Tone Value (CTV)',
         no_primary_steps:'No primary tone steps found.\nNeeds rows with a single non-zero colorant.',
         tone_value_gain:'Tone Value Gain (%)', tone_value_pct:'Tone Value (%)', input_pct:'Input (%)',
         model_fit:'Model fit \u2014 degree {deg}, {n} points',
-        regen:'\u21bb Regenerate', colorant_input:'Colorant\ninput',
+        regen:'\u21bb Regenerate', colorant_input:'Input\ncolorant',
         nearest_dataset:'Nearest\nin dataset', model:'Model',
         computing_model:'Computing\u2026',
         status_calc_tv:'Calculating tone values\u2026',
@@ -921,7 +933,7 @@
         gamut_slice:'Tranche de gamut (2D)', axis:'Axe\u00a0:', val:'Valeur\u00a0:',
         no_file:'Aucun fichier chargé',
         tone_value:'Valeur de ton', tone_method:'Méthode de ton',
-        spectral_md:'Murray-Davies spectral', ctv:'Valeur de ton colorimétrique (CTV)',
+        spectral_md:'Murray-Davies spectral', ctv:'Valeur de ton couleur (CTV)',
         filter:'Filtre', graph_type:'Type de graphique', transfer:'Transfert', gain:'Gain',
         ideal:'Idéal', datasets:'Jeux de données',
         validate:'Valider', comparison_table:'Tableau comparatif',
@@ -935,6 +947,11 @@
         format:'Format', cancel:'Annuler', save:'Enregistrer',
         select_folder:'Sélectionner un dossier', browse_folder:'Parcourir les dossiers',
         folder_not_supported:'Sélecteur de dossier non pris en charge par ce navigateur',
+        fs_blade_tooltip:'Sélection de fichier\u00a0: déposez ou chargez des fichiers ici.',
+        panel_drop:'Glisser-déposer depuis le système de fichiers ou la sélection de fichier',
+        click_to_sort:'Cliquer pour trier', click_spectral:'Cliquer pour voir le spectre',
+        toggle_controls:'Afficher/masquer les commandes', remove_item:'Supprimer {item}',
+        click_toggle:'Cliquer pour activer/désactiver',
         export_dest_ph:'Dossier de destination\u2026',
         file_invalid:'Le fichier n\u2019est ni CSV ni CGATS/ISO28178',
         valid:'\u2713 Valide',
@@ -949,6 +966,7 @@
         no_match:'Aucune encre comparable entre les fichiers sélectionnés.',
         match_count:'{n} point de données correspondant', match_count_pl:'{n} points de données correspondants',
         mean_de:'Moyenne {method}', min_de:'Min {method}', max_de:'Max {method}', std_dev:'Écart-type',
+        points_fitted:'Points ajustés', dataset_slot:'Jeu de données {slot}',
         device_colorants_hdr:'Colorants dispositif', difference:'Différence',
         opacity:'Opacité', regen_shell:'\u21bb Régénérer la coquille',
         mesh:'Maillage', density:'Densité', lighting:'Éclairage',
@@ -968,11 +986,11 @@
         g7_overall:'G7 global\u00a0:', scale:'Échelle', tolerance:'Tolérance',
         k_black:'K (Noir)', k_patches_n:'Patches K ({n})', cmy_patches_n:'Patches CMY ({n})',
         k_pct:'K\u00a0%', l_meas:'L* mes.', l_aim:'L* cible', meas_lbl:'mes.', aim_lbl:'cible',
-        no_spectral_ctv:'Pas de données spectrales \u2014 passer en valeur de ton colorimétrique (CTV)',
+        no_spectral_ctv:'Pas de données spectrales \u2014 passer en valeur de ton couleur (CTV)',
         no_primary_steps:'Aucune étape de ton primaire trouvée.\nNécessite des lignes avec un seul colorant non nul.',
         tone_value_gain:'Gain de valeur de ton (%)', tone_value_pct:'Valeur de ton (%)', input_pct:'Entrée (%)',
         model_fit:'Ajustement \u2014 degré {deg}, {n} points',
-        regen:'\u21bb Régénérer', colorant_input:'Entrée\ncolorant',
+        regen:'\u21bb Régénérer', colorant_input:'Colorant\nentrée',
         nearest_dataset:'Plus proche\ndans le jeu', model:'Modèle',
         computing_model:'Calcul\u2026',
         model_failed:'Échec de l\u2019ajustement\u00a0: {msg}', retry:'Réessayer',
@@ -1004,7 +1022,7 @@
         gamut_slice:'Gamut-Schnitt (2D)', axis:'Achse:', val:'Wert:',
         no_file:'Keine Datei geladen',
         tone_value:'Tonwert', tone_method:'Tonwert-Methode',
-        spectral_md:'Spektral Murray-Davies', ctv:'Colorimetrischer Tonwert (CTV)',
+        spectral_md:'Spektral Murray-Davies', ctv:'Farb-Tonwert (CTV)',
         filter:'Filter', graph_type:'Diagrammtyp', transfer:'Transfer', gain:'Gewinn',
         ideal:'Ideal', datasets:'Datensätze',
         validate:'Validieren', comparison_table:'Vergleichstabelle',
@@ -1018,6 +1036,11 @@
         format:'Format', cancel:'Abbrechen', save:'Speichern',
         select_folder:'Ordner auswählen', browse_folder:'Ordner durchsuchen',
         folder_not_supported:'Ordnerauswahl wird von diesem Browser nicht unterstützt',
+        fs_blade_tooltip:'Dateiauswahl: Dateien hier ablegen oder laden.',
+        panel_drop:'Dateien vom Dateisystem oder der Dateiauswahl hierher ziehen',
+        click_to_sort:'Zum Sortieren klicken', click_spectral:'Klicken für Spektrum',
+        toggle_controls:'Steuerung ein-/ausblenden', remove_item:'{item} entfernen',
+        click_toggle:'Klicken zum Ein-/Ausschalten',
         export_dest_ph:'Zielordner\u2026',
         file_invalid:'Datei ist weder CSV noch CGATS/ISO28178',
         valid:'\u2713 Gültig',
@@ -1032,6 +1055,7 @@
         no_match:'Keine vergleichbaren Farbanteile in den ausgewählten Dateien.',
         match_count:'{n} übereinstimmender Datenpunkt', match_count_pl:'{n} übereinstimmende Datenpunkte',
         mean_de:'Mittel {method}', min_de:'Min {method}', max_de:'Max {method}', std_dev:'Std.-Abw.',
+        points_fitted:'Angepasste Punkte', dataset_slot:'Datensatz {slot}',
         device_colorants_hdr:'Gerätefarbmittel', difference:'Differenz',
         opacity:'Deckkraft', regen_shell:'\u21bb Hülle neu erstellen',
         mesh:'Netz', density:'Dichte', lighting:'Beleuchtung',
@@ -1051,11 +1075,11 @@
         g7_overall:'G7 Gesamt:', scale:'Skala', tolerance:'Toleranz',
         k_black:'K (Schwarz)', k_patches_n:'K-Patches ({n})', cmy_patches_n:'CMY-Patches ({n})',
         k_pct:'K\u00a0%', l_meas:'L* gemessen', l_aim:'L* Zielwert', meas_lbl:'gem.', aim_lbl:'Ziel',
-        no_spectral_ctv:'Keine Spektraldaten \u2014 auf colorimetrischen Tonwert (CTV) wechseln',
+        no_spectral_ctv:'Keine Spektraldaten \u2014 auf Farb-Tonwert (CTV) wechseln',
         no_primary_steps:'Keine Primär-Tonstufen gefunden.\nEs werden Zeilen mit einem einzigen Farbmittel benötigt.',
         tone_value_gain:'Tonwertzuwachs (%)', tone_value_pct:'Tonwert (%)', input_pct:'Eingabe (%)',
         model_fit:'Modellanpassung \u2014 Grad {deg}, {n} Punkte',
-        regen:'\u21bb Neu erstellen', colorant_input:'Farbmittel-\neingabe',
+        regen:'\u21bb Neu erstellen', colorant_input:'Eingabe\nFarbmittel',
         nearest_dataset:'Nächster\nim Datensatz', model:'Modell',
         computing_model:'Berechnung\u2026',
         model_failed:'Modellanpassung fehlgeschlagen: {msg}', retry:'Wiederholen',
@@ -1087,7 +1111,7 @@
         gamut_slice:'Sezione gamut (2D)', axis:'Asse:', val:'Valore:',
         no_file:'Nessun file caricato',
         tone_value:'Valore di tono', tone_method:'Metodo tono',
-        spectral_md:'Murray-Davies spettrale', ctv:'Valore di tono colorimetrico (CTV)',
+        spectral_md:'Murray-Davies spettrale', ctv:'Valore di tono colore (CTV)',
         filter:'Filtro', graph_type:'Tipo di grafico', transfer:'Trasferimento', gain:'Guadagno',
         ideal:'Ideale', datasets:'Set di dati',
         validate:'Valida', comparison_table:'Tabella di confronto',
@@ -1101,6 +1125,11 @@
         format:'Formato', cancel:'Annulla', save:'Salva',
         select_folder:'Seleziona cartella', browse_folder:'Sfoglia cartelle',
         folder_not_supported:'Selezione cartella non supportata da questo browser',
+        fs_blade_tooltip:'Selezione file: trascina o carica file qui.',
+        panel_drop:'Trascina file dal file system o dalla selezione file',
+        click_to_sort:'Clicca per ordinare', click_spectral:'Clicca per vedere lo spettro',
+        toggle_controls:'Mostra/nascondi controlli', remove_item:'Rimuovi {item}',
+        click_toggle:'Clicca per attivare/disattivare',
         export_dest_ph:'Cartella di destinazione\u2026',
         file_invalid:'Il file non è né CSV né CGATS/ISO28178',
         valid:'\u2713 Valido',
@@ -1115,6 +1144,7 @@
         no_match:'Nessuna inchiostrazione confrontabile nei file selezionati.',
         match_count:'{n} punto dati corrispondente', match_count_pl:'{n} punti dati corrispondenti',
         mean_de:'Media {method}', min_de:'Min {method}', max_de:'Max {method}', std_dev:'Dev. std.',
+        points_fitted:'Punti adattati', dataset_slot:'Set di dati {slot}',
         device_colorants_hdr:'Coloranti dispositivo', difference:'Differenza',
         opacity:'Opacità', regen_shell:'\u21bb Rigenera guscio',
         mesh:'Maglia', density:'Densità', lighting:'Illuminazione',
@@ -1134,11 +1164,11 @@
         g7_overall:'G7 Complessivo:', scale:'Scala', tolerance:'Tolleranza',
         k_black:'K (Nero)', k_patches_n:'Patch K ({n})', cmy_patches_n:'Patch CMY ({n})',
         k_pct:'K%', l_meas:'L* mis.', l_aim:'L* obiettivo', meas_lbl:'mis.', aim_lbl:'obiet.',
-        no_spectral_ctv:'Nessun dato spettrale \u2014 passare al valore di tono colorimetrico (CTV)',
+        no_spectral_ctv:'Nessun dato spettrale \u2014 passare al valore di tono colore (CTV)',
         no_primary_steps:'Nessuna fase di tono primario trovata.\nServono righe con un unico colorante non zero.',
         tone_value_gain:'Guadagno valore di tono (%)', tone_value_pct:'Valore di tono (%)', input_pct:'Ingresso (%)',
         model_fit:'Adattamento modello \u2014 grado {deg}, {n} punti',
-        regen:'\u21bb Rigenera', colorant_input:'Ingresso\ncolorante',
+        regen:'\u21bb Rigenera', colorant_input:'Colorante\ningresso',
         nearest_dataset:'Più vicino\nnel set', model:'Modello',
         computing_model:'Calcolo\u2026',
         model_failed:'Adattamento modello fallito: {msg}', retry:'Riprova',
@@ -1170,7 +1200,7 @@
         gamut_slice:'Sección de gama (2D)', axis:'Eje:', val:'Valor:',
         no_file:'Ningún archivo cargado',
         tone_value:'Valor de tono', tone_method:'Método de tono',
-        spectral_md:'Murray-Davies espectral', ctv:'Valor de tono colorimétrico (CTV)',
+        spectral_md:'Murray-Davies espectral', ctv:'Valor de tono de color (CTV)',
         filter:'Filtro', graph_type:'Tipo de gráfico', transfer:'Transferencia', gain:'Ganancia',
         ideal:'Ideal', datasets:'Conjuntos de datos',
         validate:'Validar', comparison_table:'Tabla de comparación',
@@ -1184,6 +1214,11 @@
         format:'Formato', cancel:'Cancelar', save:'Guardar',
         select_folder:'Seleccionar carpeta', browse_folder:'Examinar carpetas',
         folder_not_supported:'El selector de carpetas no es compatible con este navegador',
+        fs_blade_tooltip:'Selección de archivo: arrastre o cargue archivos aquí.',
+        panel_drop:'Arrastrar archivos desde el sistema de archivos o selección de archivo',
+        click_to_sort:'Clic para ordenar', click_spectral:'Clic para ver el espectro',
+        toggle_controls:'Mostrar/ocultar controles', remove_item:'Eliminar {item}',
+        click_toggle:'Clic para activar/desactivar',
         export_dest_ph:'Carpeta de destino\u2026',
         file_invalid:'El archivo no es CSV ni CGATS/ISO28178',
         valid:'\u2713 Válido',
@@ -1198,6 +1233,7 @@
         no_match:'No hay inkings comparables entre los archivos seleccionados.',
         match_count:'{n} punto de datos coincidente', match_count_pl:'{n} puntos de datos coincidentes',
         mean_de:'Media {method}', min_de:'Mín {method}', max_de:'Máx {method}', std_dev:'Desv. est.',
+        points_fitted:'Puntos ajustados', dataset_slot:'Conjunto de datos {slot}',
         device_colorants_hdr:'Colorantes dispositivo', difference:'Diferencia',
         opacity:'Opacidad', regen_shell:'\u21bb Regenerar capa',
         mesh:'Malla', density:'Densidad', lighting:'Iluminación',
@@ -1217,11 +1253,11 @@
         g7_overall:'G7 General:', scale:'Escala', tolerance:'Tolerancia',
         k_black:'K (Negro)', k_patches_n:'Patches K ({n})', cmy_patches_n:'Patches CMY ({n})',
         k_pct:'K%', l_meas:'L* med.', l_aim:'L* objetivo', meas_lbl:'med.', aim_lbl:'obj.',
-        no_spectral_ctv:'Sin datos espectrales \u2014 cambiar a valor de tono colorimétrico (CTV)',
+        no_spectral_ctv:'Sin datos espectrales \u2014 cambiar a valor de tono de color (CTV)',
         no_primary_steps:'No se encontraron pasos de tono primario.\nSe necesitan filas con un único colorante no cero.',
         tone_value_gain:'Ganancia de valor de tono (%)', tone_value_pct:'Valor de tono (%)', input_pct:'Entrada (%)',
         model_fit:'Ajuste de modelo \u2014 grado {deg}, {n} puntos',
-        regen:'\u21bb Regenerar', colorant_input:'Entrada\ncolorante',
+        regen:'\u21bb Regenerar', colorant_input:'Colorante\nentrada',
         nearest_dataset:'Más cercano\nen el conjunto', model:'Modelo',
         computing_model:'Calculando\u2026',
         model_failed:'Fallo en ajuste de modelo: {msg}', retry:'Reintentar',
@@ -1253,7 +1289,7 @@
         gamut_slice:'Corte de gama (2D)', axis:'Eixo:', val:'Valor:',
         no_file:'Nenhum ficheiro carregado',
         tone_value:'Valor de tom', tone_method:'Método de tom',
-        spectral_md:'Murray-Davies espectral', ctv:'Valor de tom colorimétrico (CTV)',
+        spectral_md:'Murray-Davies espectral', ctv:'Valor de tom de cor (CTV)',
         filter:'Filtro', graph_type:'Tipo de gráfico', transfer:'Transferência', gain:'Ganho',
         ideal:'Ideal', datasets:'Conjuntos de dados',
         validate:'Validar', comparison_table:'Tabela de comparação',
@@ -1267,6 +1303,11 @@
         format:'Formato', cancel:'Cancelar', save:'Guardar',
         select_folder:'Selecionar pasta', browse_folder:'Procurar pasta',
         folder_not_supported:'Seletor de pasta não suportado neste browser',
+        fs_blade_tooltip:'Seleção de ficheiro: arraste ou carregue ficheiros aqui.',
+        panel_drop:'Arrastar ficheiros do sistema de ficheiros ou da seleção de ficheiro',
+        click_to_sort:'Clique para ordenar', click_spectral:'Clique para ver o espetro',
+        toggle_controls:'Mostrar/ocultar controlos', remove_item:'Remover {item}',
+        click_toggle:'Clique para ativar/desativar',
         export_dest_ph:'Pasta de destino\u2026',
         file_invalid:'O ficheiro não é CSV nem CGATS/ISO28178',
         valid:'\u2713 Válido',
@@ -1281,6 +1322,7 @@
         no_match:'Sem inkings comparáveis entre os ficheiros selecionados.',
         match_count:'{n} ponto de dados correspondente', match_count_pl:'{n} pontos de dados correspondentes',
         mean_de:'Média {method}', min_de:'Mín {method}', max_de:'Máx {method}', std_dev:'Desvio padrão',
+        points_fitted:'Pontos ajustados', dataset_slot:'Conjunto de dados {slot}',
         device_colorants_hdr:'Colorantes do dispositivo', difference:'Diferença',
         opacity:'Opacidade', regen_shell:'\u21bb Regenerar invólucro',
         mesh:'Malha', density:'Densidade', lighting:'Iluminação',
@@ -1300,11 +1342,11 @@
         g7_overall:'G7 Geral:', scale:'Escala', tolerance:'Tolerância',
         k_black:'K (Preto)', k_patches_n:'Patches K ({n})', cmy_patches_n:'Patches CMY ({n})',
         k_pct:'K%', l_meas:'L* med.', l_aim:'L* objetivo', meas_lbl:'med.', aim_lbl:'obj.',
-        no_spectral_ctv:'Sem dados espectrais \u2014 mudar para valor de tom colorimétrico (CTV)',
+        no_spectral_ctv:'Sem dados espectrais \u2014 mudar para valor de tom de cor (CTV)',
         no_primary_steps:'Nenhum passo de tom primário encontrado.\nSão necessárias linhas com um único colorante não nulo.',
         tone_value_gain:'Ganho de valor de tom (%)', tone_value_pct:'Valor de tom (%)', input_pct:'Entrada (%)',
         model_fit:'Ajuste de modelo \u2014 grau {deg}, {n} pontos',
-        regen:'\u21bb Regenerar', colorant_input:'Entrada\ncolorante',
+        regen:'\u21bb Regenerar', colorant_input:'Colorante\nentrada',
         nearest_dataset:'Mais próximo\nno conjunto', model:'Modelo',
         computing_model:'A calcular\u2026',
         model_failed:'Falha no ajuste de modelo: {msg}', retry:'Tentar novamente',
@@ -1336,7 +1378,7 @@
         gamut_slice:'Corte de gamut (2D)', axis:'Eixo:', val:'Valor:',
         no_file:'Nenhum arquivo carregado',
         tone_value:'Valor de tom', tone_method:'Método de tom',
-        spectral_md:'Murray-Davies espectral', ctv:'Valor de tom colorimétrico (CTV)',
+        spectral_md:'Murray-Davies espectral', ctv:'Valor de tom de cor (CTV)',
         filter:'Filtro', graph_type:'Tipo de gráfico', transfer:'Transferência', gain:'Ganho',
         ideal:'Ideal', datasets:'Conjuntos de dados',
         validate:'Validar', comparison_table:'Tabela de comparação',
@@ -1350,6 +1392,11 @@
         format:'Formato', cancel:'Cancelar', save:'Salvar',
         select_folder:'Selecionar pasta', browse_folder:'Procurar pasta',
         folder_not_supported:'Seletor de pasta não suportado neste navegador',
+        fs_blade_tooltip:'Seleção de arquivo: arraste ou carregue arquivos aqui.',
+        panel_drop:'Arrastar arquivos do sistema de arquivos ou da seleção de arquivo',
+        click_to_sort:'Clique para ordenar', click_spectral:'Clique para ver o espectro',
+        toggle_controls:'Mostrar/ocultar controles', remove_item:'Remover {item}',
+        click_toggle:'Clique para ativar/desativar',
         export_dest_ph:'Pasta de destino\u2026',
         file_invalid:'O arquivo não é CSV nem CGATS/ISO28178',
         valid:'\u2713 Válido',
@@ -1364,6 +1411,7 @@
         no_match:'Sem inkings comparáveis entre os arquivos selecionados.',
         match_count:'{n} ponto de dados correspondente', match_count_pl:'{n} pontos de dados correspondentes',
         mean_de:'Média {method}', min_de:'Mín {method}', max_de:'Máx {method}', std_dev:'Desvio padrão',
+        points_fitted:'Pontos ajustados', dataset_slot:'Conjunto de dados {slot}',
         device_colorants_hdr:'Corantes do dispositivo', difference:'Diferença',
         opacity:'Opacidade', regen_shell:'\u21bb Regenerar casca',
         mesh:'Malha', density:'Densidade', lighting:'Iluminação',
@@ -1383,11 +1431,11 @@
         g7_overall:'G7 Geral:', scale:'Escala', tolerance:'Tolerância',
         k_black:'K (Preto)', k_patches_n:'Patches K ({n})', cmy_patches_n:'Patches CMY ({n})',
         k_pct:'K%', l_meas:'L* med.', l_aim:'L* objetivo', meas_lbl:'med.', aim_lbl:'obj.',
-        no_spectral_ctv:'Sem dados espectrais \u2014 mudar para valor de tom colorimétrico (CTV)',
+        no_spectral_ctv:'Sem dados espectrais \u2014 mudar para valor de tom de cor (CTV)',
         no_primary_steps:'Nenhum passo de tom primário encontrado.\nSão necessárias linhas com um único corante não nulo.',
         tone_value_gain:'Ganho de valor de tom (%)', tone_value_pct:'Valor de tom (%)', input_pct:'Entrada (%)',
         model_fit:'Ajuste de modelo \u2014 grau {deg}, {n} pontos',
-        regen:'\u21bb Regenerar', colorant_input:'Entrada\ncorante',
+        regen:'\u21bb Regenerar', colorant_input:'Corante\nentrada',
         nearest_dataset:'Mais próximo\nno conjunto', model:'Modelo',
         computing_model:'Calculando\u2026',
         model_failed:'Falha no ajuste de modelo: {msg}', retry:'Tentar novamente',
@@ -1418,8 +1466,8 @@
         computing:'计算中\u2026',
         gamut_slice:'色域截面 (2D)', axis:'轴:', val:'值:',
         no_file:'未加载文件',
-        tone_value:'调幅值', tone_method:'调幅方法',
-        spectral_md:'光谱 Murray-Davies', ctv:'色度调幅值 (CTV)',
+        tone_value:'阶调值', tone_method:'阶调值方法',
+        spectral_md:'光谱 Murray-Davies', ctv:'色调值',
         filter:'滤镜', graph_type:'图表类型', transfer:'传递', gain:'增益',
         ideal:'理想', datasets:'数据集',
         validate:'验证', comparison_table:'比较表',
@@ -1428,11 +1476,16 @@
         primaries:'原色', secondaries:'二次色', cmy_grays:'CMY 灰色',
         cmy_browns:'CMY 棕色', solids_only:'仅实底色',
         remove_paper_white:'移除纸白点',
-        remove_colorants_hint:'从数据中移除所选色材。',
+        remove_colorants_hint:'从数据中移除所选着色剂。',
         export_file:'导出文件', folder:'文件夹', file_name:'文件名',
         format:'格式', cancel:'取消', save:'保存',
         select_folder:'选择文件夹', browse_folder:'浏览文件夹',
         folder_not_supported:'此浏览器不支持文件夹选择',
+        fs_blade_tooltip:'文件选择：将文件拖放或加载到此处。',
+        panel_drop:'从文件系统或文件选择区拖放文件',
+        click_to_sort:'点击排序', click_spectral:'点击查看光谱',
+        toggle_controls:'显示/隐藏控制', remove_item:'移除 {item}',
+        click_toggle:'点击切换开/关',
         export_dest_ph:'导出目标文件夹\u2026',
         file_invalid:'文件不是 CSV 或 CGATS/ISO28178 格式',
         valid:'\u2713 有效',
@@ -1440,14 +1493,15 @@
         missing_cols:'缺少: {cols}',
         loaded_rows:'已加载 {n} 行。',
         loaded_rows_dedup:'已加载 {n} 行，过滤重复后减至 {m} 行（{method}）。',
-        device_colorants:'设备色材：', no_device_colorants:'设备色材：无',
+        device_colorants:'设备着色剂：', no_device_colorants:'设备着色剂：无',
         has_spectral:'文件包含光谱数据。点击数据点可显示光谱图。',
         no_spectral_file:'仅色度数据。文件中未找到光谱数据。',
         rows_after_extract:'{n} 行（提取后）。',
         no_match:'所选文件间无可比较的油墨数据。',
         match_count:'{n} 个匹配数据点', match_count_pl:'{n} 个匹配数据点',
         mean_de:'平均 {method}', min_de:'最小 {method}', max_de:'最大 {method}', std_dev:'标准差',
-        device_colorants_hdr:'设备色材', difference:'差异',
+        points_fitted:'拟合点数', dataset_slot:'数据集 {slot}',
+        device_colorants_hdr:'设备着色剂', difference:'差异',
         opacity:'不透明度', regen_shell:'\u21bb 重新生成外壳',
         mesh:'网格', density:'密度', lighting:'照明',
         ambient:'环境光', diffuse:'漫射', specular:'镜面', roughness:'粗糙度',
@@ -1466,19 +1520,19 @@
         g7_overall:'G7 整体：', scale:'比例', tolerance:'容差',
         k_black:'K（黑）', k_patches_n:'K 色块（{n}）', cmy_patches_n:'CMY 色块（{n}）',
         k_pct:'K%', l_meas:'L* 测量值', l_aim:'L* 目标值', meas_lbl:'测量', aim_lbl:'目标',
-        no_spectral_ctv:'无光谱数据 \u2014 请切换至色度调幅值 (CTV)',
+        no_spectral_ctv:'无光谱数据 \u2014 请切换至色调值',
         no_primary_steps:'未找到原色调幅步骤。\n需要仅含单一非零色材的行。',
-        tone_value_gain:'调幅增益 (%)', tone_value_pct:'调幅值 (%)', input_pct:'输入 (%)',
+        tone_value_gain:'色调值增大 (%)', tone_value_pct:'色调值 (%)', input_pct:'输入 (%)',
         model_fit:'模型拟合 \u2014 次数 {deg}，{n} 个点',
-        regen:'\u21bb 重新生成', colorant_input:'色材\n输入',
+        regen:'\u21bb 重新生成', colorant_input:'输入\n着色剂',
         nearest_dataset:'数据集中\n最近邻', model:'模型',
         computing_model:'计算中\u2026',
         model_failed:'模型拟合失败：{msg}', retry:'重试',
         spectral_click_hint:'点击 L*a*b* 颜色可显示光谱图。',
         scroll_top:'回到顶部', help:'帮助',
-        about:'关于 CharData', kofi_support:'在 Ko-fi 上支持',
+        about:'关于 CharData', kofi_support:'对Ko-fi的支持',
         reflectance:'反射率',
-        kofi_msg:'CharData 对色彩社区免费开放。如果对您有帮助，Ko-fi 上的小额捐赠有助于维持运营。',
+        kofi_msg:'CharData 免费向色彩行业社群开放使用。若本工具对你有所帮助，欢迎小额赞助支持我们持续运营。',
       },
       'zh-TW': {
         settings:'設定', de_method:'ΔE 方法', filter_dups:'過濾重複項',
@@ -1488,7 +1542,7 @@
         weighted:'加權', on:'開', off:'關',
         yes:'是', no:'否', median:'中位數', mean:'平均值',
         system:'系統', light:'淺色', dark:'深色',
-        file_select:'檔案選擇', choose_file:'選擇色彩資料檔案',
+        file_select:'檔案選擇', choose_file:'選擇色彩數據檔案',
         drop_line1:'在此拖放檔案', drop_line2:'或使用上方按鈕',
         sort_alpha:'按字母排序',
         explore:'探索', compare:'比較',
@@ -1501,21 +1555,26 @@
         computing:'計算中\u2026',
         gamut_slice:'色域截面 (2D)', axis:'軸:', val:'值:',
         no_file:'未載入檔案',
-        tone_value:'調幅值', tone_method:'調幅方法',
-        spectral_md:'光譜 Murray-Davies', ctv:'色度調幅值 (CTV)',
+        tone_value:'階調值', tone_method:'階調方法',
+        spectral_md:'光譜 Murray-Davies', ctv:'色調值',
         filter:'篩選器', graph_type:'圖表類型', transfer:'傳遞', gain:'增益',
-        ideal:'理想', datasets:'資料集',
+        ideal:'理想', datasets:'數據庫',
         validate:'驗證', comparison_table:'比較表',
         extract:'提取', restore:'還原', export_btn:'匯出',
-        data_table:'資料表', estimate:'估算',
+        data_table:'數據表', estimate:'估算',
         primaries:'原色', secondaries:'二次色', cmy_grays:'CMY 灰色',
         cmy_browns:'CMY 棕色', solids_only:'僅實底色',
         remove_paper_white:'移除紙白點',
-        remove_colorants_hint:'從資料中移除所選色材。',
+        remove_colorants_hint:'從數據中移除所選著色劑。',
         export_file:'匯出檔案', folder:'資料夾', file_name:'檔案名稱',
         format:'格式', cancel:'取消', save:'儲存',
         select_folder:'選擇資料夾', browse_folder:'瀏覽資料夾',
         folder_not_supported:'此瀏覽器不支援資料夾選擇',
+        fs_blade_tooltip:'檔案選擇：將檔案拖放或載入此處。',
+        panel_drop:'從檔案系統或檔案選擇區拖放檔案',
+        click_to_sort:'點擊排序', click_spectral:'點擊查看光譜',
+        toggle_controls:'顯示/隱藏控制', remove_item:'移除 {item}',
+        click_toggle:'點擊切換開/關',
         export_dest_ph:'匯出目標資料夾\u2026',
         file_invalid:'檔案不是 CSV 或 CGATS/ISO28178 格式',
         valid:'\u2713 有效',
@@ -1523,45 +1582,46 @@
         missing_cols:'缺少: {cols}',
         loaded_rows:'已載入 {n} 行。',
         loaded_rows_dedup:'已載入 {n} 行，過濾重複後減至 {m} 行（{method}）。',
-        device_colorants:'設備色材：', no_device_colorants:'設備色材：無',
+        device_colorants:'設備著色劑：', no_device_colorants:'設備著色劑：無',
         has_spectral:'檔案包含光譜資料。點擊資料點可顯示光譜圖。',
         no_spectral_file:'僅色度資料。檔案中未找到光譜資料。',
         rows_after_extract:'{n} 行（提取後）。',
         no_match:'所選檔案間無可比較的油墨資料。',
-        match_count:'{n} 個匹配資料點', match_count_pl:'{n} 個匹配資料點',
+        match_count:'{n} 個匹配數據點', match_count_pl:'{n} 個匹配數據點',
         mean_de:'平均 {method}', min_de:'最小 {method}', max_de:'最大 {method}', std_dev:'標準差',
-        device_colorants_hdr:'設備色材', difference:'差異',
+        points_fitted:'擬合點數', dataset_slot:'數據集 {slot}',
+        device_colorants_hdr:'設備著色劑', difference:'差異',
         opacity:'不透明度', regen_shell:'\u21bb 重新生成外殼',
         mesh:'網格', density:'密度', lighting:'照明',
         ambient:'環境光', diffuse:'漫射', specular:'鏡面', roughness:'粗糙度',
-        dataset_settings:'資料集設定',
+        dataset_settings:'數據庫設定',
         select_toggle:'點擊切換可見性：', toggle_label:'切換：',
         show_label:'顯示：', original:'原始', modified:'已修改', close:'\u2715 關閉',
         selected_not_loaded:'所選檔案未載入。',
         both_needed:'兩個檔案都必須載入。',
         no_k_patches:'未找到僅 K 色塊。',
         no_cmy_patches:'未找到 CMY 色塊。',
-        missing_cmyk:'資料集 A{name} 中缺少 CMYK 設備色材。',
-        missing_lab_data:'資料集 A{name} 中缺少 L*a*b* 資料。',
-        paper_white_missing:'資料集 A 中未找到紙白色塊 (0,0,0,0)。',
-        k_solid_missing:'資料集 A 中未找到 100K 實底色塊。',
-        cmy_solid_missing:'資料集 A 中未找到 100CMY 實底色塊。',
+        missing_cmyk:'數據庫 A{name} 中缺少 CMYK 設備色材。',
+        missing_lab_data:'數據庫 A{name} 中缺少 L*a*b* 資料。',
+        paper_white_missing:'數據庫 A 中未找到紙白色塊 (0,0,0,0)。',
+        k_solid_missing:'數據庫 A 中未找到 100K 實底色塊。',
+        cmy_solid_missing:'數據庫 A 中未找到 100CMY 實底色塊。',
         g7_overall:'G7 整體：', scale:'比例', tolerance:'容差',
         k_black:'K（黑）', k_patches_n:'K 色塊（{n}）', cmy_patches_n:'CMY 色塊（{n}）',
         k_pct:'K%', l_meas:'L* 測量值', l_aim:'L* 目標值', meas_lbl:'測量', aim_lbl:'目標',
-        no_spectral_ctv:'無光譜資料 \u2014 請切換至色度調幅值 (CTV)',
+        no_spectral_ctv:'無光譜資料 \u2014 請切換至色調值',
         no_primary_steps:'未找到原色調幅步驟。\n需要僅含單一非零色材的行。',
-        tone_value_gain:'調幅增益 (%)', tone_value_pct:'調幅值 (%)', input_pct:'輸入 (%)',
+        tone_value_gain:'色調值增大 (%)', tone_value_pct:'色調值 (%)', input_pct:'輸入 (%)',
         model_fit:'模型擬合 \u2014 次數 {deg}，{n} 個點',
-        regen:'\u21bb 重新生成', colorant_input:'色材\n輸入',
+        regen:'\u21bb 重新生成', colorant_input:'輸入\n著色劑',
         nearest_dataset:'資料集中\n最近鄰', model:'模型',
         computing_model:'計算中\u2026',
         model_failed:'模型擬合失敗：{msg}', retry:'重試',
         spectral_click_hint:'點擊 L*a*b* 顏色可顯示光譜圖。',
         scroll_top:'回到頂部', help:'說明',
-        about:'關於 CharData', kofi_support:'在 Ko-fi 上支持',
+        about:'關於 CharData', kofi_support:'對Ko-fi的支持',
         reflectance:'反射率',
-        kofi_msg:'CharData 對色彩社群免費開放。如果對您有幫助，Ko-fi 上的小額捐款有助於維持運營。',
+        kofi_msg:'CharData 免費向色彩行業社群開放使用。若本工具對你有所幫助，歡迎小額贊助支持我們持續運營。',
       },
       ja: {
         settings:'設定', de_method:'ΔE 方法', filter_dups:'重複フィルター',
@@ -1585,7 +1645,7 @@
         gamut_slice:'ガマットスライス (2D)', axis:'軸:', val:'値:',
         no_file:'ファイル未読み込み',
         tone_value:'トーンバリュー', tone_method:'トーン方法',
-        spectral_md:'分光 Murray-Davies', ctv:'比色トーンバリュー (CTV)',
+        spectral_md:'分光 Murray-Davies', ctv:'カラートーンバリュー (CTV)',
         filter:'フィルター', graph_type:'グラフタイプ', transfer:'トランスファー', gain:'ゲイン',
         ideal:'理想', datasets:'データセット',
         validate:'検証', comparison_table:'比較表',
@@ -1599,6 +1659,11 @@
         format:'形式', cancel:'キャンセル', save:'保存',
         select_folder:'フォルダーを選択', browse_folder:'フォルダーを参照',
         folder_not_supported:'このブラウザーはフォルダー選択に対応していません',
+        fs_blade_tooltip:'ファイル選択：ここにファイルをドロップまたは読み込み。',
+        panel_drop:'ファイルシステムまたはファイル選択からドラッグ＆ドロップ',
+        click_to_sort:'クリックして並び替え', click_spectral:'クリックしてスペクトル表示',
+        toggle_controls:'コントロールの表示切替', remove_item:'{item} を削除',
+        click_toggle:'クリックして切替',
         export_dest_ph:'エクスポート先フォルダー\u2026',
         file_invalid:'ファイルは CSV でも CGATS/ISO28178 でもありません',
         valid:'\u2713 有効',
@@ -1613,6 +1678,7 @@
         no_match:'選択したファイル間に比較可能な色材データがありません。',
         match_count:'{n} 件の一致データポイント', match_count_pl:'{n} 件の一致データポイント',
         mean_de:'平均 {method}', min_de:'最小 {method}', max_de:'最大 {method}', std_dev:'標準偏差',
+        points_fitted:'適合点数', dataset_slot:'データセット {slot}',
         device_colorants_hdr:'デバイス色材', difference:'差分',
         opacity:'不透明度', regen_shell:'\u21bb シェルを再生成',
         mesh:'メッシュ', density:'密度', lighting:'照明',
@@ -1632,11 +1698,11 @@
         g7_overall:'G7 総合：', scale:'スケール', tolerance:'許容差',
         k_black:'K（ブラック）', k_patches_n:'K パッチ ({n})', cmy_patches_n:'CMY パッチ ({n})',
         k_pct:'K%', l_meas:'L* 測定値', l_aim:'L* 目標値', meas_lbl:'測定', aim_lbl:'目標',
-        no_spectral_ctv:'分光データなし — 比色トーンバリュー (CTV) に切替',
+        no_spectral_ctv:'分光データなし — カラートーンバリュー (CTV) に切替',
         no_primary_steps:'原色トーンステップが見つかりません。\n単一の非ゼロ色材の行が必要です。',
         tone_value_gain:'トーンバリューゲイン (%)', tone_value_pct:'トーンバリュー (%)', input_pct:'入力 (%)',
         model_fit:'モデル適合 \u2014 次数 {deg}、{n} 点',
-        regen:'\u21bb 再生成', colorant_input:'色材\n入力',
+        regen:'\u21bb 再生成', colorant_input:'入力\n色材',
         nearest_dataset:'データセット内\n最近傍', model:'モデル',
         computing_model:'計算中\u2026',
         model_failed:'モデル適合失敗：{msg}', retry:'再試行',
@@ -1668,7 +1734,7 @@
         gamut_slice:'색역 슬라이스 (2D)', axis:'축:', val:'값:',
         no_file:'파일 없음',
         tone_value:'톤 밸류', tone_method:'톤 방법',
-        spectral_md:'분광 Murray-Davies', ctv:'색도 톤 밸류 (CTV)',
+        spectral_md:'분광 Murray-Davies', ctv:'컬러 톤 밸류 (CTV)',
         filter:'필터', graph_type:'그래프 유형', transfer:'전달', gain:'게인',
         ideal:'이상', datasets:'데이터셋',
         validate:'검증', comparison_table:'비교 표',
@@ -1682,6 +1748,11 @@
         format:'형식', cancel:'취소', save:'저장',
         select_folder:'폴더 선택', browse_folder:'폴더 찾아보기',
         folder_not_supported:'이 브라우저에서 폴더 선택을 지원하지 않습니다',
+        fs_blade_tooltip:'파일 선택: 파일을 여기에 끌어다 놓거나 불러오세요.',
+        panel_drop:'파일 시스템 또는 파일 선택에서 파일을 드래그 앤 드롭',
+        click_to_sort:'클릭하여 정렬', click_spectral:'클릭하여 스펙트럼 보기',
+        toggle_controls:'컨트롤 표시/숨기기', remove_item:'{item} 제거',
+        click_toggle:'클릭하여 전환',
         export_dest_ph:'내보내기 대상 폴더\u2026',
         file_invalid:'파일이 CSV 또는 CGATS/ISO28178 형식이 아닙니다',
         valid:'\u2713 유효',
@@ -1696,6 +1767,7 @@
         no_match:'선택한 파일 간에 비교 가능한 잉킹이 없습니다。',
         match_count:'{n}개 일치 데이터 포인트', match_count_pl:'{n}개 일치 데이터 포인트',
         mean_de:'평균 {method}', min_de:'최소 {method}', max_de:'최대 {method}', std_dev:'표준편차',
+        points_fitted:'적합 포인트', dataset_slot:'데이터셋 {slot}',
         device_colorants_hdr:'디바이스 색재', difference:'차이',
         opacity:'불투명도', regen_shell:'\u21bb 셸 재생성',
         mesh:'메시', density:'밀도', lighting:'조명',
@@ -1715,11 +1787,11 @@
         g7_overall:'G7 전체：', scale:'스케일', tolerance:'허용차',
         k_black:'K (블랙)', k_patches_n:'K 패치 ({n})', cmy_patches_n:'CMY 패치 ({n})',
         k_pct:'K%', l_meas:'L* 측정값', l_aim:'L* 목표값', meas_lbl:'측정', aim_lbl:'목표',
-        no_spectral_ctv:'분광 데이터 없음 \u2014 색도 톤 밸류 (CTV)로 전환하세요',
+        no_spectral_ctv:'분광 데이터 없음 \u2014 컬러 톤 밸류 (CTV)로 전환하세요',
         no_primary_steps:'원색 톤 단계를 찾을 수 없습니다.\n단일 비제로 색재가 있는 행이 필요합니다.',
         tone_value_gain:'톤 밸류 게인 (%)', tone_value_pct:'톤 밸류 (%)', input_pct:'입력 (%)',
         model_fit:'모델 적합 \u2014 차수 {deg}, {n}개 포인트',
-        regen:'\u21bb 재생성', colorant_input:'색재\n입력',
+        regen:'\u21bb 재생성', colorant_input:'입력\n색재',
         nearest_dataset:'데이터셋\n최근접', model:'모델',
         computing_model:'계산 중\u2026',
         model_failed:'모델 적합 실패: {msg}', retry:'다시 시도',
@@ -1776,6 +1848,40 @@
       if (el) el.textContent = msg;
     }
 
+    function refreshPanelUI(slot) {
+      const s = state[slot];
+      if (!s) return;
+      // Row count
+      const rowsEl = document.getElementById('rows-' + slot);
+      if (rowsEl) rowsEl.textContent = (s.filterType != null && s.rowsBefore !== s.rowsAfter)
+        ? t('loaded_rows_dedup', {n: s.rowsBefore, m: s.rowsAfter, method: s.filterType})
+        : t('loaded_rows', {n: s.rowsBefore});
+      // Valid checkmark
+      const validEl = document.getElementById('valid-' + slot);
+      if (validEl) {
+        const vDiv = validEl.querySelector('.i18n-valid');
+        if (vDiv) vDiv.textContent = t('valid');
+        const lsDiv = validEl.querySelector('.i18n-lab-spectral');
+        if (lsDiv && s.usedSpectralLab) {
+          const ill = document.getElementById('illuminant').value;
+          const obs = document.getElementById('observer').value;
+          const mc  = document.getElementById('m-cond').value;
+          lsDiv.textContent = t('lab_from_spectral', {ill, obs, mc});
+        }
+      }
+      // Colorants + spectral status
+      const colorantsEl = document.getElementById('colorants-' + slot);
+      if (colorantsEl) {
+        let html = s.colorants.length
+          ? t('device_colorants') + ' ' + s.colorants.join(', ')
+          : t('no_device_colorants');
+        html += s.hasSpectral
+          ? `<br><span style="color:#4a90e2;">${t('has_spectral')}</span>`
+          : `<br><span style="color:#888;">${t('no_spectral_file')}</span>`;
+        colorantsEl.innerHTML = html;
+      }
+    }
+
     function applyTranslations() {
       document.documentElement.lang = resolveLang();
       document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -1787,12 +1893,18 @@
       document.querySelectorAll('[data-i18n-ph]').forEach(el => {
         el.placeholder = t(el.dataset.i18nPh);
       });
+      document.querySelectorAll('[data-i18n-slot]').forEach(el => {
+        el.textContent = t('dataset_slot', {slot: el.dataset.i18nSlot});
+      });
     }
 
     function onLangChange(lang) {
       _lang = lang;
       localStorage.setItem('lang', lang);
       applyTranslations();
+      refreshPanelUI('a');
+      refreshPanelUI('b');
+      updateValidateFileLabel();
       if (_mode === 'explore' && state.a) renderExplore();
       else if (_mode === 'compare' && state.a && state.b && _cmpData) runCompare();
     }
@@ -1971,7 +2083,7 @@
       document.getElementById('seg-explore').className = 'seg-btn ' + (isExplore ? 'seg-btn-active' : 'seg-btn-inactive');
       document.getElementById('seg-compare').className = 'seg-btn ' + (isExplore ? 'seg-btn-inactive' : 'seg-btn-active');
       document.getElementById('panel-b').style.display = isExplore ? 'none' : '';
-      document.querySelector('#panel-a h2').textContent = 'Dataset A';
+      document.querySelector('#panel-a h2').textContent = t('dataset_slot', {slot:'A'});
       document.getElementById('result').innerHTML = '';
       document.getElementById('plot-section').style.display = 'none';
 
@@ -2004,12 +2116,23 @@
       const kofiMsg = document.getElementById('kofi-msg');
       if (kofiMsg) kofiMsg.style.right = (bladeW + 60) + 'px';
     }
+    // Resize Plotly plots after layout shifts (blade toggle, fs-blade toggle, window resize)
+    const BLADE_TRANSITION_MS = 220;
+    function resizePlots() {
+      const plotEl = document.getElementById('plot');
+      const sliceEl = document.getElementById('slice-plot');
+      if (plotEl && plotEl.offsetParent !== null && plotEl._fullLayout) Plotly.Plots.resize(plotEl);
+      if (sliceEl && sliceEl.offsetParent !== null && sliceEl._fullLayout) Plotly.Plots.resize(sliceEl);
+    }
+    window.addEventListener('resize', resizePlots);
+
     bladeToggle.addEventListener('click', () => {
       blade.classList.toggle('collapsed');
       const collapsed = blade.classList.contains('collapsed');
       bladeArrow.textContent = collapsed ? '\u2039' : '\u203a';
       localStorage.setItem('bladeCollapsed', collapsed ? '1' : '0');
       syncScrollBtnRight();
+      setTimeout(resizePlots, BLADE_TRANSITION_MS);
     });
     document.addEventListener('DOMContentLoaded', syncScrollBtnRight);
     fetch('/version.txt').then(r => r.ok ? r.text() : '').then(v => {
@@ -2430,15 +2553,16 @@
       const rowsAfter    = dedupedRows.length;
 
       if (ok) {
-        validEl.innerHTML += `<div class="valid">${t('valid')}</div>`;
+        validEl.innerHTML += `<div class="valid i18n-valid">${t('valid')}</div>`;
         if (usedSpectralLab) {
           const ill = document.getElementById('illuminant').value;
           const obs = document.getElementById('observer').value;
           const mc  = document.getElementById('m-cond').value;
-          validEl.innerHTML += `<div class="cgats-warn">${t('lab_from_spectral', {ill, obs, mc})}</div>`;
+          validEl.innerHTML += `<div class="cgats-warn i18n-lab-spectral">${t('lab_from_spectral', {ill, obs, mc})}</div>`;
         }
         validEl.className = 'validation';
-        state[slot] = { headers, rows: dedupedRows, colorants, name: fileName, usedSpectralLab, hasSpectral };
+        state[slot] = { headers, rows: dedupedRows, colorants, name: fileName, usedSpectralLab, hasSpectral,
+                        rowsBefore, rowsAfter, filterType: dedupEnabled ? filterType : null };
         _gamutState[slot].shellOn = false;
         _gamutState[slot].pointsOn = true;
         _gamutState[slot].hueOn = false;
@@ -2550,8 +2674,8 @@
       if (!sel) return;
       const prev = sel.value;
       sel.innerHTML = '';
-      if (state.a) { const o = document.createElement('option'); o.value = 'a'; o.textContent = 'Dataset A: ' + state.a.name; sel.appendChild(o); } // "Dataset A/B" are proper names, kept as-is
-      if (state.b) { const o = document.createElement('option'); o.value = 'b'; o.textContent = 'Dataset B: ' + state.b.name; sel.appendChild(o); }
+      if (state.a) { const o = document.createElement('option'); o.value = 'a'; o.textContent = t('dataset_slot',{slot:'A'}) + ': ' + state.a.name; sel.appendChild(o); }
+      if (state.b) { const o = document.createElement('option'); o.value = 'b'; o.textContent = t('dataset_slot',{slot:'B'}) + ': ' + state.b.name; sel.appendChild(o); }
       if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
     }
 
@@ -2728,6 +2852,7 @@
       const collapsed = fsBlade.classList.contains('collapsed');
       fsArrow.textContent = collapsed ? '\u203a' : '\u2039';
       localStorage.setItem('fsBladeCollapsed', collapsed ? '1' : '0');
+      setTimeout(resizePlots, BLADE_TRANSITION_MS);
     });
 
     // Mobile sheets + hamburger
@@ -2953,9 +3078,9 @@
 
       const arrow = i => `<span style="display:inline-block;width:1em;text-align:right;opacity:0.6;">${_expSortCol === i ? (_expSortDir === 'asc' ? '↑' : '↓') : ''}</span>`;
       const colHeaderCells = [
-        ...a.colorants.map((c, i) => `<th title="Click to sort" onclick="sortExpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
-        ...LAB_LABELS.map((l, i) => `<th title="Click to sort" onclick="sortExpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
-        ...CH_LABELS.map((l, i) => `<th title="Click to sort" onclick="sortExpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`)
+        ...a.colorants.map((c, i) => `<th title="${t('click_to_sort')}" onclick="sortExpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
+        ...LAB_LABELS.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortExpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
+        ...CH_LABELS.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortExpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`)
       ].join('');
       document.getElementById('exp-col-headers').innerHTML = colHeaderCells;
 
@@ -2976,7 +3101,7 @@
       document.getElementById('exp-table-body').innerHTML = _expSortedIdx.map((_, ri) => {
         const colorantCells = colorantCols.map(col => `<td style="${PR}">${col[ri]}</td>`).join('');
         const labCells = labCols.map((col, i) =>
-          `<td onclick="showSpectral(event,${ri})" style="${PR}${i === 0 ? VL : ''}cursor:pointer;" title="Click to view spectral">${col[ri]}</td>`
+          `<td onclick="showSpectral(event,${ri})" style="${PR}${i === 0 ? VL : ''}cursor:pointer;" title="${t('click_spectral')}">${col[ri]}</td>`
         ).join('');
         const chCells = `<td style="${PR}">${chCols[ri].c}</td><td style="${PR}">${chCols[ri].h}</td>`;
         return `<tr>${colorantCells}${labCells}${chCells}</tr>`;
@@ -3559,13 +3684,13 @@
             <div id="tv-ctrl-col" style="width:${ctrlVisible?'190px':'28px'};min-width:${ctrlVisible?'190px':'28px'};border-right:1px solid #ddd;flex-shrink:0;" data-collapsed="${_tvCtrlCollapsed}">
               <div style="padding:5px 4px 5px 10px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;background:#fafafa;">
                 <span id="tv-ctrl-header-text" style="font-size:12px;font-weight:bold;color:#666;${ctrlVisible?'':'display:none;'}" data-i18n="controls">Controls</span>
-                <button onclick="toggleTvControls()" id="tv-ctrl-toggle-arrow" title="Toggle controls" style="background:none;border:none;cursor:pointer;color:#888;padding:2px 4px;font-size:14px;line-height:1;flex-shrink:0;">${ctrlVisible ? '&#9664;' : '&#9654;'}</button>
+                <button onclick="toggleTvControls()" id="tv-ctrl-toggle-arrow" title="${t('toggle_controls')}" style="background:none;border:none;cursor:pointer;color:#888;padding:2px 4px;font-size:14px;line-height:1;flex-shrink:0;">${ctrlVisible ? '&#9664;' : '&#9654;'}</button>
               </div>
               <div id="tv-ctrl-body" style="${ctrlVisible?'':'display:none;'}padding:8px 10px;display:flex;flex-direction:column;gap:8px;font-size:12px;color:#444;">
                 ${both ? `<div id="tv-dataset-vis">
                   <div style="${LH}" data-i18n="datasets">Datasets</div>
-                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;"><input type="checkbox" id="tv-show-a" ${showA?'checked':''} onchange="renderTvChart()"> Dataset A</label>
-                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;margin-top:2px;"><input type="checkbox" id="tv-show-b" ${showB?'checked':''} onchange="renderTvChart()"> Dataset B</label>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;"><input type="checkbox" id="tv-show-a" ${showA?'checked':''} onchange="renderTvChart()"> ${t('dataset_slot',{slot:'A'})}</label>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;margin-top:2px;"><input type="checkbox" id="tv-show-b" ${showB?'checked':''} onchange="renderTvChart()"> ${t('dataset_slot',{slot:'B'})}</label>
                   <div style="border-top:1px solid #eee;margin:5px 0;"></div>
                 </div>` : ''}
                 <div>
@@ -3682,7 +3807,7 @@
     }
 
     function tvCTV(primaryRows) {
-      // Colorimetric Tone Value per ISO 20654: (L*_paper − L*_tint) / (L*_paper − L*_solid) × 100
+      // Colour Tone Value per ISO 20654: (L*_paper − L*_tint) / (L*_paper − L*_solid) × 100
       if (primaryRows.length < 2) return [];
       const paperRow = primaryRows[0];
       const solidRow = primaryRows[primaryRows.length - 1];
@@ -4003,7 +4128,7 @@
               ${a.colorants.map(c =>
                 '<div id="colorant-chip-' + c + '" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:12px;background:' + (_pendingColorantDeletes.has(c) ? '#fde8e8' : '#f0f0f0') + ';border:1px solid ' + (_pendingColorantDeletes.has(c) ? '#e74c3c' : '#ccc') + ';transition:background 0.1s,border-color 0.1s;">'
                 + '<span>' + c + '</span>'
-                + '<button onclick="toggleColorantDelete(\'' + c + '\')" title="Remove ' + c + '" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:none;border:none;padding:0;cursor:pointer;color:#999;margin-left:2px;border-radius:2px;" onmouseover="this.style.color=\'#e74c3c\'" onmouseout="this.style.color=\'#999\'">'
+                + '<button onclick="toggleColorantDelete(\'' + c + '\')" title="' + t('remove_item',{item:c}) + '" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:none;border:none;padding:0;cursor:pointer;color:#999;margin-left:2px;border-radius:2px;" onmouseover="this.style.color=\'#e74c3c\'" onmouseout="this.style.color=\'#999\'">'
                 + '<svg width="9" height="11" viewBox="0 0 11 13" fill="currentColor"><rect x="1" y="2.5" width="9" height="1.2" rx="0.5"/><rect x="3.5" y="0.5" width="4" height="2" rx="0.5"/><path d="M2 4.2l.55 7.3h5.9l.55-7.3z"/></svg>'
                 + '</button></div>'
               ).join('')}
@@ -4016,7 +4141,7 @@
           </div>
           <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;">
             <input type="text" id="export-dest" data-i18n-ph="export_dest_ph" placeholder="Export destination folder..." style="flex:1;padding:5px 8px;border:1px solid #bbb;border-bottom:2px solid #999;border-radius:5px;font-size:12px;color:#333;background:#fff;outline:none;" value="${_exportDirHandle ? _exportDirHandle.name : ''}">
-            <button onclick="selectExportFolder()" title="${window.showDirectoryPicker ? 'Select folder' : 'Folder picker not supported in this browser'}" ${window.showDirectoryPicker ? '' : 'disabled'} style="display:inline-flex;align-items:center;justify-content:center;padding:5px 8px;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;color:#555;box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);transition:all 0.08s ease;flex-shrink:0;${window.showDirectoryPicker ? 'cursor:pointer;' : 'cursor:not-allowed;opacity:0.45;'}"><svg width="16" height="13" viewBox="0 0 16 13" fill="currentColor"><path d="M0 2.5C0 1.67.67 1 1.5 1H5.5l1.5 1.5H14.5C15.33 2.5 16 3.17 16 4v7.5c0 .83-.67 1.5-1.5 1.5h-13C.67 13 0 12.33 0 11.5z"/></svg></button>
+            <button onclick="selectExportFolder()" title="${window.showDirectoryPicker ? t('select_folder') : t('folder_not_supported')}" ${window.showDirectoryPicker ? '' : 'disabled'} style="display:inline-flex;align-items:center;justify-content:center;padding:5px 8px;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;color:#555;box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);transition:all 0.08s ease;flex-shrink:0;${window.showDirectoryPicker ? 'cursor:pointer;' : 'cursor:not-allowed;opacity:0.45;'}"><svg width="16" height="13" viewBox="0 0 16 13" fill="currentColor"><path d="M0 2.5C0 1.67.67 1 1.5 1H5.5l1.5 1.5H14.5C15.33 2.5 16 3.17 16 4v7.5c0 .83-.67 1.5-1.5 1.5h-13C.67 13 0 12.33 0 11.5z"/></svg></button>
           </div>
           <div>
             <button class="validate-btn" onclick="exportData()" data-i18n="export_btn">Export</button>
@@ -4433,13 +4558,13 @@
       // Column headers with sort indicators
       const arrow = i => `<span style="display:inline-block;width:1em;text-align:right;opacity:0.6;">${_cmpSortCol === i ? (_cmpSortDir === 'asc' ? '↑' : '↓') : ''}</span>`;
       const colHeaderCells = [
-        ...displayColorants.map((c, i) => `<th title="Click to sort" onclick="sortCmpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
-        ...LAB_LABELS.map((l, i) => `<th title="Click to sort" onclick="sortCmpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
-        ...CH_LABELS.map((l, i) => `<th title="Click to sort" onclick="sortCmpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`),
-        ...LAB_LABELS.map((l, i) => `<th title="Click to sort" onclick="sortCmpTable(${colorantCount + 5 + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + 5 + i)}</th>`),
-        ...CH_LABELS.map((l, i) => `<th title="Click to sort" onclick="sortCmpTable(${colorantCount + 8 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 8 + i)}</th>`),
-        `<th title="Click to sort" onclick="sortCmpTable(${colorantCount + 10})" style="${PR}${TH}${VL}cursor:pointer;">${fmtMethod(method)}${arrow(colorantCount + 10)}</th>`,
-        `<th title="Click to sort" onclick="sortCmpTable(${colorantCount + 11})" style="${PR}${TH}cursor:pointer;">ΔH*${arrow(colorantCount + 11)}</th>`
+        ...displayColorants.map((c, i) => `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
+        ...LAB_LABELS.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
+        ...CH_LABELS.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`),
+        ...LAB_LABELS.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + 5 + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + 5 + i)}</th>`),
+        ...CH_LABELS.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + 8 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 8 + i)}</th>`),
+        `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + 10})" style="${PR}${TH}${VL}cursor:pointer;">${fmtMethod(method)}${arrow(colorantCount + 10)}</th>`,
+        `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + 11})" style="${PR}${TH}cursor:pointer;">ΔH*${arrow(colorantCount + 11)}</th>`
       ].join('');
       document.getElementById('cmp-col-headers').innerHTML = colHeaderCells;
 
@@ -4473,12 +4598,12 @@
       document.getElementById('cmp-table-body').innerHTML = sortedIdx.map((origIdx, ri) => {
         const colorantCells = colorantCols.map(col => `<td style="${PR}">${col[ri]}</td>`).join('');
         const aLabCells = aLabCols.map((col, i) =>
-          `<td onclick="showSpectral(event,${ri*2})" style="${PR}${i===0?VL:''}cursor:pointer;" title="Click to view spectral">${col[ri]}</td>`
+          `<td onclick="showSpectral(event,${ri*2})" style="${PR}${i===0?VL:''}cursor:pointer;" title="${t('click_spectral')}">${col[ri]}</td>`
         ).join('');
         const aCH = calcCH(matches[origIdx].rowA, aLabIdx);
         const aCHCells = `<td style="${PR}">${aCH.c}</td><td style="${PR}">${aCH.h}</td>`;
         const bLabCells = bLabCols.map((col, i) =>
-          `<td onclick="showSpectral(event,${ri*2+1})" style="${PR}${i===0?VL:''}cursor:pointer;" title="Click to view spectral">${col[ri]}</td>`
+          `<td onclick="showSpectral(event,${ri*2+1})" style="${PR}${i===0?VL:''}cursor:pointer;" title="${t('click_spectral')}">${col[ri]}</td>`
         ).join('');
         const bCH = calcCH(matches[origIdx].rowB, bLabIdx);
         const bCHCells = `<td style="${PR}">${bCH.c}</td><td style="${PR}">${bCH.h}</td>`;
@@ -4907,7 +5032,7 @@
         return `<div style="display:flex;flex-direction:column;gap:3px;">
           <div class="legend-item legend-item-row" style="${on ? '' : 'opacity:0.45;'}">
             <button class="legend-gear-btn" data-i18n-title="dataset_settings" title="Dataset Settings" onclick="event.stopPropagation();toggleGamutPanel('${spec.slot}')">&#9881;&#xFE0E;</button>
-            <div class="legend-item-left" ${toggleable ? `onclick="togglePlotTrace(${i})" title="Click to toggle on/off"` : ''}>
+            <div class="legend-item-left" ${toggleable ? `onclick="togglePlotTrace(${i})" title="${t('click_toggle')}"` : ''}>
               <span class="legend-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
               <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
             </div>
@@ -5579,11 +5704,11 @@
       const deLabel = fmtMethod(_estimateModel.method);
       const statsHTML = `
         <div style="display:inline-flex;gap:32px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px 24px;font-size:13px;flex-wrap:wrap;">
-          <div><div style="color:#888;margin-bottom:2px;">Mean ${deLabel}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMean.toFixed(2)}</div></div>
-          <div><div style="color:#888;margin-bottom:2px;">Min ${deLabel}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMin.toFixed(2)}</div></div>
-          <div><div style="color:#888;margin-bottom:2px;">Max ${deLabel}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMax.toFixed(2)}</div></div>
-          <div><div style="color:#888;margin-bottom:2px;">Std Dev</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deStd.toFixed(2)}</div></div>
-          <div><div style="color:#888;margin-bottom:2px;">Points fitted</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${_estimateModel.nPts}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">${t('mean_de',{method:deLabel})}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMean.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">${t('min_de',{method:deLabel})}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMin.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">${t('max_de',{method:deLabel})}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMax.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">${t('std_dev')}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deStd.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">${t('points_fitted')}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${_estimateModel.nPts}</div></div>
         </div>`;
 
       // ── Area 2: table with aligned columns ──
@@ -5960,7 +6085,7 @@
       if (legendEl) {
         const legendItemHTML = spec => {
           const on = _sliceVisible[spec.slot];
-          return `<div class="legend-item legend-item-row" style="${on ? '' : 'opacity:0.45;'}" title="Click to toggle on/off" onclick="toggleSliceTrace('${spec.slot}')">
+          return `<div class="legend-item legend-item-row" style="${on ? '' : 'opacity:0.45;'}" title="${t('click_toggle')}" onclick="toggleSliceTrace('${spec.slot}')">
             <div class="legend-item-left">
               <span class="legend-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
               <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
@@ -6040,7 +6165,7 @@
   </script>
   <div id="kofi-group">
     <button id="kofi-info-btn" onclick="toggleKofiMsg()" data-i18n-title="about" title="About CharData">ℹ</button>
-    <a id="kofi-btn" href="https://ko-fi.com/williamli54527" target="_blank" rel="noopener" data-i18n-title="kofi_support" title="Support on Ko-fi"><img src="https://storage.ko-fi.com/cdn/kofi1.png?v=3" alt="Support on Ko-fi"></a>
+    <a id="kofi-btn" href="https://ko-fi.com/williamli54527" target="_blank" rel="noopener" data-i18n-title="kofi_support" title="Support on Ko-fi"><span class="kofi-icon">&#9749;</span><span class="kofi-label" data-i18n="kofi_support">Support on Ko-fi</span></a>
   </div>
   <div id="kofi-msg" style="display:none;" data-i18n="kofi_msg">CharData is free for the color community. If it helps you, a small Ko-fi donation helps keep it running.</div>
   <button id="scroll-top-btn" data-i18n-title="scroll_top" title="Scroll to top"
