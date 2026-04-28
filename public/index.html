@@ -292,6 +292,13 @@
       color: #888;
       min-height: 16px;
     }
+    .dataset-status {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #888;
+      font-style: italic;
+      min-height: 14px;
+    }
 
 
     .validate-btn {
@@ -605,6 +612,7 @@
       </div>
       <div class="validation" id="valid-a"></div>
       <div class="colorants" id="colorants-a"></div>
+      <div id="status-a" class="dataset-status"></div>
     </div>
 
     <div class="panel" id="panel-b" title="Drag-and-drop files from file system or File Select here">
@@ -620,6 +628,7 @@
       </div>
       <div class="validation" id="valid-b"></div>
       <div class="colorants" id="colorants-b"></div>
+      <div id="status-b" class="dataset-status"></div>
     </div>
   </div>
 
@@ -760,6 +769,8 @@
       <div class="blade-section">
         <div class="blade-label" data-i18n="language">Language</div>
         <select id="lang-select" class="blade-select" onchange="onLangChange(this.value)">
+          <option value="system" id="lang-opt-system">System default</option>
+          <option disabled>──────────────</option>
           <option value="en">English</option>
           <option value="fr">Français</option>
           <option value="de">Deutsch</option>
@@ -866,6 +877,10 @@
         regen:'\u21bb Regenerate', colorant_input:'Colorant\ninput',
         nearest_dataset:'Nearest\nin dataset', model:'Model',
         computing_model:'Computing\u2026',
+        status_calc_tv:'Calculating tone values\u2026',
+        status_estimating:'Estimating model\u2026',
+        status_building_gamut:'Building 3D gamut\u2026',
+        status_rendering:'Rendering\u2026',
         model_failed:'Model fit failed: {msg}', retry:'Retry',
         spectral_click_hint:'Click on L*a*b* color to display spectral graph.',
         scroll_top:'Scroll to top', help:'Help',
@@ -1684,17 +1699,53 @@
       },
     };
 
-    let _lang = localStorage.getItem('lang') || 'en';
+    let _lang = localStorage.getItem('lang') || 'system';
+
+    // Native display name for each locale code (used in the "System default (…)" label)
+    const _LANG_NATIVE = {
+      en: 'English', fr: 'Français', de: 'Deutsch', it: 'Italiano',
+      es: 'Español', 'pt-PT': 'Português', 'pt-BR': 'Português',
+      'zh-CN': '中文（简体）', 'zh-TW': '中文（繁體）',
+      ja: '日本語', ko: '한국어',
+    };
+
+    // Walk navigator.languages and return the first locale the app supports.
+    function detectLang() {
+      const supported = Object.keys(I18N);
+      for (const pref of (navigator.languages || [navigator.language])) {
+        if (supported.includes(pref)) return pref;
+        const base = pref.split('-')[0];
+        const match = supported.find(s => s.startsWith(base + '-') || s === base);
+        if (match) return match;
+      }
+      return 'en';
+    }
+
+    // Return the locale code to actually use for translations.
+    function resolveLang() {
+      return _lang === 'system' ? detectLang() : _lang;
+    }
+
+    // Update the "System default (…)" option text to reflect the current OS locale.
+    function updateSysDefaultLabel() {
+      const opt = document.getElementById('lang-opt-system');
+      if (opt) opt.textContent = 'System default (' + (_LANG_NATIVE[detectLang()] || 'English') + ')';
+    }
 
     function t(key, vars = {}) {
-      const dict = I18N[_lang] || I18N.en;
+      const dict = I18N[resolveLang()] || I18N.en;
       let s = dict[key] ?? I18N.en[key] ?? key;
       for (const [k, v] of Object.entries(vars)) s = s.replaceAll('{' + k + '}', v);
       return s;
     }
 
+    function setDatasetStatus(slot, msg) {
+      const el = document.getElementById('status-' + slot);
+      if (el) el.textContent = msg;
+    }
+
     function applyTranslations() {
-      document.documentElement.lang = _lang;
+      document.documentElement.lang = resolveLang();
       document.querySelectorAll('[data-i18n]').forEach(el => {
         el.textContent = t(el.dataset.i18n);
       });
@@ -1896,8 +1947,10 @@
       ['a', 'b'].forEach(slot => {
         document.getElementById('show-file-' + slot).disabled = !_rawFileData[slot];
       });
-      if (isExplore && state.a) renderExplore();
-      else if (!(!isExplore && state.a && state.b)) renderSlicePlot();
+      if (isExplore && state.a) {
+        renderExplore();
+        if (!_estimateModel) generateEstimateModel();
+      } else if (!(!isExplore && state.a && state.b)) renderSlicePlot();
     }
 
     // Blade toggle
@@ -2371,9 +2424,18 @@
         document.getElementById('plot-section').style.display = 'none';
         renderSlicePlot();
       } else if (_mode === 'explore' && slot === 'a') {
-        renderExplore();
+        setDatasetStatus('a', t('status_rendering'));
+        setTimeout(() => {
+          renderExplore();
+          setDatasetStatus('a', '');
+          generateEstimateModel();
+        }, 0);
       } else {
-        renderSlicePlot();
+        setDatasetStatus(slot, t('status_rendering'));
+        setTimeout(() => {
+          renderSlicePlot();
+          setDatasetStatus(slot, '');
+        }, 0);
       }
     }
 
@@ -5196,9 +5258,7 @@
 
     // Build the HTML content for the Estimate section (called inside renderExplore).
     function buildEstimateHTML() {
-      if (!_estimateModel) return `<div style="padding:12px 16px;">
-        <button class="validate-btn" onclick="generateEstimateModel()">Generate model</button>
-      </div>`;
+      if (!_estimateModel) return `<div style="padding:12px 16px;color:#888;font-size:12px;">${t('computing_model')}</div>`;
       const { a } = state;
       if (!a) return '';
 
@@ -5299,17 +5359,20 @@
       if (!state.a) return;
       const wrap = document.getElementById('est-wrap');
       if (wrap) wrap.innerHTML = `<div style="padding:12px 16px;color:#888;font-size:12px;">${t('computing_model')}</div>`;
+      setDatasetStatus('a', t('status_estimating'));
       setTimeout(() => {
         try {
           _estimateModel = fitPolynomialModel(state.a.headers, state.a.rows, state.a.colorants);
           if (_estimateModel) _estimateModel.colorants.forEach(c => { if (!(_estimateInputs[c] >= 0)) _estimateInputs[c] = 50; });
           if (wrap) wrap.innerHTML = buildEstimateHTML();
           updateEstimate();
+          setDatasetStatus('a', '');
         } catch (e) {
           if (wrap) wrap.innerHTML = `<div style="padding:12px 16px;">
             <span style="color:#c04040;font-size:12px;">${t('model_failed',{msg:e.message||e})}</span>
             <button class="validate-btn" style="font-size:11px;padding:2px 8px;margin-left:10px;" onclick="generateEstimateModel()" data-i18n="retry">Retry</button>
           </div>`;
+          setDatasetStatus('a', '');
         }
       }, 0);
     }
@@ -5404,8 +5467,12 @@
     }
 
     function regenerateGamutShell(slot) {
-      buildGamutCache(slot);
-      applyGamutUpdate(slot);
+      setDatasetStatus(slot, t('status_building_gamut'));
+      setTimeout(() => {
+        buildGamutCache(slot);
+        applyGamutUpdate(slot);
+        setDatasetStatus(slot, '');
+      }, 0);
     }
 
     function setLighting(slot, prop, val) {
@@ -5641,10 +5708,20 @@
 
     // ── Initialise language ──────────────────────────────────────────────────
     (function initLang() {
+      updateSysDefaultLabel();
       const sel = document.getElementById('lang-select');
       if (sel) sel.value = _lang;
       applyTranslations();
     })();
+
+    // Re-resolve when the OS locale changes while the page is open.
+    window.addEventListener('languagechange', () => {
+      updateSysDefaultLabel();
+      if (_lang === 'system') {
+        applyTranslations();
+        if (_mode === 'explore' && state.a) renderExplore();
+      }
+    });
   </script>
   <div id="kofi-group">
     <button id="kofi-info-btn" onclick="toggleKofiMsg()" data-i18n-title="about" title="About CharData">ℹ</button>
