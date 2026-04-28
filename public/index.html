@@ -896,6 +896,7 @@
         spectral_click_hint:'Click on L*a*b* color to display spectral graph.',
         scroll_top:'Scroll to top', help:'Help',
         about:'About CharData', kofi_support:'Support on Ko-fi',
+        reflectance:'Reflectance',
         kofi_msg:'CharData is free for the color community. If it helps you, a small Ko-fi donation helps keep it running.',
       },
       fr: {
@@ -978,6 +979,7 @@
         spectral_click_hint:'Cliquez sur une couleur L*a*b* pour afficher le graphique spectral.',
         scroll_top:'Haut de page', help:'Aide',
         about:'À propos de CharData', kofi_support:'Soutenir sur Ko-fi',
+        reflectance:'Réflectance',
         kofi_msg:'CharData est gratuit pour la communauté couleur. Si cela vous aide, un don Ko-fi aide à maintenir le service.',
       },
       de: {
@@ -1060,6 +1062,7 @@
         spectral_click_hint:'Auf L*a*b*-Farbe klicken für Spektraldiagramm.',
         scroll_top:'Nach oben', help:'Hilfe',
         about:'Über CharData', kofi_support:'Ko-fi unterstützen',
+        reflectance:'Reflexionsgrad',
         kofi_msg:'CharData ist für die Farbgemeinschaft kostenlos. Eine kleine Ko-fi-Spende hilft, den Dienst am Laufen zu halten.',
       },
       it: {
@@ -1142,6 +1145,7 @@
         spectral_click_hint:'Clicca su un colore L*a*b* per visualizzare il grafico spettrale.',
         scroll_top:'Torna su', help:'Guida',
         about:'Informazioni su CharData', kofi_support:'Sostieni su Ko-fi',
+        reflectance:'Riflettanza',
         kofi_msg:'CharData è gratuito per la comunità del colore. Un piccolo contributo Ko-fi aiuta a mantenerlo attivo.',
       },
       es: {
@@ -1224,6 +1228,7 @@
         spectral_click_hint:'Haga clic en un color L*a*b* para ver el gráfico espectral.',
         scroll_top:'Ir arriba', help:'Ayuda',
         about:'Acerca de CharData', kofi_support:'Apoyar en Ko-fi',
+        reflectance:'Reflectancia',
         kofi_msg:'CharData es gratuito para la comunidad del color. Una pequeña donación en Ko-fi ayuda a mantenerlo.',
       },
       'pt-PT': {
@@ -1306,6 +1311,7 @@
         spectral_click_hint:'Clique numa cor L*a*b* para ver o gráfico espectral.',
         scroll_top:'Subir', help:'Ajuda',
         about:'Sobre CharData', kofi_support:'Apoiar no Ko-fi',
+        reflectance:'Reflectância',
         kofi_msg:'CharData é gratuito para a comunidade de cor. Uma pequena doação no Ko-fi ajuda a manter o serviço.',
       },
       'pt-BR': {
@@ -1388,6 +1394,7 @@
         spectral_click_hint:'Clique em uma cor L*a*b* para ver o gráfico espectral.',
         scroll_top:'Voltar ao topo', help:'Ajuda',
         about:'Sobre o CharData', kofi_support:'Apoiar no Ko-fi',
+        reflectance:'Reflectância',
         kofi_msg:'CharData é gratuito para a comunidade de cor. Uma pequena doação no Ko-fi ajuda a mantê-lo no ar.',
       },
       'zh-CN': {
@@ -1470,6 +1477,7 @@
         spectral_click_hint:'点击 L*a*b* 颜色可显示光谱图。',
         scroll_top:'回到顶部', help:'帮助',
         about:'关于 CharData', kofi_support:'在 Ko-fi 上支持',
+        reflectance:'反射率',
         kofi_msg:'CharData 对色彩社区免费开放。如果对您有帮助，Ko-fi 上的小额捐赠有助于维持运营。',
       },
       'zh-TW': {
@@ -1552,6 +1560,7 @@
         spectral_click_hint:'點擊 L*a*b* 顏色可顯示光譜圖。',
         scroll_top:'回到頂部', help:'說明',
         about:'關於 CharData', kofi_support:'在 Ko-fi 上支持',
+        reflectance:'反射率',
         kofi_msg:'CharData 對色彩社群免費開放。如果對您有幫助，Ko-fi 上的小額捐款有助於維持運營。',
       },
       ja: {
@@ -1634,6 +1643,7 @@
         spectral_click_hint:'L*a*b* カラーをクリックすると分光グラフが表示されます。',
         scroll_top:'トップへ', help:'ヘルプ',
         about:'CharData について', kofi_support:'Ko-fi でサポート',
+        reflectance:'反射率',
         kofi_msg:'CharData はカラーコミュニティのために無料で提供されています。役立つ場合、Ko-fi での少額の寄付が継続に役立ちます。',
       },
       ko: {
@@ -1716,6 +1726,7 @@
         spectral_click_hint:'L*a*b* 색상을 클릭하면 분광 그래프가 표시됩니다.',
         scroll_top:'맨 위로', help:'도움말',
         about:'CharData 정보', kofi_support:'Ko-fi에서 지원',
+        reflectance:'반사율',
         kofi_msg:'CharData는 색채 커뮤니티를 위해 무료로 제공됩니다. 도움이 되셨다면 Ko-fi 소액 후원이 운영에 도움이 됩니다.',
       },
     };
@@ -3023,7 +3034,7 @@
         margin: { t: 65, r: 10, b: 45, l: 55 },
         title:  { text: d.label, font: { size: 11 } },
         xaxis:  { title: { text: '\u03bb (nm)', font: { size: 12 } } },
-        yaxis:  { title: 'Reflectance', rangemode: 'tozero' },
+        yaxis:  { title: t('reflectance'), rangemode: 'tozero' },
         paper_bgcolor: '#fff', plot_bgcolor: '#f8f9fa'
       }, { responsive: false });
     }
