@@ -2003,7 +2003,7 @@
     document.addEventListener('DOMContentLoaded', syncScrollBtnRight);
     fetch('/version.txt').then(r => r.ok ? r.text() : '').then(v => {
       const el = document.getElementById('app-version');
-      if (el && v.trim()) el.textContent = 'v' + v.trim();
+      if (el && v.trim()) el.textContent = 'v' + v.trim().replace(/^v/i, '');
     }).catch(() => {});
 
     // Dismiss spectral popup on outside click
