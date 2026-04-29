@@ -799,7 +799,7 @@
         <div class="blade-label" data-i18n="weighted">Weighted</div>
         <select id="model-weighted" class="blade-select" onchange="onModelWeightedChange(this.value)">
           <option value="no" data-i18n="off">Off</option>
-          <option value="yes" data-i18n="on">On</option>
+          <option value="yes" data-i18n="on" selected>On</option>
         </select>
       </div>
 
@@ -2269,7 +2269,7 @@
     (function() {
       const sel = document.getElementById('model-weighted');
       const savedW = localStorage.getItem('modelWeighted');
-      if (savedW) sel.value = savedW;
+      sel.value = savedW ?? 'yes';
     })();
 
     // Cache: keyed by data.rows reference + colorants + method + weighted setting.
