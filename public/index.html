@@ -1891,10 +1891,14 @@
       if (opt) opt.textContent = 'System default (' + (_LANG_NATIVE[detectLang()] || 'English') + ')';
     }
 
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
     function t(key, vars = {}) {
       const dict = I18N[resolveLang()] || I18N.en;
       let s = dict[key] ?? I18N.en[key] ?? key;
-      for (const [k, v] of Object.entries(vars)) s = s.replaceAll('{' + k + '}', v);
+      for (const [k, v] of Object.entries(vars)) s = s.replaceAll('{' + k + '}', escapeHtml(v));
       return s;
     }
 
@@ -2677,7 +2681,7 @@
 
       const colorantsEl = document.getElementById('colorants-' + slot);
       let colorantsHtml = colorants.length
-        ? t('device_colorants') + ' ' + colorants.join(', ')
+        ? t('device_colorants') + ' ' + colorants.map(escapeHtml).join(', ')
         : t('no_device_colorants');
       if (hasSpectral) {
         colorantsHtml += `<br><span style="color:#4a90e2;">${t('has_spectral')}</span>`;
