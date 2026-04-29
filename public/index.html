@@ -299,6 +299,10 @@
       0%   { background-position: -200% center; }
       100% { background-position:  200% center; }
     }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1;   transform: scale(1);   }
+      50%       { opacity: 0.3; transform: scale(0.65); }
+    }
     #computing-badge {
       position: fixed; top: 0; left: 0;
       z-index: 9999;
@@ -311,6 +315,17 @@
       border-radius: 0 0 8px 0;
       pointer-events: none;
       user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    #computing-badge::before {
+      content: '';
+      width: 9px; height: 9px;
+      background: #fff;
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse-dot 1.2s ease-in-out infinite;
     }
     #computing-badge span {
       background: linear-gradient(90deg, rgba(255,255,255,0.45) 0%, #fff 40%, rgba(255,255,255,0.45) 60%);
