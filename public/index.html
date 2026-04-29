@@ -2711,6 +2711,7 @@
           setDatasetStatus(slot, t('status_building_gamut'));
           setTimeout(() => {
             buildGamutCache(slot);
+            if (state.a && state.b) renderPlot(true);
             setDatasetStatus(slot, t('status_computing_slice'));
             setTimeout(() => {
               renderSlicePlot();
