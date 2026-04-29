@@ -2059,8 +2059,10 @@
 
     function _applyDark(dark) {
       document.body.classList.toggle('dark', dark);
-      renderPlot(true);
-      renderSlicePlot();
+      if (state.a || state.b) {
+        renderPlot(true);
+        renderSlicePlot();
+      }
     }
 
     function _attachSystemListener() {
