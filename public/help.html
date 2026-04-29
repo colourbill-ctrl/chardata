@@ -56,7 +56,18 @@
   <h1>CharData Help</h1>
   <p class="subtitle">Browser-based colour characterisation data explorer and comparator</p>
 
-  <p>Suggested workflow is to first use the File Select panel to load up an entire directory's worth of characterisation data files, then select individual characterisation data files to explore or compare.</p>
+  <p><strong>CharData</strong> is a browser-based tool for exploring and comparing colour characterisation datasets — the collections of device colorant and L*a*b* measurement data generated when profiling printing systems. It runs entirely in your browser with no installation required, and works on both desktop and mobile.</p>
+
+  <p>A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L*a*b* colorimetry and, optionally, spectral reflectance. CharData accepts these files in <strong>CGATS/IT8</strong> and <strong>CSV</strong> formats.</p>
+
+  <p><strong>What you can do with CharData:</strong></p>
+  <ul>
+    <li><strong>Explore a single dataset</strong> — browse the data table, visualise the colour gamut in 3D L*a*b* space, examine a 2D slice at any L*, a*, or b* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L*a*b* for any device colorant combination.</li>
+    <li><strong>Compare two datasets</strong> — see a row-by-row ΔE table for matched patches, with summary statistics (mean, min, max, std dev), and view both gamuts and tone value curves overlaid on the same charts.</li>
+    <li><strong>Work with spectral data</strong> — if spectral reflectance columns are present, CharData computes L*a*b* from them using a selectable illuminant (D50/D65), observer (2°/10°), and M-condition (M0/M1/M2), and can display the spectral curve for any clicked data point.</li>
+  </ul>
+
+  <p>The suggested workflow is to load an entire directory of characterisation files via the File Select panel, then pick individual files to explore or compare.</p>
 
   <nav>
     <strong>Contents</strong>
