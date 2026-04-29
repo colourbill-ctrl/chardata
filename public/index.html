@@ -267,7 +267,7 @@
     }
     .file-label:hover { background: linear-gradient(to bottom, #7ab5f5, #4a8fe5); }
     .file-label:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); transform: translateY(1px); }
-    #file-select-input { position: fixed; top: -999px; left: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+    #file-select-input { position: fixed; top: -100%; left: 0; }
 
     .file-info {
       margin-top: 12px;
@@ -617,10 +617,10 @@
     <div id="file-select-blade-content">
       <div id="file-select-blade-header" data-i18n="file_select">File Select</div>
       <div id="file-select-add-btn-wrap" style="display:flex;align-items:flex-start;gap:6px;">
-        <button type="button" class="file-label" onclick="document.getElementById('file-select-input').click()"
-               style="display:block;text-align:center;font-size:12px;padding:6px 10px;flex:1;width:100%;border:none;">
+        <label class="file-label" for="file-select-input"
+               style="display:block;text-align:center;font-size:12px;padding:6px 10px;flex:1;">
           <span style="white-space:nowrap" data-i18n="choose_file">Choose char data file</span><br><span style="white-space:nowrap">(CGATS, CSV)</span>
-        </button>
+        </label>
         <button id="file-sort-btn" onclick="toggleFileSort()" data-i18n-title="sort_alpha" title="Sort files alphabetically"
                 style="padding:5px 7px;font-size:13px;line-height:1;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;cursor:pointer;color:#555;box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);transition:all 0.08s ease;flex-shrink:0;">&#8597;</button>
       </div>
