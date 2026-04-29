@@ -16,19 +16,19 @@
     body { font-family: Arial, 'Noto Sans SC', 'Hiragino Sans', 'Microsoft YaHei', 'Apple SD Gothic Neo', sans-serif; background: #f0f2f5; }
     h1 { color: #333; margin-bottom: 24px; }
 
-    #app-layout { display: flex; align-items: flex-start; height: 100vh; overflow: hidden; }
+    #app-layout { height: 100vh; overflow: hidden; }
 
     /* ── Right settings blade ── */
     #blade {
-      position: sticky; top: 0;
+      position: fixed; top: 0; right: 0;
       width: 220px; min-width: 220px;
       height: 100vh;
       background: #fff;
       box-shadow: -3px 0 8px rgba(0,0,0,0.18), -1px 0 3px rgba(0,0,0,0.12);
       transition: width 0.2s, min-width 0.2s;
       overflow: hidden;
-      flex-shrink: 0;
       display: flex;
+      z-index: 200;
     }
     #blade.collapsed { width: 38px; min-width: 38px; }
     #blade-content {
@@ -143,7 +143,7 @@
     .blade-radio label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
 
     /* ── Main content ── */
-    #main-content { flex: 1; min-width: 0; padding: 32px 16px; height: 100vh; overflow-y: auto; }
+    #main-content { margin-left: 38px; margin-right: 38px; padding: 32px 16px; height: 100vh; overflow-y: auto; }
 
     .panels {
       display: flex;
@@ -349,16 +349,16 @@
 
     /* ── Left file-select blade ── */
     #file-select-blade {
-      position: sticky; top: 0;
+      position: fixed; top: 0; left: 0;
       width: 220px; min-width: 220px;
       height: 100vh;
       background: #fff;
       box-shadow: 3px 0 8px rgba(0,0,0,0.18), 1px 0 3px rgba(0,0,0,0.12);
-      flex-shrink: 0;
       display: flex;
       flex-direction: row;
       overflow: hidden;
       transition: width 0.2s, min-width 0.2s;
+      z-index: 200;
     }
     #file-select-blade.collapsed { width: 38px; min-width: 38px; }
     #file-select-blade-content {
@@ -487,7 +487,7 @@
     .slice-controls input[type=number] { width:46px; padding:1px 3px; font-size:11px; border:1px solid #ccc; border-radius:3px; }
 
     /* ── Tone Value section ── */
-    #tv-ctrl-col { transition: width 0.18s, min-width 0.18s; overflow: hidden; }
+    #tv-ctrl-col { overflow: hidden; }
     #tv-ctrl-sel { width:100%; padding:4px 6px; border:1px solid #bbb; border-bottom:2px solid #999; border-radius:4px; font-size:11px; background:#fff; color:#333; cursor:pointer; }
     body.dark #tv-ctrl-sel { background:#2a2b2e; color:#ccc; border-color:#555; border-bottom-color:#444; }
     body.dark #tv-ctrl-col { border-color:#38393e !important; }
@@ -2140,7 +2140,6 @@
       bladeArrow.textContent = collapsed ? '\u2039' : '\u203a';
       localStorage.setItem('bladeCollapsed', collapsed ? '1' : '0');
       syncScrollBtnRight();
-      setTimeout(resizePlots, BLADE_TRANSITION_MS);
     });
     document.addEventListener('DOMContentLoaded', syncScrollBtnRight);
     fetch('/version.txt').then(r => r.ok ? r.text() : '').then(v => {
@@ -2873,7 +2872,6 @@
       const collapsed = fsBlade.classList.contains('collapsed');
       fsArrow.textContent = collapsed ? '\u203a' : '\u2039';
       localStorage.setItem('fsBladeCollapsed', collapsed ? '1' : '0');
-      setTimeout(resizePlots, BLADE_TRANSITION_MS);
     });
 
     // Mobile sheets + hamburger
@@ -3701,18 +3699,19 @@
           <div onclick="toggleTv()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;display:flex;justify-content:space-between;align-items:center;user-select:none;">
             <span data-i18n="tone_value">Tone Value</span><span id="tv-arrow">${_tvSectionOpen ? '&#9660;' : '&#9658;'}</span>
           </div>
-          <div id="tv-wrap" style="display:${_tvSectionOpen ? 'flex' : 'none'};border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;min-height:380px;">
-            <div id="tv-ctrl-col" style="width:${ctrlVisible?'190px':'28px'};min-width:${ctrlVisible?'190px':'28px'};border-right:1px solid #ddd;flex-shrink:0;" data-collapsed="${_tvCtrlCollapsed}">
-              <div style="padding:5px 4px 5px 10px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;background:#fafafa;">
-                <span id="tv-ctrl-header-text" style="font-size:12px;font-weight:bold;color:#666;${ctrlVisible?'':'display:none;'}" data-i18n="controls">Controls</span>
-                <button onclick="toggleTvControls()" id="tv-ctrl-toggle-arrow" title="${t('toggle_controls')}" style="background:none;border:none;cursor:pointer;color:#888;padding:2px 4px;font-size:14px;line-height:1;flex-shrink:0;">${ctrlVisible ? '&#9664;' : '&#9654;'}</button>
+          <div id="tv-wrap" style="display:${_tvSectionOpen ? 'flex' : 'none'};flex-direction:column;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;">
+            <div id="tv-plot" style="width:100%;height:360px;"></div>
+            <div id="tv-legend" style="padding:4px 10px 6px;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11px;color:#555;border-top:1px solid #eee;min-height:22px;"></div>
+            <div id="tv-ctrl-col" style="border-top:1px solid #ddd;" data-collapsed="${_tvCtrlCollapsed}">
+              <div style="padding:5px 10px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;background:#fafafa;cursor:pointer;" onclick="toggleTvControls()">
+                <span id="tv-ctrl-header-text" style="font-size:12px;font-weight:bold;color:#666;" data-i18n="controls">Controls</span>
+                <button id="tv-ctrl-toggle-arrow" title="${t('toggle_controls')}" style="background:none;border:none;cursor:pointer;color:#888;padding:2px 4px;font-size:14px;line-height:1;flex-shrink:0;">${ctrlVisible ? '&#9650;' : '&#9660;'}</button>
               </div>
-              <div id="tv-ctrl-body" style="${ctrlVisible?'':'display:none;'}padding:8px 10px;display:flex;flex-direction:column;gap:8px;font-size:12px;color:#444;">
+              <div id="tv-ctrl-body" style="${ctrlVisible?'':'display:none;'}padding:8px 12px;display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:8px 20px;font-size:12px;color:#444;">
                 ${both ? `<div id="tv-dataset-vis">
                   <div style="${LH}" data-i18n="datasets">Datasets</div>
                   <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;"><input type="checkbox" id="tv-show-a" ${showA?'checked':''} onchange="renderTvChart()"> ${t('dataset_slot',{slot:'A'})}</label>
                   <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;margin-top:2px;"><input type="checkbox" id="tv-show-b" ${showB?'checked':''} onchange="renderTvChart()"> ${t('dataset_slot',{slot:'B'})}</label>
-                  <div style="border-top:1px solid #eee;margin:5px 0;"></div>
                 </div>` : ''}
                 <div>
                   <div style="${LH}" data-i18n="tone_method">Tone Method</div>
@@ -3733,13 +3732,9 @@
                     ${opt('transfer',t('transfer'),graphType)}${opt('gain',t('gain'),graphType)}
                   </select>
                 </div>
-                <div style="border-top:1px solid #ddd;margin:0;"></div>
-                <div id="tv-colorant-checks" style="display:flex;flex-direction:column;gap:3px;"></div>
+                <div style="border-left:1px solid #ddd;align-self:stretch;margin:0 4px;"></div>
+                <div id="tv-colorant-checks" style="display:flex;flex-direction:row;flex-wrap:wrap;gap:3px 12px;align-items:center;"></div>
               </div>
-            </div>
-            <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
-              <div id="tv-plot" style="width:100%;height:360px;"></div>
-              <div id="tv-legend" style="padding:4px 10px 6px;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11px;color:#555;border-top:1px solid #eee;min-height:22px;"></div>
             </div>
           </div>
         </div>`;
@@ -3901,22 +3896,17 @@
     function toggleTvControls() {
       const col = document.getElementById('tv-ctrl-col');
       const body = document.getElementById('tv-ctrl-body');
-      const headerText = document.getElementById('tv-ctrl-header-text');
       const arrow = document.getElementById('tv-ctrl-toggle-arrow');
       if (!col) return;
       const collapsed = col.dataset.collapsed === 'true';
       if (collapsed) {
-        col.style.width = '190px'; col.style.minWidth = '190px';
         if (body) body.style.display = '';
-        if (headerText) headerText.style.display = '';
-        if (arrow) arrow.innerHTML = '&#9664;';
+        if (arrow) arrow.innerHTML = '&#9650;';
         col.dataset.collapsed = 'false';
         _tvCtrlCollapsed = false;
       } else {
-        col.style.width = '28px'; col.style.minWidth = '28px';
         if (body) body.style.display = 'none';
-        if (headerText) headerText.style.display = 'none';
-        if (arrow) arrow.innerHTML = '&#9654;';
+        if (arrow) arrow.innerHTML = '&#9660;';
         col.dataset.collapsed = 'true';
         _tvCtrlCollapsed = true;
       }
