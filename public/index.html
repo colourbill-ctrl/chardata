@@ -652,7 +652,6 @@
       <span id="plot-tab-label" data-i18n="plot_3d">3D Plot</span><span id="plot-arrow">▼</span>
     </div>
     <div id="plot-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;position:relative;overflow:hidden;">
-      <div id="plot-busy" style="display:none;position:absolute;top:10px;right:10px;white-space:nowrap;background:rgba(0,0,0,0.55);color:#fff;padding:4px 12px;border-radius:12px;font-size:12px;letter-spacing:0.02em;pointer-events:none;z-index:30;" data-i18n="computing">Computing&#8230;</div>
       <div style="position:relative;">
         <div id="plot" style="width:100%;height:600px;"></div>
       </div>
@@ -1861,11 +1860,14 @@
       return s;
     }
 
-    const _statusActive = { a: false, b: false };
+    const _statusActive = { a: false, b: false, plot: false };
+    function _updateComputingBadge() {
+      const badge = document.getElementById('computing-badge');
+      if (badge) badge.style.display = Object.values(_statusActive).some(Boolean) ? 'block' : 'none';
+    }
     function setDatasetStatus(slot, msg) {
       _statusActive[slot] = !!msg;
-      const badge = document.getElementById('computing-badge');
-      if (badge) badge.style.display = (_statusActive.a || _statusActive.b) ? 'block' : 'none';
+      _updateComputingBadge();
     }
 
     function refreshPanelUI(slot) {
@@ -2139,10 +2141,14 @@
     // Resize Plotly plots after layout shifts (blade toggle, fs-blade toggle, window resize)
     const BLADE_TRANSITION_MS = 220;
     function resizePlots() {
-      const plotEl = document.getElementById('plot');
-      const sliceEl = document.getElementById('slice-plot');
-      if (plotEl && plotEl.offsetParent !== null && plotEl._fullLayout) Plotly.Plots.resize(plotEl);
-      if (sliceEl && sliceEl.offsetParent !== null && sliceEl._fullLayout) Plotly.Plots.resize(sliceEl);
+      showPlotBusy();
+      setTimeout(() => {
+        const plotEl = document.getElementById('plot');
+        const sliceEl = document.getElementById('slice-plot');
+        if (plotEl && plotEl.offsetParent !== null && plotEl._fullLayout) Plotly.Plots.resize(plotEl);
+        if (sliceEl && sliceEl.offsetParent !== null && sliceEl._fullLayout) Plotly.Plots.resize(sliceEl);
+        hidePlotBusy();
+      }, 0);
     }
     window.addEventListener('resize', resizePlots);
 
@@ -4807,8 +4813,8 @@
       return `hsl(${h.toFixed(1)},90%,45%)`;
     }
 
-    function showPlotBusy() { const el = document.getElementById('plot-busy'); if (el) el.style.display = 'block'; }
-    function hidePlotBusy() { const el = document.getElementById('plot-busy'); if (el) el.style.display = 'none'; }
+    function showPlotBusy() { _statusActive.plot = true;  _updateComputingBadge(); }
+    function hidePlotBusy() { _statusActive.plot = false; _updateComputingBadge(); }
 
     function recolorPlot() {
       const plotEl = document.getElementById('plot');
