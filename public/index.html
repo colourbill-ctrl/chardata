@@ -294,12 +294,20 @@
       color: #888;
       min-height: 16px;
     }
-    .dataset-status {
-      margin-top: 6px;
-      font-size: 11px;
-      color: #888;
-      font-style: italic;
-      min-height: 14px;
+    .dataset-status { display: none; }
+    #computing-badge {
+      position: fixed; top: 0; left: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,0.78);
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      font-family: sans-serif;
+      letter-spacing: 0.04em;
+      padding: 5px 14px 5px 10px;
+      border-radius: 0 0 6px 0;
+      pointer-events: none;
+      user-select: none;
     }
 
 
@@ -810,6 +818,8 @@
 </button>
 <button id="mobile-hamburger" data-i18n-title="settings" title="Settings">&#9881;&#xFE0E;</button>
 <button id="mobile-help-btn" data-i18n-title="help" title="Help" onclick="window.open('help.html','_blank')">?</button>
+
+  <div id="computing-badge" style="display:none;" data-i18n="computing_model">Computing…</div>
 
   <div id="kofi-group">
     <button id="kofi-info-btn" onclick="toggleKofiMsg()" data-i18n-title="about" title="About CharData">ℹ</button>
@@ -1851,9 +1861,11 @@
       return s;
     }
 
+    const _statusActive = { a: false, b: false };
     function setDatasetStatus(slot, msg) {
-      const el = document.getElementById('status-' + slot);
-      if (el) el.textContent = msg;
+      _statusActive[slot] = !!msg;
+      const badge = document.getElementById('computing-badge');
+      if (badge) badge.style.display = (_statusActive.a || _statusActive.b) ? 'block' : 'none';
     }
 
     function refreshPanelUI(slot) {
