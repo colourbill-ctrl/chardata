@@ -185,15 +185,14 @@ If the file contains spectral reflectance columns (named <code>NMxxx</code>, <co
 <hr>
 <h2 id="2-loading-datasets">2. Loading datasets</h2>
 <p>
-Files can be loaded via the <strong>Dataset A</strong> and <strong>Dataset B</strong> panels in the left pane (File Select).
+Files can be loaded via the <strong>Dataset A</strong> and <strong>Dataset B</strong> panels in the <strong>File Select</strong> panel (left side of the screen).
 </p>
 <ul>
-<li><strong>Drag and drop</strong> a file from your file system directly onto a panel, or</li>
+<li>On <strong>desktop</strong>, click the narrow tab on the left edge of the screen to open/close the File Select panel. The panel slides over the content without resizing it.</li>
+<li>On <strong>mobile</strong>, tap the folder icon (bottom-right) to open/close File Select.</li>
+<li><strong>Drag and drop</strong> a file from your file system directly onto a Dataset panel, or use the file picker button.</li>
 <li>Click <strong>Display File</strong> (after a file is loaded) to view its data table.</li>
 </ul>
-<p>
-On <strong>mobile</strong>, tap the folder icon (bottom-right) to open the File Select pane.
-</p>
 <p>
 Once a file loads successfully, the panel shows:
 </p>
@@ -206,6 +205,9 @@ Once a file loads successfully, the panel shows:
 <p>
 If required columns are missing (LAB or no device colorants detected), the file is rejected with a specific error message. The G7 report additionally requires CMYK colorants and will show a targeted error if they are absent.
 </p>
+<div class="note">
+<strong>CGATS header note:</strong> If the first line of a CGATS/IT8 file does not contain <code>CGATS</code> or <code>ISO28178</code>, a warning is shown but the file is still loaded and processed normally.
+</div>
 <hr>
 <h2 id="3-settings-panel">3. Settings panel</h2>
 
@@ -286,7 +288,7 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <text x="62" y="420" text-anchor="start" class="t3">LANGUAGE</text>
 <rect x="62" y="424" width="300" height="18" rx="3" class="btn"/><text x="68" y="437" text-anchor="start" class="t2">System default</text><text x="358" y="437" text-anchor="end" class="t3">▾</text>
 </svg><p>
-Open Settings by clicking the <strong>⚙</strong> button on the right edge of the screen (or the gear icon on mobile). A <strong>?</strong> help button sits directly below ⚙ and opens this help page in a new tab.
+Open Settings by clicking the <strong>⚙</strong> button on the right edge of the screen (or the gear icon on mobile). The Settings panel slides over the content without resizing it. A <strong>?</strong> help button sits directly below ⚙ and opens this help page in a new tab.
 </p>
 <h3 id="e-method">ΔE Method</h3>
 <p>
@@ -534,7 +536,7 @@ The <strong>Estimate</strong> section fits a polynomial model to the dataset, ma
 </p>
 <h4>Generating a model</h4>
 <p>
-Click <strong>Generate model</strong>. A "Computing…" message is shown while the fit runs (it may take a moment for large datasets). If the fit fails, an error message and <strong>Retry</strong> button appear.
+Click <strong>Generate model</strong>. A blue <strong>Computing</strong> badge appears in the top-left corner of the screen while the fit runs (it may take a moment for large datasets). The badge also appears during other computationally intensive operations such as rendering the 3D gamut shell. If the fit fails, an error message and <strong>Retry</strong> button appear.
 </p>
 <h4>Model fitting strategy</h4>
 <ul>
@@ -569,55 +571,45 @@ Click <strong>Regenerate</strong> to refit the model (e.g. after loading a new d
 </p>
 <h3 id="4-6-tone-value">4.6 Tone Value</h3>
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 224"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 258"
   style="width:100%;max-width:720px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
 <style>
 :root{--bg:#f0f2f5;--pnl:#fff;--pnl-bd:#ccd6e0;--hd:#e8edf2;--hd-bd:#c0ccd8;--sec:#f5f6f8;--sec-bd:#dde4ec;--btn:#e8edf2;--btn-bd:#bbb;--tx:#333;--tx2:#555;--tx3:#888;--txA:#1a5a8a;--ln:#dde4ec;}
 @media(prefers-color-scheme:dark){:root{--bg:#1a1c1f;--pnl:#22262e;--pnl-bd:#3a4048;--hd:#252930;--hd-bd:#3a4048;--sec:#1e2128;--sec-bd:#333a44;--btn:#252930;--btn-bd:#444;--tx:#c8cdd4;--tx2:#9aa0a8;--tx3:#555e6a;--txA:#7ab8e8;--ln:#2e3440;}}
 rect.bg{fill:var(--bg);}rect.pnl{fill:var(--pnl);stroke:var(--pnl-bd);stroke-width:1.5;}rect.hd{fill:var(--hd);stroke:var(--hd-bd);stroke-width:1;}rect.sec{fill:var(--sec);stroke:var(--sec-bd);stroke-width:1;}rect.btn{fill:var(--btn);stroke:var(--btn-bd);stroke-width:1;}rect.lnbd{fill:none;stroke:var(--ln);stroke-width:1;}line.div{stroke:var(--ln);stroke-width:1;}text{font-family:Arial,sans-serif;font-size:11px;fill:var(--tx);}text.tT{font-size:13px;font-weight:bold;fill:var(--txA);}text.tB{font-weight:bold;}text.t2{fill:var(--tx2);}text.t3{fill:var(--tx3);font-size:10px;}text.tA{fill:var(--txA);font-weight:bold;}
 </style>
-<rect x="0" y="0" width="720" height="224" rx="0" class="bg"/>
+<rect x="0" y="0" width="720" height="258" rx="0" class="bg"/>
 <!-- Section header bar -->
 <rect x="10" y="10" width="700" height="22" rx="5" class="hd"/><text x="26" y="25" text-anchor="start" class="tA">▼  Tone Value</text>
-<!-- Controls column -->
-<rect x="10" y="34" width="148" height="180" rx="3" class="pnl"/>
-<rect x="10" y="34" width="148" height="18" rx="3" class="hd"/>
-<text x="18" y="47" text-anchor="start" class="t3">Controls</text><text x="152" y="47" text-anchor="end" class="t2">◀</text>
-<!-- Tone Method -->
-<text x="16" y="68" text-anchor="start" class="t3">Tone Method</text>
-<rect x="16" y="72" width="136" height="16" rx="3" class="btn"/><text x="22" y="84" text-anchor="start" class="t3">Murray-Davies ▾</text>
-<!-- Filter -->
-<text x="16" y="100" text-anchor="start" class="t3">Filter</text>
-<rect x="16" y="104" width="136" height="16" rx="3" class="btn"/><text x="22" y="116" text-anchor="start" class="t3">Status T ▾</text>
-<!-- Graph Type -->
-<text x="16" y="132" text-anchor="start" class="t3">Graph Type</text>
-<rect x="16" y="136" width="136" height="16" rx="3" class="btn"/><text x="22" y="148" text-anchor="start" class="t3">Transfer ▾</text>
-<!-- Separator -->
-<line x1="16" y1="160" x2="148" y2="160" class="div"/>
-<!-- Colorant checkboxes -->
-<text x="16" y="175" text-anchor="start" class="t3">☑ CYAN</text>
-<text x="80" y="175" text-anchor="start" class="t3">☑ MAGENTA</text>
-<text x="16" y="189" text-anchor="start" class="t3">☑ YELLOW</text>
-<text x="80" y="189" text-anchor="start" class="t3">☑ BLACK</text>
-<!-- Chart area -->
-<rect x="160" y="34" width="548" height="154" rx="4" class="sec"/>
-<text x="434" y="114" text-anchor="middle" class="tT">Tone Value Chart</text>
-<text x="434" y="132" text-anchor="middle" class="t3">X axis: Input (%)   ·   Y axis: Tone Value % or Gain %</text>
+<!-- Chart area (full width) -->
+<rect x="10" y="34" width="700" height="130" rx="4" class="sec"/>
+<text x="360" y="97" text-anchor="middle" class="tT">Tone Value Chart</text>
+<text x="360" y="115" text-anchor="middle" class="t3">X axis: Input (%)   ·   Y axis: Tone Value % or Gain %</text>
 <!-- Legend strip -->
-<rect x="160" y="190" width="548" height="24" rx="4" class="pnl"/>
-<text x="170" y="206" text-anchor="start" class="t3">— CYAN  — MAGENTA  — YELLOW  — BLACK</text>
+<rect x="10" y="166" width="700" height="22" rx="4" class="pnl"/>
+<text x="20" y="181" text-anchor="start" class="t3">— CYAN  — MAGENTA  — YELLOW  — BLACK</text>
+<!-- Controls header bar -->
+<rect x="10" y="190" width="700" height="22" rx="3" class="hd"/>
+<text x="18" y="205" text-anchor="start" class="t3">Controls</text>
+<rect x="678" y="192" width="28" height="18" rx="3" class="btn"/><text x="692" y="205" text-anchor="middle" class="t2">▲</text>
+<!-- Controls body (expanded) -->
+<rect x="10" y="214" width="700" height="32" rx="3" class="pnl"/>
+<rect x="18" y="220" width="138" height="16" rx="3" class="btn"/><text x="24" y="232" text-anchor="start" class="t3">Murray-Davies ▾</text>
+<rect x="164" y="220" width="90" height="16" rx="3" class="btn"/><text x="170" y="232" text-anchor="start" class="t3">Status T ▾</text>
+<rect x="262" y="220" width="90" height="16" rx="3" class="btn"/><text x="268" y="232" text-anchor="start" class="t3">Transfer ▾</text>
+<text x="362" y="232" text-anchor="start" class="t3">☑ CYAN  ☑ MAGENTA  ☑ YELLOW  ☑ BLACK</text>
 <!-- Annotations -->
-<line x1="152" y1="47" x2="710" y2="47" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
-<text x="710" y="44" text-anchor="start" class="t3">◀ collapse controls</text>
-<line x1="160" y1="202" x2="710" y2="202" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
-<text x="710" y="199" text-anchor="start" class="t3">Legend below chart</text>
+<line x1="692" y1="192" x2="692" y2="4" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="692" y="1" text-anchor="end" class="t3">▲ collapse controls  ▼ expand</text>
+<line x1="18" y1="232" x2="8" y2="248" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="8" y="255" text-anchor="start" class="t3">Controls bar (below chart)</text>
 </svg>
 <p>
 The <strong>Tone Value</strong> section analyses the tonal response of each primary colorant — how the printed tone value relates to the input ink percentage. It appears between the Data Table and Estimate sections.
 </p>
 <h4>Controls</h4>
 <p>
-A collapsible side panel (click ◀ to collapse, ▶ to expand) contains:
+A collapsible bar below the chart (click <strong>▲</strong> to collapse, <strong>▼</strong> to expand) contains:
 </p>
 <table><thead>
 <tr><th>Control</th><th>Description</th></tr></thead><tbody>
@@ -748,7 +740,7 @@ The 3D plot in Compare mode shows both datasets overlaid in L\<em>a\</em>b* spac
 The Tone Value section also appears in Compare mode, below the Comparison Table. Both datasets are plotted on the same chart: Dataset A uses solid lines, Dataset B uses dashed lines in a slightly darker shade of the same colour.
 </p>
 <p>
-The side panel includes two additional checkboxes — <strong>Show Dataset A</strong> and <strong>Show Dataset B</strong> — to toggle all curves from either dataset at once.
+The controls bar includes two additional checkboxes — <strong>Show Dataset A</strong> and <strong>Show Dataset B</strong> — to toggle all curves from either dataset at once.
 </p>
 <p>
 All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work identically to <a href="#4-6-tone-value">Explore mode</a>.
