@@ -2210,14 +2210,27 @@
       if (savedW) sel.value = savedW;
     })();
 
+    // Cache: keyed by data.rows reference + colorants + method + weighted setting.
+    // Automatically stale when a new file is loaded (new rows array reference).
+    const _modelCache = { a: null, b: null };
+
     // Fit the appropriate polynomial model for a slot using the current Weighted setting.
+    // Returns cached model if all inputs are unchanged since last fit.
     function _fitModelForSlot(slot) {
       const data = state[slot];
       if (!data) return null;
       const useWeighted = document.getElementById('model-weighted').value === 'yes';
-      return useWeighted
+      const method = document.getElementById('de-method').value;
+      const c = _modelCache[slot];
+      if (c && c.rowsRef === data.rows && c.colorantsKey === data.colorants.join() &&
+          c.method === method && c.useWeighted === useWeighted) {
+        return c.model;
+      }
+      const model = useWeighted
         ? fitWeightedModel(data.headers, data.rows, data.colorants)
         : fitPolynomialModel(data.headers, data.rows, data.colorants);
+      _modelCache[slot] = { rowsRef: data.rows, colorantsKey: data.colorants.join(), method, useWeighted, model };
+      return model;
     }
 
     // Return the fitted model for a given slot (null if not yet fitted).
