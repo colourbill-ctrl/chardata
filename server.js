@@ -10,6 +10,8 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false // WASM blob-URL loading requires relaxed COEP
 }));
 
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.wasm')) res.setHeader('Content-Type', 'application/wasm');
