@@ -1,0 +1,78 @@
+name: Plotly CDN Hash Monitor
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'   # Every Monday at 09:00 UTC
+  workflow_dispatch:        # Allow manual trigger
+
+jobs:
+  check-hash:
+    runs-on: ubuntu-latest
+
+    env:
+      PLOTLY_URL: https://cdn.plot.ly/plotly-2.27.0.min.js
+      KNOWN_HASH: Hl48Kq2HifOWdXEjMsKo6qxqvRLTYqIGbvlENBmkHAxZKIGCXv43H6W1jA671RzC
+
+    steps:
+      - name: Fetch and hash Plotly from CDN
+        id: hash
+        run: |
+          ACTUAL=$(curl -sL "$PLOTLY_URL" | openssl dgst -sha384 -binary | openssl base64 -A)
+          echo "actual=$ACTUAL" >> "$GITHUB_OUTPUT"
+
+      - name: Compare hashes
+        id: compare
+        run: |
+          if [ "${{ steps.hash.outputs.actual }}" = "${{ env.KNOWN_HASH }}" ]; then
+            echo "match=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "match=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open issue if hash changed
+        if: steps.compare.outputs.match == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const known = process.env.KNOWN_HASH;
+            const actual = "${{ steps.hash.outputs.actual }}";
+            const url = process.env.PLOTLY_URL;
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'plotly-cdn-drift',
+              state: 'open',
+            });
+
+            if (issues.length > 0) {
+              console.log('Open issue already exists, skipping.');
+              return;
+            }
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Plotly CDN hash changed — review before upgrading vendored file',
+              labels: ['plotly-cdn-drift'],
+              body: [
+                '`cdn.plot.ly` is serving a different file than the one currently vendored in `public/`.',
+                '',
+                `**URL:** \`${url}\``,
+                `**Known hash (vendored):** \`sha384-${known}\``,
+                `**CDN hash (new):** \`sha384-${actual}\``,
+                '',
+                '## What to do',
+                '1. Review the [Plotly changelog](https://github.com/plotly/plotly.js/blob/master/CHANGELOG.md) for this version.',
+                '2. Decide whether to update the vendored file:',
+                '   ```bash',
+                '   curl -sL "' + url + '" -o public/plotly-2.27.0.min.js',
+                '   # Verify: openssl dgst -sha384 -binary public/plotly-2.27.0.min.js | openssl base64 -A',
+                '   ```',
+                '3. Update `KNOWN_HASH` in `.github/workflows/plotly-hash-check.yml` to the new hash.',
+                '4. Commit and push.',
+              ].join('\n'),
+            });
+        env:
+          KNOWN_HASH: ${{ env.KNOWN_HASH }}
+          PLOTLY_URL: ${{ env.PLOTLY_URL }}
