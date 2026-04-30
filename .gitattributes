@@ -1,5 +1,6 @@
 * text=auto
 scripts/*.sh text eol=lf
+hooks/* text eol=lf
 gamut-wasm/*.cpp text eol=lf
 gamut-wasm/CMakeLists.txt text eol=lf
 public/wasm/*.mjs text eol=lf
