@@ -1,8 +1,14 @@
 const express = require('express');
-const path = require('path');
+const helmet  = require('helmet');
+const path    = require('path');
 
 const app = express();
 const PORT = 3001;
+
+app.use(helmet({
+  contentSecurityPolicy: false,   // app uses inline scripts + CDN; CSP needs per-project tuning
+  crossOriginEmbedderPolicy: false // WASM blob-URL loading requires relaxed COEP
+}));
 
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, filePath) => {

@@ -863,7 +863,9 @@
   <button id="scroll-top-btn" data-i18n-title="scroll_top" title="Scroll to top"
     onclick="window.innerWidth<=700?window.scrollTo({top:0,behavior:'smooth'}):document.getElementById('main-content').scrollTo({top:0,behavior:'smooth'})">&#8679; <span data-i18n="top_btn">Top</span></button>
 
-  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"
+          integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb"
+          crossorigin="anonymous"></script>
   <script>
     const REQUIRED_LAB = ['LAB_L', 'LAB_A', 'LAB_B'];
 
@@ -4468,7 +4470,10 @@
 
     function _buildCSV() {
       const { headers, rows } = state.a;
-      const escape = v => (v.includes(',') || v.includes('"') || v.includes('\n')) ? '"' + v.replace(/"/g, '""') + '"' : v;
+      const escape = v => {
+        if (/^[=\-@+~|]/.test(v)) v = "'" + v; // prevent spreadsheet formula injection
+        return (v.includes(',') || v.includes('"') || v.includes('\n')) ? '"' + v.replace(/"/g, '""') + '"' : v;
+      };
       return [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))].join('\n');
     }
 
