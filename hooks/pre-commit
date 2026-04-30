@@ -1,0 +1,17 @@
+#!/bin/bash
+# Pre-commit hook: rebuild WASM when C++ source changes.
+# Invokes the build via WSL (Emscripten lives there).
+# Aborts the commit if the build fails.
+
+if git diff --cached --name-only | grep -qE '^gamut-wasm/'; then
+    echo "gamut-wasm source changed — rebuilding WASM..."
+    wsl bash -c "cd /mnt/c/Users/colou/code/compwas && scripts/build-wasm.sh"
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "ERROR: WASM build failed — commit aborted."
+        echo "Fix the build error and try again."
+        exit 1
+    fi
+    git add public/wasm/compwas-gamut.mjs public/wasm/compwas-gamut.wasm
+    echo "WASM artifacts staged."
+fi
