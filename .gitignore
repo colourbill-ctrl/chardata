@@ -1,3 +1,4 @@
 node_modules/
 gamut-wasm/build/
 .claude/
+public/version.txt
