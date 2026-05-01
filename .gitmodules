@@ -1,0 +1,3 @@
+[submodule "gamut-wasm/third-party/lcms2"]
+	path = gamut-wasm/third-party/lcms2
+	url = https://github.com/mm2/Little-CMS.git

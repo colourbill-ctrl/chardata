@@ -659,6 +659,16 @@
       </div>
       <div class="validation" id="valid-a"></div>
       <div class="colorants" id="colorants-a"></div>
+      <div id="icc-intent-row-a" style="display:none;margin-top:5px;font-size:12px;color:#555;">
+        Rendering intent:
+        <select id="icc-intent-a" style="font-size:12px;padding:2px 6px;margin-left:4px;"
+                onchange="setRenderingIntent('a',+this.value)">
+          <option value="0">Perceptual</option>
+          <option value="1" selected>Relative Colorimetric</option>
+          <option value="2">Saturation</option>
+          <option value="3">Absolute Colorimetric</option>
+        </select>
+      </div>
       <div id="status-a" class="dataset-status"></div>
     </div>
 
@@ -675,6 +685,16 @@
       </div>
       <div class="validation" id="valid-b"></div>
       <div class="colorants" id="colorants-b"></div>
+      <div id="icc-intent-row-b" style="display:none;margin-top:5px;font-size:12px;color:#555;">
+        Rendering intent:
+        <select id="icc-intent-b" style="font-size:12px;padding:2px 6px;margin-left:4px;"
+                onchange="setRenderingIntent('b',+this.value)">
+          <option value="0">Perceptual</option>
+          <option value="1" selected>Relative Colorimetric</option>
+          <option value="2">Saturation</option>
+          <option value="3">Absolute Colorimetric</option>
+        </select>
+      </div>
       <div id="status-b" class="dataset-status"></div>
     </div>
   </div>
@@ -1443,7 +1463,7 @@
         validate:'Validar', comparison_table:'Tabela de comparação',
         extract:'Extrair', restore:'Restaurar', export_btn:'Exportar',
         data_table:'Tabela de dados', estimate:'Estimativa',
-        primaries:'Primárias', secondaries:'Secundárias', cmy_grays:'Cinzas CMY',
+        primaries:'Primárias', secondaries:'Secundárias', cmy_grays:'Grises CMY',
         cmy_browns:'Marrons CMY', solids_only:'Apenas sólidos',
         remove_paper_white:'Remover ponto de branco do papel',
         remove_colorants_hint:'Remover os colorantes selecionados dos dados.',
@@ -2167,6 +2187,48 @@
       b: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } }
     };
+    // ICC profile state — parallel to _gamutState, one entry per slot.
+    const _iccState = {
+      a: { handleId: null, info: null, renderingIntent: 1, patchLabValues: null },
+      b: { handleId: null, info: null, renderingIntent: 1, patchLabValues: null }
+    };
+    let _iccCmpData = null;   // ICC compare data (parallel to _cmpData for CSV compares)
+
+    // ── IT8.7/5-compatible CMYK patch set ─────────────────────────────────────
+    // Used as the canonical evaluation set for ICC profile comparison and
+    // the Explore data table when an ICC CMYK profile is loaded.
+    // Coverage: single-ink ramps, two-ink, three-ink, four-ink combinations.
+    const IT875_PATCHES = (function () {
+      const seen = new Set(), out = [];
+      function add(c, m, y, k) {
+        c = Math.round(c); m = Math.round(m); y = Math.round(y); k = Math.round(k);
+        const key = c + ',' + m + ',' + y + ',' + k;
+        if (!seen.has(key)) { seen.add(key); out.push([c, m, y, k]); }
+      }
+      add(0, 0, 0, 0);  // paper white
+      // Single-ink ramps (5 % steps)
+      for (let v = 5; v <= 100; v += 5) { add(v,0,0,0); add(0,v,0,0); add(0,0,v,0); add(0,0,0,v); }
+      // Two-ink combinations at 7 levels
+      const S7 = [10, 25, 40, 55, 70, 85, 100];
+      for (const a of S7) for (const b of S7) {
+        add(a,b,0,0); add(a,0,b,0); add(0,a,b,0);
+        add(a,0,0,b); add(0,a,0,b); add(0,0,a,b);
+      }
+      // Three-ink CMY combinations
+      const S5 = [20, 40, 60, 80, 100];
+      for (const c of S5) for (const m of S5) for (const y of S5) add(c,m,y,0);
+      // Three-ink with K
+      const S4 = [25, 50, 75, 100], Sk = [25, 50, 75];
+      for (const c of S4) for (const m of S4) for (const k of Sk) add(c,m,0,k);
+      for (const c of S4) for (const y of S4) for (const k of Sk) add(c,0,y,k);
+      for (const m of S4) for (const y of S4) for (const k of Sk) add(0,m,y,k);
+      // Four-ink
+      const S3 = [33, 67, 100];
+      for (const c of S3) for (const m of S3) for (const y of S3)
+        for (const k of [25, 50]) add(c,m,y,k);
+      return out;
+    })();
+
     // Preload WASM module early so it's ready when first file is loaded.
     if (window.Gamut) Gamut.preload();
     let _suppressDismiss = false;
@@ -2379,8 +2441,10 @@
       sel.value = savedW ?? 'yes';
     })();
 
-    // Return the WASM-fitted model for a given slot (null if not yet fitted).
+    // Return the WASM-fitted polynomial model for a given slot (null for ICC or not fitted).
     function _modelForSlot(slot) { return _gamutState[slot].cachedModel || null; }
+    // Return true if slot has an active ICC profile.
+    function _slotIsIcc(slot) { return !!(state[slot] && state[slot].dataType === 'icc' && _iccState[slot].handleId); }
 
     function onModelWeightedChange(val) {
       localStorage.setItem('modelWeighted', val);
@@ -2624,13 +2688,152 @@
     }
 
     function loadFile(slot, file) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        _rawFileData[slot] = { text: e.target.result, fileName: file.name };
-        setPanelName(slot, file.name);
-        processFileText(slot, e.target.result, file.name);
+      // Peek at first 128 bytes to detect ICC profile ('acsp' at offset 36).
+      const sniffer = new FileReader();
+      sniffer.onload = e => {
+        const view = new DataView(e.target.result);
+        const isIcc = view.byteLength >= 40 &&
+          view.getUint8(36) === 0x61 && view.getUint8(37) === 0x63 &&
+          view.getUint8(38) === 0x73 && view.getUint8(39) === 0x70;
+        if (isIcc) {
+          loadIccFile(slot, file);
+        } else {
+          const reader = new FileReader();
+          reader.onload = e2 => {
+            _rawFileData[slot] = { text: e2.target.result, fileName: file.name, isIcc: false };
+            setPanelName(slot, file.name);
+            processFileText(slot, e2.target.result, file.name);
+          };
+          reader.readAsText(file);
+        }
       };
-      reader.readAsText(file);
+      sniffer.readAsArrayBuffer(file.slice(0, 128));
+    }
+
+    async function loadIccFile(slot, file) {
+      if (!window.Gamut) return;
+
+      // Release any previously loaded ICC handle for this slot.
+      if (_iccState[slot].handleId !== null) {
+        Gamut.freeIccProfile(_iccState[slot].handleId);
+        _iccState[slot].handleId = null;
+        _iccState[slot].patchLabValues = null;
+      }
+
+      // Reset UI for this slot (same as processFileText reset)
+      document.getElementById('valid-' + slot).textContent = '';
+      document.getElementById('valid-' + slot).className = 'validation';
+      document.getElementById('type-' + slot).textContent = 'ICC';
+      document.getElementById('rows-' + slot).textContent = '';
+      document.getElementById('colorants-' + slot).textContent = '';
+
+      let iccInfo;
+      try {
+        const buffer = await file.arrayBuffer();
+        _rawFileData[slot] = { text: null, fileName: file.name, isIcc: true, buffer };
+        iccInfo = await Gamut.loadIccProfile(buffer);
+      } catch (err) {
+        document.getElementById('valid-' + slot).textContent = 'ICC load error: ' + (err.message || err);
+        document.getElementById('valid-' + slot).className = 'validation invalid';
+        state[slot] = null;
+        document.getElementById('show-file-' + slot).disabled = true;
+        updateCompareBtn();
+        return;
+      }
+
+      if (iccInfo.error) {
+        document.getElementById('valid-' + slot).textContent = iccInfo.error;
+        document.getElementById('valid-' + slot).className = 'validation invalid';
+        state[slot] = null;
+        document.getElementById('show-file-' + slot).disabled = true;
+        updateCompareBtn();
+        return;
+      }
+
+      _iccState[slot].handleId       = iccInfo.handle;
+      _iccState[slot].info           = iccInfo;
+      _iccState[slot].renderingIntent = 1;   // default: Relative Colorimetric
+
+      state[slot] = {
+        dataType:    'icc',
+        name:        file.name,
+        colorants:   iccInfo.colorants,
+        hasSpectral: false,
+        rowsBefore:  0,
+        rowsAfter:   0
+      };
+
+      // Reset gamut state for this slot
+      _gamutState[slot].shellOn   = false;
+      _gamutState[slot].pointsOn  = true;
+      _gamutState[slot].hueOn     = false;
+      _gamutState[slot].valueOn   = true;
+      _gamutState[slot].cachedModel = null;
+      _gamutState[slot].cachedMesh  = null;
+      _gamutState[slot].cachedXYZ   = null;
+      if (slot === 'a') _estimateInputs = {};
+      const perFileCb = document.getElementById('gs-shell-cb-' + slot);
+      if (perFileCb) perFileCb.checked = false;
+      syncShellCheckbox(); syncPointsCheckbox(); syncColorCheckboxes();
+
+      setPanelName(slot, file.name);
+      document.getElementById('show-file-' + slot).disabled = true;   // binary — no text view
+      document.getElementById('valid-' + slot).innerHTML = '<div class="valid">\u2713 ICC Profile</div>';
+      document.getElementById('valid-' + slot).className = 'validation';
+      document.getElementById('colorants-' + slot).textContent =
+        (iccInfo.colorSpace ? iccInfo.colorSpace + ' \u2014 ' : '') + iccInfo.colorants.join(', ');
+
+      updateIccIntentUI(slot, iccInfo);
+      updateCompareBtn();
+      updateValidateFileLabel();
+
+      setDatasetStatus(slot, t('status_building_gamut'));
+      await buildGamutCache(slot);
+
+      if (_mode === 'explore' && slot === 'a') {
+        setDatasetStatus('a', t('status_rendering'));
+        renderExplore();
+        if (slot === 'a') {
+          // Populate estimate section for ICC
+          _estimateModel = { colorants: iccInfo.colorants, isIcc: true };
+          iccInfo.colorants.forEach(c => { if (!(_estimateInputs[c] >= 0)) _estimateInputs[c] = 50; });
+          const wrap = document.getElementById('est-wrap');
+          if (wrap) { wrap.innerHTML = buildEstimateHTML(); updateEstimate(); }
+        }
+        setDatasetStatus('a', t('status_computing_slice'));
+        await renderSlicePlot();
+        setDatasetStatus('a', '');
+      } else {
+        if (state.a && state.b) renderPlot(true);
+        setDatasetStatus(slot, t('status_computing_slice'));
+        await renderSlicePlot();
+        setDatasetStatus(slot, '');
+      }
+    }
+
+    function updateIccIntentUI(slot, info) {
+      const row = document.getElementById('icc-intent-row-' + slot);
+      const sel = document.getElementById('icc-intent-' + slot);
+      if (!row || !sel) return;
+      const iccInfo = info || _iccState[slot].info;
+      if (!iccInfo) { row.style.display = 'none'; return; }
+      // Grey-out options for intents not present in the profile
+      const available = new Set(iccInfo.intents || [0, 1, 2, 3]);
+      Array.from(sel.options).forEach(opt => {
+        opt.disabled = !available.has(+opt.value);
+      });
+      // Default to RelCol if available, else first available
+      const preferred = available.has(1) ? 1 : [...available][0];
+      sel.value = preferred;
+      _iccState[slot].renderingIntent = preferred;
+      row.style.display = '';
+    }
+
+    function setRenderingIntent(slot, intent) {
+      _iccState[slot].renderingIntent = intent;
+      // Invalidate cached patch Lab values — they depend on intent
+      _iccState[slot].patchLabValues = null;
+      regenerateGamutShell(slot);
     }
 
     function processFileText(slot, text, fileName) {
@@ -3794,6 +3997,10 @@
         const slot = document.getElementById('validate-file-select')?.value || 'a';
         const data = state[slot];
         if (!data) { el.innerHTML = `<p style="color:#e74c3c;">${t('selected_not_loaded')}</p>`; return; }
+        if (data.dataType === 'icc') {
+          el.innerHTML = `<p style="color:#888;font-size:12px;">G7 validation is not available for ICC profiles.</p>`;
+          return;
+        }
         el.innerHTML = validateG7(data);
       } else {
         if (!state.a || !state.b) { el.innerHTML = `<p style="color:#e74c3c;">${t('both_needed')}</p>`; return; }
@@ -4223,6 +4430,11 @@
       const { a } = state;
       const resultEl = document.getElementById('result');
 
+      if (a.dataType === 'icc') {
+        renderExploreIcc();
+        return;
+      }
+
       // Preserve open/closed state of collapsible sections across re-renders
       const _openSections = new Set(['extract-wrap', 'cmp-table-wrap', 'est-wrap'].filter(id => {
         const el = document.getElementById(id);
@@ -4321,6 +4533,86 @@
       updateEstimate();
       buildTvColorantCheckboxes();
       renderTvChart();
+      applyTranslations();
+    }
+
+    function renderExploreIcc() {
+      const { a } = state;
+      const resultEl = document.getElementById('result');
+      const icc = _iccState.a;
+      const info = icc.info || {};
+      const intentNames = ['Perceptual', 'Relative Colorimetric', 'Saturation', 'Absolute Colorimetric'];
+      const intentsAvail = (info.intents || []).map(i => intentNames[i] || `Intent ${i}`).join(', ') || '—';
+
+      const _openSections = new Set(['icc-patches-wrap', 'est-wrap'].filter(id => {
+        const el = document.getElementById(id);
+        return el && el.style.display !== 'none';
+      }));
+
+      // Build IT8.7/5 patch table HTML (if Lab values available)
+      let patchTableHTML = '';
+      const labValues = _gamutState.a.cachedXYZ;
+      const isCmyk = a.colorants.length === 4 && a.colorants[0] === 'CYAN';
+      if (isCmyk && labValues && IT875_PATCHES.length) {
+        const PR = 'padding:4px 10px 4px 0;text-align:right;font-family:monospace;font-size:12px;';
+        const TH = 'font-weight:bold;border-bottom:2px solid #ddd;color:#555;padding:4px 10px 4px 0;font-size:12px;';
+        const rows = IT875_PATCHES.map((p, i) => {
+          const lab = { L: labValues.z[i], a: labValues.x[i], b: labValues.y[i] };
+          const bg = `background:${labToRgb(lab.L, lab.a, lab.b)};width:14px;height:14px;display:inline-block;border-radius:2px;vertical-align:middle;`;
+          return `<tr>
+            <td style="${PR}">${p[0].toFixed(0)}</td>
+            <td style="${PR}">${p[1].toFixed(0)}</td>
+            <td style="${PR}">${p[2].toFixed(0)}</td>
+            <td style="${PR}">${p[3].toFixed(0)}</td>
+            <td style="${PR}">${lab.L.toFixed(2)}</td>
+            <td style="${PR}">${lab.a.toFixed(2)}</td>
+            <td style="${PR}">${lab.b.toFixed(2)}</td>
+            <td style="padding:4px 6px;"><span style="${bg}"></span></td>
+          </tr>`;
+        }).join('');
+        patchTableHTML = `
+          <div onclick="(function(){const w=document.getElementById('icc-patches-wrap'),ar=document.getElementById('icc-patches-arrow');if(!w)return;const open=w.style.display!=='none';w.style.display=open?'none':'';if(ar)ar.textContent=open?'▶':'▼';})()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+            <span>IT8.7/5 Patches (${IT875_PATCHES.length}): ${a.name}</span><span id="icc-patches-arrow">▶</span>
+          </div>
+          <div id="icc-patches-wrap" style="display:none;overflow-x:auto;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:8px 0 8px 8px;">
+            <table style="border-collapse:collapse;font-size:12px;">
+              <thead><tr>
+                <th style="${TH}">C</th><th style="${TH}">M</th><th style="${TH}">Y</th><th style="${TH}">K</th>
+                <th style="${TH}">L*</th><th style="${TH}">a*</th><th style="${TH}">b*</th><th style="${TH}"></th>
+              </tr></thead>
+              <tbody style="color:#333;">${rows}</tbody>
+            </table>
+          </div>`;
+      }
+
+      resultEl.innerHTML = `
+        <div style="margin-top:16px;padding:12px 14px;background:#f8f9fa;border:1px solid #ddd;border-radius:6px;font-size:13px;">
+          <div style="font-weight:bold;font-size:14px;margin-bottom:8px;color:#333;">${a.name}</div>
+          <table style="border-collapse:collapse;font-size:12px;color:#555;">
+            <tr><td style="padding:2px 16px 2px 0;color:#888;">Color space</td><td style="padding:2px 0;">${info.colorSpace || '—'}</td></tr>
+            <tr><td style="padding:2px 16px 2px 0;color:#888;">Device class</td><td style="padding:2px 0;">${info.deviceClass || '—'}</td></tr>
+            <tr><td style="padding:2px 16px 2px 0;color:#888;">Colorants</td><td style="padding:2px 0;">${a.colorants.join(', ')}</td></tr>
+            <tr><td style="padding:2px 16px 2px 0;color:#888;">Rendering intents</td><td style="padding:2px 0;">${intentsAvail}</td></tr>
+          </table>
+        </div>
+        ${patchTableHTML}
+        <div onclick="toggleEstimate()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span data-i18n="estimate">Estimate</span><span id="est-arrow">&#9658;</span>
+        </div>
+        <div id="est-wrap" style="display:none;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;">
+          ${buildEstimateHTML()}
+        </div>`;
+
+      _openSections.forEach(id => {
+        const wrap = document.getElementById(id);
+        const arrowId = id === 'icc-patches-wrap' ? 'icc-patches-arrow' : id.replace('-wrap', '-arrow');
+        const arrow = document.getElementById(arrowId);
+        if (wrap) wrap.style.display = '';
+        if (arrow) arrow.textContent = '▼';
+      });
+
+      renderPlot();
+      updateEstimate();
       applyTranslations();
     }
 
@@ -4631,7 +4923,7 @@
         _cmpSortCol = colIdx;
         _cmpSortDir = 'asc';
       }
-      renderCmpTable();
+      if (_iccCmpData) { renderIccCmpTable(); } else { renderCmpTable(); }
     }
 
     function renderCmpTable() {
@@ -4759,6 +5051,10 @@
 
     function runCompare() {
       const { a, b } = state;
+      const aIsIcc = !!(a && a.dataType === 'icc');
+      const bIsIcc = !!(b && b.dataType === 'icc');
+      if (aIsIcc || bIsIcc) { runCompareWithIcc(a, b, aIsIcc, bIsIcc); return; }
+
       const resultEl = document.getElementById('result');
 
       // Build lookup: non-zero colorant key → first matching row from File B
@@ -4879,6 +5175,189 @@
       applyTranslations();
     }
 
+    // ICC-aware compare: handles ICC vs ICC, CSV vs ICC, ICC vs CSV.
+    function runCompareWithIcc(a, b, aIsIcc, bIsIcc) {
+      const resultEl = document.getElementById('result');
+      if (!window.Gamut) {
+        resultEl.innerHTML = `<div style="padding:20px 16px;color:#c04040;font-size:13px;">WASM not loaded — call Gamut.preload() first.</div>`;
+        return;
+      }
+
+      const method = deMethod.value;
+      const PR = 'padding:4px 16px 4px 0;text-align:right;';
+      const TH = 'font-weight:bold;border-bottom:2px solid #ddd;color:#555;';
+      const VL = 'border-left:1px solid #ccc;padding-left:12px;';
+
+      let matches; // [{ colorants[], aLab:{L,a,b}, bLab:{L,a,b} }]
+
+      if (aIsIcc && bIsIcc) {
+        // ICC vs ICC: evaluate both at IT8.7/5 patch positions
+        const iccA = _iccState.a, iccB = _iccState.b;
+        const isCmykA = a.colorants.length === 4 && a.colorants[0] === 'CYAN';
+        const isCmykB = b.colorants.length === 4 && b.colorants[0] === 'CYAN';
+        if (!isCmykA || !isCmykB) {
+          resultEl.innerHTML = `<div style="padding:20px 16px;color:#888;font-size:13px;">ICC vs ICC comparison requires CMYK profiles.</div>`;
+          return;
+        }
+        const aLabs = Gamut.evalIccBatchSync(iccA.handleId, IT875_PATCHES, iccA.renderingIntent);
+        const bLabs = Gamut.evalIccBatchSync(iccB.handleId, IT875_PATCHES, iccB.renderingIntent);
+        matches = IT875_PATCHES.map((p, i) => ({
+          colorants: p,
+          aLab: aLabs[i],
+          bLab: bLabs[i]
+        }));
+      } else if (aIsIcc && !bIsIcc) {
+        // ICC (A) vs CSV (B): evaluate ICC at each CSV row's colorant values
+        const iccA = _iccState.a;
+        const bLabIdx = ['LAB_L','LAB_A','LAB_B'].map(l => b.headers.indexOf(l));
+        const bColIdx = a.colorants.map(c => b.headers.indexOf(c));
+        if (bColIdx.some(i => i < 0)) {
+          resultEl.innerHTML = `<div style="padding:20px 16px;color:#888;font-size:13px;">CSV file B does not contain colorants matching ICC profile A.</div>`;
+          return;
+        }
+        const patches = [], bLabs = [], colorantsList = [];
+        for (const row of b.rows) {
+          const cs = bColIdx.map(i => parseFloat(row[i]));
+          const L = parseFloat(row[bLabIdx[0]]), av = parseFloat(row[bLabIdx[1]]), bv = parseFloat(row[bLabIdx[2]]);
+          if (cs.some(isNaN) || isNaN(L) || isNaN(av) || isNaN(bv)) continue;
+          patches.push(cs); bLabs.push({ L, a: av, b: bv }); colorantsList.push(cs);
+        }
+        const aLabs = Gamut.evalIccBatchSync(iccA.handleId, patches, iccA.renderingIntent);
+        matches = aLabs.map((aLab, i) => ({ colorants: colorantsList[i], aLab, bLab: bLabs[i] }));
+      } else {
+        // CSV (A) vs ICC (B): evaluate ICC at each CSV row's colorant values
+        const iccB = _iccState.b;
+        const aLabIdx = ['LAB_L','LAB_A','LAB_B'].map(l => a.headers.indexOf(l));
+        const aColIdx = b.colorants.map(c => a.headers.indexOf(c));
+        if (aColIdx.some(i => i < 0)) {
+          resultEl.innerHTML = `<div style="padding:20px 16px;color:#888;font-size:13px;">CSV file A does not contain colorants matching ICC profile B.</div>`;
+          return;
+        }
+        const patches = [], aLabs = [], colorantsList = [];
+        for (const row of a.rows) {
+          const cs = aColIdx.map(i => parseFloat(row[i]));
+          const L = parseFloat(row[aLabIdx[0]]), av = parseFloat(row[aLabIdx[1]]), bv = parseFloat(row[aLabIdx[2]]);
+          if (cs.some(isNaN) || isNaN(L) || isNaN(av) || isNaN(bv)) continue;
+          patches.push(cs); aLabs.push({ L, a: av, b: bv }); colorantsList.push(cs);
+        }
+        const bLabs = Gamut.evalIccBatchSync(iccB.handleId, patches, iccB.renderingIntent);
+        matches = bLabs.map((bLab, i) => ({ colorants: colorantsList[i], aLab: aLabs[i], bLab }));
+      }
+
+      if (!matches.length) {
+        resultEl.innerHTML = `<div style="padding:20px 16px;font-size:13px;color:#888;">${t('no_match')}</div>`;
+        renderPlot(); return;
+      }
+
+      // Compute ΔE per match
+      const deRaw = matches.map(({ aLab, bLab }) => {
+        const valid = aLab && bLab && isFinite(aLab.L) && isFinite(bLab.L);
+        return valid ? calcDeltaE(method, aLab.L, aLab.a, aLab.b, bLab.L, bLab.a, bLab.b).toFixed(2) : '—';
+      });
+      const deNums = deRaw.filter(v => v !== '—').map(Number);
+      const deMean = deNums.reduce((s, v) => s + v, 0) / deNums.length;
+      const deMax  = Math.max(...deNums);
+      const deMin  = Math.min(...deNums);
+      const deStd  = Math.sqrt(deNums.reduce((s, v) => s + (v - deMean) ** 2, 0) / deNums.length);
+
+      const summaryBox = `
+        <div style="display:inline-flex;gap:32px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px 24px;margin-top:16px;font-size:13px;">
+          <div><div style="color:#888;margin-bottom:2px;">${t('mean_de',{method:fmtMethod(method)})}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMean.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">${t('min_de',{method:fmtMethod(method)})}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMin.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;">${t('max_de',{method:fmtMethod(method)})}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deMax.toFixed(2)}</div></div>
+          <div><div style="color:#888;margin-bottom:2px;" data-i18n="std_dev">Std Dev</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deStd.toFixed(2)}</div></div>
+        </div>`;
+
+      // Display colorants (union of both)
+      const CMYK_ORDER = ['CYAN', 'MAGENTA', 'YELLOW', 'BLACK'];
+      const colorantNames = aIsIcc ? a.colorants : (bIsIcc ? b.colorants : [...new Set([...a.colorants, ...b.colorants])]);
+      const displayColorants = [
+        ...CMYK_ORDER.filter(c => colorantNames.includes(c)),
+        ...colorantNames.filter(c => !CMYK_ORDER.includes(c)).sort()
+      ];
+      const colorantSpan = displayColorants.length;
+
+      const spanningRow = `<tr>
+        <th colspan="${colorantSpan}" style="padding:4px 0;text-align:center;${TH}" data-i18n="device_colorants_hdr">Device Colorants</th>
+        <th colspan="3" style="padding:4px 0;text-align:center;${TH}${VL}">${a.name}</th>
+        <th colspan="3" style="padding:4px 0;text-align:center;${TH}${VL}">${b.name}</th>
+        <th colspan="1" style="padding:4px 0;text-align:center;${TH}${VL}" data-i18n="difference">Difference</th>
+      </tr>`;
+
+      _iccCmpData = { matches, deRaw, displayColorants, a, b, method, PR, TH, VL };
+      _cmpSortCol = null; _cmpSortDir = 'asc';
+      _cmpSortedIdx = Array.from({ length: matches.length }, (_, i) => i);
+
+      resultEl.innerHTML = `
+        <p style="margin-bottom:8px;font-size:13px;color:#555;">${matches.length !== 1 ? t('match_count_pl',{n:matches.length}) : t('match_count',{n:matches.length})}</p>
+        ${summaryBox}
+        <div onclick="toggleCmpTable()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span data-i18n="comparison_table">Comparison Table</span><span id="cmp-table-arrow">▶</span>
+        </div>
+        <div id="cmp-table-wrap" style="display:none;overflow-x:auto;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:8px 0 8px 8px;">
+          <table style="border-collapse:collapse;font-size:13px;">
+            <thead>${spanningRow}<tr id="cmp-col-headers"></tr></thead>
+            <tbody id="cmp-table-body" style="font-family:monospace;color:#333;"></tbody>
+          </table>
+        </div>`;
+
+      renderIccCmpTable();
+      renderPlot();
+      applyTranslations();
+    }
+
+    function renderIccCmpTable() {
+      if (!_iccCmpData) return;
+      const { matches, deRaw, displayColorants, PR, TH, VL } = _iccCmpData;
+      const method = _iccCmpData.method;
+
+      const thEl = document.getElementById('cmp-col-headers');
+      const tbEl = document.getElementById('cmp-table-body');
+      if (!thEl || !tbEl) return;
+
+      // Sort _cmpSortedIdx if a sort column is set
+      if (_cmpSortCol !== null) {
+        _cmpSortedIdx.sort((ii, jj) => {
+          let vi, vj;
+          if (_cmpSortCol === 'de') {
+            vi = parseFloat(deRaw[ii]) || Infinity;
+            vj = parseFloat(deRaw[jj]) || Infinity;
+          } else {
+            const ci = displayColorants.indexOf(_cmpSortCol);
+            vi = ci >= 0 ? (matches[ii].colorants[ci] ?? Infinity) : Infinity;
+            vj = ci >= 0 ? (matches[jj].colorants[ci] ?? Infinity) : Infinity;
+          }
+          return _cmpSortDir === 'asc' ? vi - vj : vj - vi;
+        });
+      }
+
+      // Column headers
+      thEl.innerHTML = displayColorants.map(c =>
+        `<th style="${PR}${TH}cursor:pointer;" onclick="sortCmpTable('${c}')">${c}<span style="margin-left:3px;color:#aaa;">${_cmpSortCol===c?(_cmpSortDir==='asc'?'▲':'▼'):'⇅'}</span></th>`
+      ).join('') +
+        `<th style="${TH}${VL}padding-right:8px;">L*</th><th style="${TH}padding-right:8px;">a*</th><th style="${TH}padding-right:8px;">b*</th>` +
+        `<th style="${TH}${VL}padding-right:8px;">L*</th><th style="${TH}padding-right:8px;">a*</th><th style="${TH}padding-right:8px;">b*</th>` +
+        `<th style="${TH}${VL}cursor:pointer;" onclick="sortCmpTable('de')">${fmtMethod(method)}<span style="margin-left:3px;color:#aaa;">${_cmpSortCol==='de'?(_cmpSortDir==='asc'?'▲':'▼'):'⇅'}</span></th>`;
+
+      // Sorted row indices
+      const sorted = _cmpSortedIdx.slice();
+
+      tbEl.innerHTML = sorted.map(i => {
+        const { colorants, aLab, bLab } = matches[i];
+        const de = deRaw[i];
+        const deNum = parseFloat(de);
+        const deColor = isNaN(deNum) ? '#333' : deNum < 1 ? '#2ecc71' : deNum < 3 ? '#e67e22' : '#e74c3c';
+        const colCells = displayColorants.map((_, ci) => {
+          const v = colorants[ci];
+          return `<td style="${PR}color:#555;">${v != null ? v.toFixed(0) : '—'}</td>`;
+        }).join('');
+        const fmtLab = (lab) => lab
+          ? `<td style="${VL}padding-right:8px;font-family:monospace;">${lab.L.toFixed(2)}</td><td style="padding-right:8px;font-family:monospace;">${lab.a.toFixed(2)}</td><td style="padding-right:8px;font-family:monospace;">${lab.b.toFixed(2)}</td>`
+          : `<td style="${VL}padding-right:8px;">—</td><td>—</td><td>—</td>`;
+        return `<tr>${colCells}${fmtLab(aLab)}${fmtLab(bLab)}<td style="${VL}font-family:monospace;font-weight:bold;color:${deColor};">${de}</td></tr>`;
+      }).join('');
+    }
+
     function togglePlot() {
       const wrap = document.getElementById('plot-wrap');
       const arrow = document.getElementById('plot-arrow');
@@ -4995,19 +5474,32 @@
       }
 
       // Build trace + record which original row index each plotted point came from
-      const buildTrace = (data, name, defaultColor, useHue, useVal) => {
-        const iA = data.headers.indexOf('LAB_A');
-        const iB = data.headers.indexOf('LAB_B');
-        const iL = data.headers.indexOf('LAB_L');
+      const buildTrace = (data, slot, name, defaultColor, useHue, useVal) => {
         const xs = [], ys = [], zs = [], colors = [], rowMap = [];
-        data.rows.forEach((r, ri) => {
-          const av = parseFloat(r[iA]), bv = parseFloat(r[iB]), l = parseFloat(r[iL]);
-          if (!isNaN(av) && !isNaN(bv) && !isNaN(l)) {
-            xs.push(av); ys.push(bv); zs.push(l);
-            colors.push(useHue ? hueToColor(av, bv) : useVal ? labToRgb(l, av, bv) : defaultColor);
-            rowMap.push(ri);
+        if (data.dataType === 'icc') {
+          // ICC: use pre-evaluated IT8.7/5 Lab values from cachedXYZ
+          const xyz = _gamutState[slot].cachedXYZ;
+          if (xyz) {
+            for (let i = 0; i < xyz.x.length; i++) {
+              const av = xyz.x[i], bv = xyz.y[i], l = xyz.z[i];
+              xs.push(av); ys.push(bv); zs.push(l);
+              colors.push(useHue ? hueToColor(av, bv) : useVal ? labToRgb(l, av, bv) : defaultColor);
+              rowMap.push(i);
+            }
           }
-        });
+        } else {
+          const iA = data.headers.indexOf('LAB_A');
+          const iB = data.headers.indexOf('LAB_B');
+          const iL = data.headers.indexOf('LAB_L');
+          data.rows.forEach((r, ri) => {
+            const av = parseFloat(r[iA]), bv = parseFloat(r[iB]), l = parseFloat(r[iL]);
+            if (!isNaN(av) && !isNaN(bv) && !isNaN(l)) {
+              xs.push(av); ys.push(bv); zs.push(l);
+              colors.push(useHue ? hueToColor(av, bv) : useVal ? labToRgb(l, av, bv) : defaultColor);
+              rowMap.push(ri);
+            }
+          });
+        }
         return {
           tr: { type: 'scatter3d', mode: 'markers', name, x: xs, y: ys, z: zs,
                 hovertemplate: 'L*: %{z:.2f}<br>a*: %{x:.2f}<br>b*: %{y:.2f}<extra></extra>',
@@ -5026,7 +5518,7 @@
       _plotRowMap = [];
       const scatterTraces = traceSpecs.map((spec, i) => {
         const gs = _gamutState[spec.slot];
-        const built = buildTrace(spec.data, spec.name, spec.color, gs.hueOn, gs.valueOn);
+        const built = buildTrace(spec.data, spec.slot, spec.name, spec.color, gs.hueOn, gs.valueOn);
         built.tr.visible = _plotVisible[i] && gs.pointsOn;
         built.tr.showlegend = false;
         _plotRowMap.push(built.rowMap);
@@ -5581,7 +6073,44 @@
       const { a } = state;
       if (!a) return '';
 
-      // ── Area 1: fit statistics (pre-computed during model fitting) ──
+      const isIcc = a.dataType === 'icc';
+      const INP_NUM = 'width:46px;padding:1px 4px;font-size:12px;border:1px solid #ccc;border-radius:3px;text-align:right;-moz-appearance:textfield;';
+      const TH  = 'font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:0.04em;text-align:right;padding-bottom:5px;white-space:nowrap;';
+      const NIF = 'font-family:monospace;font-size:12px;color:#a0b0c8;text-align:right;padding-left:14px;';
+
+      if (isIcc) {
+        // ICC: sliders only — no polynomial stats, no nearest-in-file column
+        const colorantRows = _estimateModel.colorants.map(c => {
+          const val = _estimateInputs[c] ?? 50;
+          return `<tr>
+            <td style="padding:3px 8px 3px 0;font-size:12px;font-weight:bold;color:#555;white-space:nowrap;">${c}</td>
+            <td style="padding:3px 8px 3px 0;"><input type="range" id="est-r-${c}" min="0" max="100" value="${val}" style="width:110px;" oninput="onEstimateInput('${c}',+this.value)"></td>
+            <td style="text-align:right;padding-right:2px;"><input type="number" id="est-n-${c}" min="0" max="100" value="${val}" style="${INP_NUM}" onchange="onEstimateInput('${c}',+this.value)"></td>
+          </tr>`;
+        }).join('');
+
+        const labRows = [['L*','L'],['a*','a'],['b*','b']].map(([label, key]) =>
+          `<tr>
+            <td></td>
+            <td style="padding:3px 4px 3px 0;font-size:12px;font-weight:bold;color:#555;text-align:right;">${label}</td>
+            <td style="text-align:right;padding-right:2px;font-family:monospace;font-size:13px;font-weight:bold;"><span id="est-pred-${key}">—</span></td>
+          </tr>`
+        ).join('');
+
+        return `<div style="padding:12px 16px;">
+          <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">ICC A2B Evaluation</div>
+          <table style="border-collapse:collapse;margin-top:4px;">
+            <tbody>
+              ${colorantRows}
+              <tr><td colspan="3" style="border-top:1px solid #eee;padding-top:4px;"></td></tr>
+              <tr><th></th><th style="${TH}padding-top:4px;">ICC Output</th><th></th></tr>
+              ${labRows}
+            </tbody>
+          </table>
+        </div>`;
+      }
+
+      // ── CSV path: fit statistics + nearest-in-file ──────────────────────────
       const { mean: deMean, max: deMax, min: deMin, stdev: deStd } = _estimateModel.stats;
       const deLabel = fmtMethod(_estimateModel.method);
       const statsHTML = `
@@ -5592,12 +6121,6 @@
           <div><div style="color:#888;margin-bottom:2px;">${t('std_dev')}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${deStd.toFixed(2)}</div></div>
           <div><div style="color:#888;margin-bottom:2px;">${t('points_fitted')}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${_estimateModel.nPts}</div></div>
         </div>`;
-
-      // ── Area 2: table with aligned columns ──
-      // Shared styles
-      const TH  = 'font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:0.04em;text-align:right;padding-bottom:5px;white-space:nowrap;';
-      const NIF = 'font-family:monospace;font-size:12px;color:#a0b0c8;text-align:right;padding-left:14px;'; // nearest-in-file: lighter, cool-tinted
-      const INP_NUM = 'width:46px;padding:1px 4px;font-size:12px;border:1px solid #ccc;border-radius:3px;text-align:right;-moz-appearance:textfield;';
 
       const colorantRows = _estimateModel.colorants.map(c => {
         const val = _estimateInputs[c] ?? 50;
@@ -5651,6 +6174,7 @@
     // Called when the ΔE method changes — does NOT refit the model.
     function recomputeEstimateStats() {
       if (!_estimateModel || !state.a) return;
+      if (state.a.dataType === 'icc') { updateEstimate(); return; }
       const method = document.getElementById('de-method').value;
       const { headers, rows } = state.a;
       const iC = _estimateModel.colorants.map(c => headers.indexOf(c));
@@ -5677,6 +6201,17 @@
     function generateEstimateModel() {
       if (!state.a) return;
       const wrap = document.getElementById('est-wrap');
+
+      if (state.a.dataType === 'icc') {
+        // ICC: no polynomial fit — build a thin model shim so buildEstimateHTML works
+        const icc = _iccState.a;
+        _estimateModel = { colorants: state.a.colorants, isIcc: true };
+        _estimateModel.colorants.forEach(c => { if (!(_estimateInputs[c] >= 0)) _estimateInputs[c] = 50; });
+        if (wrap) wrap.innerHTML = buildEstimateHTML();
+        updateEstimate();
+        return;
+      }
+
       if (wrap) wrap.innerHTML = `<div style="padding:12px 16px;color:#888;font-size:12px;">${t('computing_model')}</div>`;
       setDatasetStatus('a', t('status_building_gamut'));
       buildGamutCache('a').then(() => {
@@ -5700,6 +6235,21 @@
     function updateEstimate() {
       if (!_estimateModel || !state.a) return;
       const vals = _estimateModel.colorants.map(c => _estimateInputs[c] ?? 50);
+
+      if (state.a.dataType === 'icc') {
+        const icc = _iccState.a;
+        if (!icc.handleId || !window.Gamut) return;
+        let pred;
+        try { pred = Gamut.evalIccA2BSync(icc.handleId, vals, icc.renderingIntent); }
+        catch (e) { pred = {}; }
+        const channels = [['L','L'],['a','a'],['b','b']];
+        channels.forEach(([key]) => {
+          const pEl = document.getElementById('est-pred-' + key);
+          if (pEl) pEl.textContent = isFinite(pred[key]) ? pred[key].toFixed(2) : '—';
+        });
+        return;
+      }
+
       const pred = evalPolynomialModel(_estimateModel, vals);
       const near = findNearestInFile(vals, state.a.headers, state.a.rows, _estimateModel.colorants);
       _estimateModel.colorants.forEach((c, i) => {
@@ -5729,7 +6279,50 @@
     // Returns a Promise that resolves when both model and mesh are ready.
     async function buildGamutCache(slot) {
       const data = state[slot];
-      if (!data || !data.rows || data.rows.length === 0) return;
+      if (!data) return;
+
+      // ── ICC profile path ───────────────────────────────────────────────────
+      if (data.dataType === 'icc') {
+        const icc = _iccState[slot];
+        if (!icc.handleId || !window.Gamut) return;
+        const intent = icc.renderingIntent;
+        const isCmyk = data.colorants.length === 4 &&
+                       data.colorants[0] === 'CYAN';
+
+        // Pre-evaluate IT8.7/5 patches (CMYK profiles only) — used for scatter
+        // cloud display and Compare mode matching.
+        if (isCmyk) {
+          const labValues = Gamut.evalIccBatchSync(icc.handleId, IT875_PATCHES, intent);
+          icc.patchLabValues = labValues;
+          _gamutState[slot].cachedXYZ = {
+            x: labValues.map(v => v.a),
+            y: labValues.map(v => v.b),
+            z: labValues.map(v => v.L)
+          };
+        }
+
+        try {
+          const nC = data.colorants.length;
+          const steps = Gamut.BOUNDARY_STEPS[Math.min(nC, Gamut.BOUNDARY_STEPS.length - 1)] || 3;
+          const mesh = await Gamut.buildIccGamutMesh(icc.handleId, intent, steps);
+          _gamutState[slot].cachedMesh  = mesh;
+          _gamutState[slot].cachedModel = null;
+
+          // If no XYZ from patches (non-CMYK), derive from mesh vertices
+          if (!_gamutState[slot].cachedXYZ && mesh && mesh.vertices && mesh.vertices.length) {
+            const x = [], y = [], z = [];
+            for (const v of mesh.vertices) { x.push(v[1]); y.push(v[2]); z.push(v[0]); }
+            _gamutState[slot].cachedXYZ = { x, y, z };
+          }
+        } catch (e) {
+          console.error('compwas: ICC gamut build failed for slot', slot, e);
+          _gamutState[slot].cachedMesh = null;
+        }
+        return;
+      }
+
+      // ── CSV / CGATS path (existing) ────────────────────────────────────────
+      if (!data.rows || data.rows.length === 0) return;
       const iA = data.headers.indexOf('LAB_A');
       const iB = data.headers.indexOf('LAB_B');
       const iL = data.headers.indexOf('LAB_L');
@@ -5948,15 +6541,22 @@
 
       const axisCode = axis === 'L' ? 0 : axis === 'a' ? 1 : 2;
       const traces = await Promise.all(specs.map(async spec => {
-        const model = _modelForSlot(spec.slot);
         const empty = { type: 'scatter', x: [], y: [], name: spec.name, mode: 'lines', line: { color: spec.color } };
-        if (!model) return empty;
-        const steps = Gamut.SLICE_FACE_STEPS[Math.min(model.nColorants, Gamut.SLICE_FACE_STEPS.length - 1)] || 4;
         let result;
         try {
-          result = await Gamut.buildSlice(model, axisCode, value, steps);
+          if (_slotIsIcc(spec.slot)) {
+            const icc = _iccState[spec.slot];
+            const nC  = state[spec.slot].colorants.length;
+            const steps = Gamut.SLICE_FACE_STEPS[Math.min(nC, Gamut.SLICE_FACE_STEPS.length - 1)] || 4;
+            result = await Gamut.buildIccSlice(icc.handleId, icc.renderingIntent, axisCode, value, steps);
+          } else {
+            const model = _modelForSlot(spec.slot);
+            if (!model) return empty;
+            const steps = Gamut.SLICE_FACE_STEPS[Math.min(model.nColorants, Gamut.SLICE_FACE_STEPS.length - 1)] || 4;
+            result = await Gamut.buildSlice(model, axisCode, value, steps);
+          }
         } catch (e) {
-          console.warn('buildSlice failed:', e);
+          console.warn('buildSlice/buildIccSlice failed:', e);
           return empty;
         }
         const hull = result.polygon;
