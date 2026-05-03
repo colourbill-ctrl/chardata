@@ -285,62 +285,58 @@ function diag_compare() {
 
 // ── Diagram 4: Settings Panel ─────────────────────────────────────────────────
 function diag_settings() {
-  const W=380, H=360;
-  let b = '';
-  b += R(0,0,W,H,'bg',0);
-
-  // Blade panel
-  b += R(10,10,W-20,H-20,'pnl');
-  b += R(10,10,38,34,'btn',0); b += T(29,31,'⚙','t2');
-  b += R(10,46,38,34,'btn',0); b += T(29,67,'?','t2');
-  b += L(48,10,48,H-10);
-
+  const W=380;
   const SX=58, SW=W-68;
+  const VALW=110;          // value-dropdown width
+  const VALX=SX+SW-VALW-4; // value-dropdown x
 
-  b += T(SX+SW/2, 26, 'Settings', 'tT');
-  b += L(SX,36,SX+SW,36);
-
-  const groups = [
-    { label:'ΔE Method', opts:['ΔEab','ΔE94','ΔE00 ✓'] },
-    { label:'Filter Duplicates', opts:['Yes ✓','No'] },
-    { label:'Filter Method', opts:['Median ✓','Mean'] },
-  ];
-
+  let content = '';
   let gy = 46;
-  for (const g of groups) {
-    b += T(SX+4, gy+14, g.label, 't2 tB', 'start');
-    gy += 18;
-    for (const o of g.opts) {
-      const active = o.includes('✓');
-      b += R(SX+4, gy, SW-8, 18, active ? 'act' : 'btn', 3);
-      b += T(SX+4+8, gy+13, o.replace(' ✓',''), active ? 'tW' : 't2', 'start');
-      gy += 22;
-    }
-    b += L(SX,gy+4,SX+SW,gy+4);
-    gy += 10;
-  }
 
-  b += T(SX+4, gy+14, 'Spectral → LAB', 't2 tB', 'start'); gy += 20;
-  [['Illuminant','D50 ✓','D65'],['Observer','2° ✓','10°'],['M-Condition','M0 ✓','M1','M2']].forEach(row => {
-    b += T(SX+4, gy+12, row[0], 't3', 'start'); gy += 16;
-    row.slice(1).forEach(o => {
-      const active = o.includes('✓');
-      b += R(SX+4, gy, 54, 16, active ? 'act' : 'btn', 3);
-      b += T(SX+4+27, gy+12, o.replace(' ✓',''), active ? 'tW' : 't3');
-      SX; gy += 0;  // inline
-    });
+  const row = (label, value) => {
+    content += T(SX+4, gy+13, label, 't3', 'start');
+    content += R(VALX, gy, VALW, 18, 'btn', 3);
+    content += T(VALX+8, gy+13, value, 't2', 'start');
+    content += T(VALX+VALW-8, gy+13, '▾', 't3', 'end');
+    gy += 24;
+  };
+  const section = (label) => {
+    content += T(SX+4, gy+13, label, 't2 tB', 'start');
     gy += 20;
-  });
+  };
+  const divider = () => {
+    content += L(SX, gy, SX+SW, gy);
+    gy += 10;
+  };
 
-  b += L(SX,gy,SX+SW,gy); gy += 8;
-  b += T(SX+4, gy+14, 'Background', 't2 tB', 'start'); gy += 18;
-  ['System ✓','Light','Dark'].forEach((o,i) => {
-    const active = o.includes('✓');
-    b += R(SX+4+i*70, gy, 66, 18, active ? 'act' : 'btn', 3);
-    b += T(SX+4+i*70+33, gy+13, o.replace(' ✓',''), active ? 'tW' : 't3');
-  });
+  row('ΔE Method', 'ΔE00');
+  row('Filter Duplicates', 'Yes');
+  row('Filter Method', 'Median');
+  divider();
+  section('Spectral → LAB');
+  row('Illuminant', 'D50');
+  row('Standard Observer', '2°');
+  row('M-Condition', 'M0');
+  divider();
+  section('Model');
+  row('Weighted', 'Off');
+  divider();
+  section('Display');
+  row('Background', 'System');
+  row('Language', 'System default');
 
-  return svg(W, H, b);
+  const H = gy + 14;
+
+  let chrome = '';
+  chrome += R(0,0,W,H,'bg',0);
+  chrome += R(10,10,W-20,H-20,'pnl');
+  chrome += R(10,10,38,34,'btn',0); chrome += T(29,31,'⚙','t2');
+  chrome += R(10,46,38,34,'btn',0); chrome += T(29,67,'?','t2');
+  chrome += L(48,10,48,H-10);
+  chrome += T(SX+SW/2, 26, 'Settings', 'tT');
+  chrome += L(SX,36,SX+SW,36);
+
+  return svg(W, H, chrome + content);
 }
 
 // ── Diagram 5: 3D Gamut Plot Controls ────────────────────────────────────────
