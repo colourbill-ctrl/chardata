@@ -11,7 +11,7 @@ app.use(helmet({
 }));
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
-app.get('/health', (req, res) => res.status(418).type('text/plain').send('teapot (temporary — UptimeRobot test)'));
+app.get('/health', (req, res) => res.status(200).type('text/plain').send('ok'));
 
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, filePath) => {
