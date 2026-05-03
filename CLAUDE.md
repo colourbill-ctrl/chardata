@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Running
 
@@ -37,12 +37,16 @@ Gamut math (polynomial model fitting, 3D mesh generation, 2D slice, ICC profile 
 | `Gamut.buildGamutMesh(model, steps)` | Build 3D mesh via boundary-cloud triangulation; returns `{vertices, triangles}` |
 | `Gamut.buildSlice(model, axis, value, steps)` | 2D gamut slice at fixed Lab axis; axis: 0=L*, 1=a*, 2=b*; returns `{polygon, raw}` |
 | `Gamut.loadIccProfile(bytes)` | Validate + load ICC profile bytes; returns handle JSON or `{error}` |
-| `Gamut.evalIccA2B(handleId, intent, vals)` / `evalIccBatch(...)` / `evalIccBatchSync(...)` | Run colorant values through the profile's A2B table at the given rendering intent |
+| `Gamut.evalIccA2BSync(handleId, vals, intent)` / `evalIccBatchSync(...)` | **Sync** — single/batch A2B eval; require `preload()` to have resolved first |
 | `Gamut.buildIccGamutMesh(handleId, intent, steps)` | 3D shell from ICC profile sampled at boundary cube |
 | `Gamut.buildIccSlice(handleId, intent, axis, value, steps)` | 2D slice from ICC profile |
-| `Gamut.BOUNDARY_STEPS`, `Gamut.SLICE_FACE_STEPS` | Default sampling steps per colorant count |
+| `Gamut.BOUNDARY_STEPS`, `Gamut.SLICE_FACE_STEPS` | Default sampling steps per colorant count (indexed 0..15) |
 
-lcms2 expects 0..100 inputs for ink colour spaces (CMYK/CMY) and 0..1 for non-ink (RGB/Gray). The wrapper tracks this via `IccProfile::inputMax`; do not reintroduce a blanket `/100.0` scale.
+**Supported ICC color spaces**: CMYK, CMY, RGB, Gray, and NCLR 2..15 channels (`cmsSig{N}colorData`). NCLR profiles get real ink names from `cmsSigColorantTableTag` when present; otherwise the wrapper synthesises generic `Ink1..InkN` names.
+
+lcms2 expects 0..100 inputs for ink colour spaces (CMYK, CMY, NCLR 5..15ch — anything `IsInkSpace` returns true for) and 0..1 for non-ink (RGB/Gray). The wrapper tracks this via `IccProfile::inputMax`; do not reintroduce a blanket `/100.0` scale.
+
+**Sampling caveat**: `BOUNDARY_STEPS`/`SLICE_FACE_STEPS` shrink fast with channel count because mesh vertices grow as `C(N,2) * 2^(N-2) * (steps+1)^2`. For N≥12, even the floor of `steps=2` is best-effort and may OOM in WASM. Don't bump those defaults without measuring.
 
 ### Data flow
 
@@ -75,9 +79,21 @@ File detection happens up front: `_sniffIcc(buffer)` checks bytes 36..39 for the
 
 Required columns: `CYAN`, `MAGENTA`, `YELLOW`, `BLACK`, `LAB_L`, `LAB_A`, `LAB_B`.
 
+### Known limitations
+
+- **NCLR-vs-NCLR Compare** currently aligns colorants by the hardcoded CMYK index at `index.html:5581` (tracked: GitHub issue #2). Comparing two N>4 profiles will silently mis-align channels past the first four.
+
 ### i18n
 
 Strings live in an `I18N` dictionary inside `index.html` with 11 supported languages plus EN fallback (`I18N[lang][key] ?? I18N.en[key] ?? key`). The canonical source is `translations/Eng-*.xlsx` — when adding strings, update both the dictionary and the spreadsheets so the next translation pass stays in sync. The `xlsx` npm package is the usual tool for batch-updating the spreadsheets from a script.
+
+Drift audit: `node scripts/check-translations.js` compares each xlsx column 0 against the EN values in the I18N dict and reports missing/extra rows. The `_BP`, `_BP2`, and `-BM` xlsx files are external-reviewer artifacts whose content has already been incorporated — ignore them when auditing.
+
+### Server
+
+`server.js` exposes two endpoints beyond the static middleware:
+- `GET /favicon.ico` → 204 (so the browser stops asking).
+- `GET /health` → 200 `text/plain` "ok". Used by UptimeRobot for outside-in monitoring; keep it cheap and dependency-free.
 
 ### Help / MANUAL.md
 
