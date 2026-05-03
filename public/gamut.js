@@ -26,9 +26,14 @@
   const WASM_BIN_URL  = '/wasm/compwas-gamut.wasm';
 
   // Default grid density by colorant count (index = nColorants).
-  // Matches compare's BOUNDARY_STEPS / SLICE_FACE_STEPS constants.
-  const BOUNDARY_STEPS   = [0, 50, 40, 14,  7,  5, 3];
-  const SLICE_FACE_STEPS = [0, 50, 40, 14, 10,  6, 4];
+  // Mesh vertex count grows as C(N,2) * 2^(N-2) * (steps+1)^2, so steps must
+  // shrink fast for high N. Past ~N=10 even the minimum (steps=2) is heavy;
+  // 12+ may OOM in WASM. NCLR profiles up to 15 channels are still attempted,
+  // best-effort. Slice memory is bounded per-face, so SLICE_FACE_STEPS is more
+  // generous than BOUNDARY_STEPS.
+  //                          0   1   2   3   4  5  6  7  8  9 10 11 12 13 14 15
+  const BOUNDARY_STEPS   = [  0, 50, 40, 14,  7, 5, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2];
+  const SLICE_FACE_STEPS = [  0, 50, 40, 14, 10, 6, 4, 4, 3, 3, 2, 2, 2, 2, 2, 2];
 
   // ── Module loading ──────────────────────────────────────────────────────────
   let modulePromise = null;

@@ -569,13 +569,73 @@ static std::string sig4str(cmsUInt32Number sig) {
 // FLOAT_SH(1)|COLORSPACE_SH(PT_CMY)|CHANNELS_SH(3)|BYTES_SH(0) == 3-channel 64-bit float.
 #define TYPE_CMY_DBL (FLOAT_SH(1)|COLORSPACE_SH(PT_CMY)|CHANNELS_SH(3)|BYTES_SH(0))
 
+// Generic NCLR pixel format (n=2..15). lcms2 doesn't define TYPE_MCHn_DBL macros;
+// synthesise from PT_MCH1..PT_MCH15 (PT_MCH1 + (n-1) == PT_MCHn).
+static cmsUInt32Number nclrFmt(int n) {
+    if (n < 2 || n > 15) return 0;
+    return FLOAT_SH(1) | COLORSPACE_SH(PT_MCH1 + (n - 1)) | CHANNELS_SH(n) | BYTES_SH(0);
+}
+
 static cmsUInt32Number csInputFmt(cmsColorSpaceSignature cs) {
     switch (cs) {
         case cmsSigCmykData: return TYPE_CMYK_DBL;
         case cmsSigRgbData:  return TYPE_RGB_DBL;
         case cmsSigGrayData: return TYPE_GRAY_DBL;
         case cmsSigCmyData:  return TYPE_CMY_DBL;
+        // Generic NCLR (multi-colorant) profiles. Channel count comes from the
+        // signature: cmsSig{N}colorData -> N channels.
+        case cmsSig2colorData:  return nclrFmt(2);
+        case cmsSig3colorData:  return nclrFmt(3);
+        case cmsSig4colorData:  return nclrFmt(4);
+        case cmsSig5colorData:  return nclrFmt(5);
+        case cmsSig6colorData:  return nclrFmt(6);
+        case cmsSig7colorData:  return nclrFmt(7);
+        case cmsSig8colorData:  return nclrFmt(8);
+        case cmsSig9colorData:  return nclrFmt(9);
+        case cmsSig10colorData: return nclrFmt(10);
+        case cmsSig11colorData: return nclrFmt(11);
+        case cmsSig12colorData: return nclrFmt(12);
+        case cmsSig13colorData: return nclrFmt(13);
+        case cmsSig14colorData: return nclrFmt(14);
+        case cmsSig15colorData: return nclrFmt(15);
         default:             return 0;
+    }
+}
+
+// True if the device color space is treated as ink (0..100 range) by lcms2.
+// Mirrors lcms2's IsInkSpace in cmspack.c plus our explicit CMY case.
+static bool csIsInkSpace(cmsColorSpaceSignature cs) {
+    switch (cs) {
+        case cmsSigCmykData:
+        case cmsSigCmyData:
+        case cmsSig5colorData:
+        case cmsSig6colorData:
+        case cmsSig7colorData:
+        case cmsSig8colorData:
+        case cmsSig9colorData:
+        case cmsSig10colorData:
+        case cmsSig11colorData:
+        case cmsSig12colorData:
+        case cmsSig13colorData:
+        case cmsSig14colorData:
+        case cmsSig15colorData:
+            return true;
+        default:
+            return false;
+    }
+}
+
+// True if the color space is a generic NCLR signature (cmsSig{N}colorData).
+static bool csIsNclr(cmsColorSpaceSignature cs) {
+    switch (cs) {
+        case cmsSig2colorData:  case cmsSig3colorData:  case cmsSig4colorData:
+        case cmsSig5colorData:  case cmsSig6colorData:  case cmsSig7colorData:
+        case cmsSig8colorData:  case cmsSig9colorData:  case cmsSig10colorData:
+        case cmsSig11colorData: case cmsSig12colorData: case cmsSig13colorData:
+        case cmsSig14colorData: case cmsSig15colorData:
+            return true;
+        default:
+            return false;
     }
 }
 
@@ -592,6 +652,26 @@ static std::vector<std::string> csColorantNames(cmsColorSpaceSignature cs) {
             return names;
         }
     }
+}
+
+// Try to read the ICC colorantTableTag for actual ink names (e.g. "Cyan",
+// "Orange", "Violet" on an extended-gamut printer profile). Returns an empty
+// vector on any failure; caller should fall back to csColorantNames.
+static std::vector<std::string> readColorantTable(cmsHPROFILE h, int expectedN) {
+    std::vector<std::string> names;
+    if (!cmsIsTag(h, cmsSigColorantTableTag)) return names;
+    cmsNAMEDCOLORLIST* list = (cmsNAMEDCOLORLIST*)cmsReadTag(h, cmsSigColorantTableTag);
+    if (!list) return names;
+    int n = (int)cmsNamedColorCount(list);
+    if (n != expectedN) return names;
+    for (int i = 0; i < n; i++) {
+        char nm[33] = {0};
+        if (!cmsNamedColorInfo(list, i, nm, nullptr, nullptr, nullptr, nullptr)) {
+            return {};
+        }
+        names.push_back(nm);
+    }
+    return names;
 }
 
 // Get or create a Lab4 transform for the given rendering intent (0–3).
@@ -655,14 +735,23 @@ static std::string loadIccProfile(const std::string& base64Data) {
     prof.colorSpace  = sig4str((cmsUInt32Number)cs);
     prof.deviceClass = sig4str((cmsUInt32Number)cls);
     prof.description = std::string(descBuf);
-    // Ink spaces (CMYK, CMY) take 0..100; non-ink (RGB, GRAY) take 0..1.
-    prof.inputMax    = (cs == cmsSigCmykData || cs == cmsSigCmyData) ? 100.0 : 1.0;
+    // Ink spaces (CMYK, CMY, NCLR ≥5ch) take 0..100 per lcms2's IsInkSpace
+    // convention; non-ink (RGB, GRAY, 2-4CLR generic) take 0..1.
+    prof.inputMax    = csIsInkSpace(cs) ? 100.0 : 1.0;
 
     int handle = gNextIccHandle++;
     gIccProfiles[handle] = std::move(prof);
 
     auto& stored = gIccProfiles[handle];
     auto  names  = csColorantNames(cs);
+
+    // For NCLR profiles, prefer the colorantTableTag (per ICC spec, expected to
+    // be present on N-color output profiles) so we surface real ink names like
+    // "Cyan", "Orange", "Violet" instead of generic CH1..CHn.
+    if (csIsNclr(cs)) {
+        auto tableNames = readColorantTable(h, stored.nColorants);
+        if (!tableNames.empty()) names = std::move(tableNames);
+    }
 
     json r;
     r["handle"]      = handle;
