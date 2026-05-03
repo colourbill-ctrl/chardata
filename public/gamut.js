@@ -2,10 +2,16 @@
  * gamut.js — WASM loader and JS wrapper for the compwas gamut module.
  *
  * Exposes window.Gamut = {
- *   preload()                              → Promise<void>
- *   fitModel(data)                         → Promise<model>
- *   buildGamutMesh(model, steps)           → Promise<{vertices, triangles}>
- *   buildSlice(model, axis, value, steps)  → Promise<{polygon, raw}>
+ *   preload()                                          → Promise<void>
+ *   fitModel(data)                                     → Promise<model>
+ *   buildGamutMesh(model, steps)                       → Promise<{vertices, triangles}>
+ *   buildSlice(model, axis, value, steps)              → Promise<{polygon, raw}>
+ *   loadIccProfile(arrayBuffer)                        → Promise<{handle, colorSpace, ...}>
+ *   evalIccA2BSync(handleId, colorants[], intent)      → {L, a, b}   (sync — needs preload)
+ *   evalIccBatchSync(handleId, patches[][], intent)    → [{L,a,b}]  (sync — needs preload)
+ *   buildIccGamutMesh(handleId, intent, steps)         → Promise<{vertices, triangles}>
+ *   buildIccSlice(handleId, intent, axis, value, steps)→ Promise<{polygon, raw}>
+ *   freeIccProfile(handleId)                           → void
  *   BOUNDARY_STEPS   []   — default steps per colorant count (3D mesh)
  *   SLICE_FACE_STEPS []   — default steps per colorant count (2D slice)
  * }
@@ -26,6 +32,7 @@
 
   // ── Module loading ──────────────────────────────────────────────────────────
   let modulePromise = null;
+  let _mod = null;  // cached module reference for synchronous calls after preload
 
   function getModule() {
     if (modulePromise) return modulePromise;
@@ -52,7 +59,9 @@
         URL.revokeObjectURL(blobUrl);
       }
 
-      return createModule();
+      const m = await createModule();
+      _mod = m;
+      return m;
     })();
     return modulePromise;
   }
@@ -141,12 +150,95 @@
     }
   }
 
+  // ── ICC helpers ─────────────────────────────────────────────────────────────
+
+  // Encode ArrayBuffer → base64 string in 8 KB chunks (avoids stack overflow
+  // with large profiles when using String.fromCharCode spread).
+  function arrayBufferToBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += 8192) {
+      binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + 8192, bytes.length)));
+    }
+    return btoa(binary);
+  }
+
+  /**
+   * Load an ICC profile from an ArrayBuffer.
+   * Returns { handle, colorSpace, deviceClass, description, nColorants,
+   *           colorants[], intents[] }
+   */
+  async function loadIccProfile(arrayBuffer) {
+    const mod = await getModule();
+    try {
+      const b64 = arrayBufferToBase64(arrayBuffer);
+      return JSON.parse(mod.loadIccProfile(b64));
+    } catch (e) {
+      throw unwrapError(mod, e);
+    }
+  }
+
+  /**
+   * Synchronous single-point A2B evaluation.
+   * Requires preload() to have resolved before calling.
+   * colorants: 0–100 values.
+   */
+  function evalIccA2BSync(handleId, colorants, intent) {
+    if (!_mod) throw new Error('WASM not yet loaded — call Gamut.preload() first');
+    return JSON.parse(_mod.evalIccA2B(handleId, JSON.stringify(colorants), intent));
+  }
+
+  /**
+   * Synchronous batch A2B evaluation — one cmsDoTransform call for all patches.
+   * patches: array of colorant arrays (0–100 each).
+   */
+  function evalIccBatchSync(handleId, patches, intent) {
+    if (!_mod) throw new Error('WASM not yet loaded — call Gamut.preload() first');
+    return JSON.parse(_mod.evalIccBatch(handleId, JSON.stringify(patches), intent));
+  }
+
+  /**
+   * Build a 3D gamut mesh via the ICC A2B CLUT (same 2-skeleton as buildGamutMesh).
+   */
+  async function buildIccGamutMesh(handleId, intent, steps) {
+    const mod = await getModule();
+    try {
+      return JSON.parse(mod.buildIccGamutMesh(handleId, intent, steps));
+    } catch (e) {
+      throw unwrapError(mod, e);
+    }
+  }
+
+  /**
+   * Compute the 2D gamut slice via the ICC A2B CLUT.
+   * axis: 0=L*, 1=a*, 2=b*
+   */
+  async function buildIccSlice(handleId, intent, axis, value, steps) {
+    const mod = await getModule();
+    try {
+      return JSON.parse(mod.buildIccSlice(handleId, intent, axis, value, steps));
+    } catch (e) {
+      throw unwrapError(mod, e);
+    }
+  }
+
+  /** Release an ICC profile handle and its cached transforms. */
+  function freeIccProfile(handleId) {
+    if (_mod) _mod.freeIccProfile(handleId);
+  }
+
   // ── Export ──────────────────────────────────────────────────────────────────
   window.Gamut = {
     preload,
     fitModel,
     buildGamutMesh,
     buildSlice,
+    loadIccProfile,
+    evalIccA2BSync,
+    evalIccBatchSync,
+    buildIccGamutMesh,
+    buildIccSlice,
+    freeIccProfile,
     BOUNDARY_STEPS,
     SLICE_FACE_STEPS,
   };

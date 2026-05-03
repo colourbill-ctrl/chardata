@@ -8,7 +8,14 @@ STAGED=$(git diff --cached --name-only)
 
 if echo "$STAGED" | grep -qE '^gamut-wasm/'; then
     echo "gamut-wasm source changed — rebuilding WASM..."
-    wsl bash -c "cd /mnt/c/Users/colou/code/compwas && scripts/build-wasm.sh"
+    # Emscripten lives in WSL on this machine. If we're already inside WSL
+    # (e.g., committing from a WSL shell), invoke the build script directly;
+    # otherwise hop into WSL via the `wsl` interop.
+    if [ -n "$WSL_DISTRO_NAME" ] || grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null; then
+        scripts/build-wasm.sh
+    else
+        wsl bash -c "cd /mnt/c/Users/colou/code/compwas && scripts/build-wasm.sh"
+    fi
     if [ $? -ne 0 ]; then
         echo ""
         echo "ERROR: WASM build failed — commit aborted."

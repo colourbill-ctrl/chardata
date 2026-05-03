@@ -56,13 +56,14 @@
   <h1>CharData Help</h1>
   <p class="subtitle">Browser-based colour characterisation data explorer and comparator</p>
 
-<p><strong>CharData</strong> is a browser-based tool for exploring and comparing colour characterisation datasets — the collections of device colorant and L*a*b* measurement data generated when profiling printing systems. It runs entirely in your browser with no installation required, and works on both desktop and mobile.</p>
-<p>A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L*a*b* colorimetry and, optionally, spectral reflectance. CharData accepts these files in <strong>CGATS/IT8</strong> and <strong>CSV</strong> formats.</p>
+<p><strong>CharData</strong> is a browser-based tool for exploring and comparing colour characterisation datasets and ICC profiles. It runs entirely in your browser with no installation required, and works on both desktop and mobile.</p>
+<p>A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L*a*b* colorimetry and, optionally, spectral reflectance. CharData accepts these files in <strong>CGATS/IT8</strong> and <strong>CSV</strong> formats. CharData also accepts <strong>ICC profiles</strong> (output, input, and display classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.</p>
 <p><strong>What you can do with CharData:</strong></p>
 <ul>
-<li><strong>Explore a single dataset</strong> — browse the data table, visualise the colour gamut in 3D L*a*b* space, examine a 2D slice at any L*, a*, or b* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L*a*b* for any device colorant combination.</li>
-<li><strong>Compare two datasets</strong> — see a row-by-row ΔE table for matched patches, with summary statistics (mean, min, max, std dev), and view both gamuts and tone value curves overlaid on the same charts.</li>
+<li><strong>Explore a single dataset or profile</strong> — browse the data table, visualise the colour gamut in 3D L*a*b* space, examine a 2D slice at any L*, a*, or b* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L*a*b* for any device colorant combination.</li>
+<li><strong>Compare two datasets, two profiles, or one of each</strong> — see a row-by-row ΔE / ΔL* / ΔC* / ΔH* / Δh* table for matched patches, with summary statistics (mean, min, max, std dev), and view both gamuts and tone value curves overlaid on the same charts.</li>
 <li><strong>Work with spectral data</strong> — if spectral reflectance columns are present, CharData computes L*a*b* from them using a selectable illuminant (D50/D65), observer (2°/10°), and M-condition (M0/M1/M2), and can display the spectral curve for any clicked data point.</li>
+<li><strong>Switch rendering intent</strong> — for ICC profiles, change between Perceptual / Relative Colorimetric / Saturation / Absolute Colorimetric and have every view (3D shell, 2D slice, comparison table, tone curves, estimate) recompute against the new transform.</li>
 </ul>
 <p>The suggested workflow is to load an entire directory of characterisation files via the File Select panel, then pick individual files to explore or compare.</p>
 
@@ -174,26 +175,58 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 </tbody></table>
 <h3 id="spectral-data">Spectral data</h3>
 <p>If the file contains spectral reflectance columns (named <code>NMxxx</code>, <code>NM_xxx</code>, or <code>SPECTRAL_NMxxx</code>, where <code>xxx</code> is the wavelength in nm), CharData can compute L*a*b* from the spectral data instead of using the file's pre-computed LAB values. See <a href="#spectral-lab">Settings — Spectral → LAB</a>.</p>
+<h3 id="icc-profiles">ICC profiles</h3>
+<p>CharData also accepts ICC profiles (<code>.icc</code>, <code>.icm</code>). A file is recognised as an ICC profile by checking for the <code>acsp</code> signature at byte offset 36 of the binary header — files that don't carry that magic are rejected.</p>
+<table><thead>
+<tr><th>Supported</th><th>Notes</th></tr></thead><tbody>
+<tr><td>Output / Input / Display class</td><td>Other classes (link, abstract, etc.) are rejected</td></tr>
+<tr><td>CMYK, CMY, RGB, GRAY device color spaces</td><td>Other spaces are rejected</td></tr>
+<tr><td>All four ICC rendering intents</td><td>Only those actually present in the profile are selectable; unsupported intents are greyed out</td></tr>
+</tbody></table>
+<p>When a profile loads, CharData treats it as a virtual dataset evaluated on demand through the profile's A2B (device-to-Lab) transform at the chosen rendering intent. CMYK profiles are pre-evaluated against the standard IT8.7/5 patch set so that 3D scatter clouds and ΔE comparisons against another dataset are immediate.</p>
 <hr>
 <h2 id="2-loading-datasets">2. Loading datasets</h2>
-<p>Files can be loaded via the <strong>Dataset A</strong> and <strong>Dataset B</strong> panels in the <strong>File Select</strong> panel (left side of the screen).</p>
+<p>Files (datasets and profiles) load through the <strong>File Select</strong> panel on the left edge of the screen.</p>
 <ul>
-<li>On <strong>desktop</strong>, click the narrow tab on the left edge of the screen to open/close the File Select panel. The panel slides over the content without resizing it.</li>
+<li>On <strong>desktop</strong>, click the narrow tab on the left edge of the screen to open/close the File Select panel. The panel slides over the content without resizing it. Drag the <strong>right edge of the panel</strong> (vertical grip dots) to widen or narrow it; the width is remembered across sessions.</li>
 <li>On <strong>mobile</strong>, tap the folder icon (bottom-right) to open/close File Select.</li>
-<li><strong>Drag and drop</strong> a file from your file system directly onto a Dataset panel, or use the file picker button.</li>
-<li>Click <strong>Display File</strong> (after a file is loaded) to view its data table.</li>
 </ul>
-<p>Once a file loads successfully, the panel shows:</p>
+<p>The panel is split into two collapsible sections:</p>
+<table><thead>
+<tr><th>Section</th><th>Contains</th></tr></thead><tbody>
+<tr><td><strong>Characterization data</strong></td><td>CSV and CGATS/IT8 files</td></tr>
+<tr><td><strong>ICC Profiles</strong></td><td><code>.icc</code> / <code>.icm</code> binary profiles</td></tr>
+</tbody></table>
+<p>Click a section header (▾) to collapse or expand that section; the state persists between sessions. The button at the top loads files of either kind — CharData detects each file's type and routes it into the correct section automatically.</p>
 <ul>
-<li>File name</li>
-<li>File type (CSV / CGATS / ISO 28178)</li>
-<li>Number of rows (after deduplication, if enabled)</li>
-<li>Column validation result</li>
+<li><strong>Drag and drop</strong> files from your file system directly onto a Dataset panel or anywhere inside the File Select panel.</li>
+<li><strong>Drag a card</strong> from the File Select panel onto Dataset A or Dataset B to assign it.</li>
+<li><strong>Click a card</strong> to assign it to the next available slot (Explore mode → A; Compare mode → first empty of A / B).</li>
+<li>Click <strong>Display File</strong> (after a dataset loads) to view its data table. Display File is disabled for ICC profiles, which are binary.</li>
 </ul>
-<p>If required columns are missing (LAB or no device colorants detected), the file is rejected with a specific error message. The G7 report additionally requires CMYK colorants and will show a targeted error if they are absent.</p>
+<p>Once a file loads, the slot panel shows:</p>
+<table><thead>
+<tr><th>Type</th><th>Information shown</th></tr></thead><tbody>
+<tr><td>CSV</td><td>File name, type <strong>CSV</strong>, row count, validation, device colorants, spectral status</td></tr>
+<tr><td>CGATS / ISO 28178</td><td>File name, type <strong>Characterization dataset</strong>, row count, validation, device colorants, spectral status</td></tr>
+<tr><td>ICC profile</td><td>File name, type <strong>ICC Profile</strong>, color space + colorants, <strong>Rendering intent</strong> dropdown</td></tr>
+</tbody></table>
+<p>Row counts, CGATS header warnings, and the "Colorimetric only" message are not shown for ICC profiles — they don't apply.</p>
+<p>If a CSV/CGATS file is missing required columns (LAB or any device colorant), it is rejected with a specific error message. The G7 report additionally requires CMYK colorants. ICC profiles that fail header validation, or whose device class or color space is unsupported, are rejected with a matching message.</p>
 <div class="note">
 <strong>CGATS header note:</strong> If the first line of a CGATS/IT8 file does not contain <code>CGATS</code> or <code>ISO28178</code>, a warning is shown but the file is still loaded and processed normally.
 </div>
+<h3 id="rendering-intent">Rendering intent</h3>
+<p>When a slot holds an ICC profile, the slot panel shows a <strong>Rendering intent</strong> dropdown directly below its colorants line. The default is <strong>Absolute Colorimetric</strong> (or the first intent the profile supports if Absolute is absent). Intents not encoded in the profile are greyed out.</p>
+<p>Changing the intent immediately recomputes:</p>
+<ul>
+<li>The 3D gamut shell and IT8.7/5 patch cloud for that slot.</li>
+<li>The 2D gamut slice for that slot.</li>
+<li>The Comparison Table, all difference columns, and the summary statistics (in Compare mode with both slots loaded).</li>
+<li>The Tone Value chart (the Y-axis range is recomputed against the new data).</li>
+<li>The Estimate prediction (re-evaluates on the next slider move).</li>
+</ul>
+<p>The Rendering intent control is only visible when the slot holds an ICC profile.</p>
 <hr>
 <h2 id="3-settings-panel">3. Settings panel</h2>
 
@@ -315,7 +348,8 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <text x="221" y="0" text-anchor="end" class="t3">Active mode</text><line x1="186" y1="72" x2="710" y2="72" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="710" y="69" text-anchor="start" class="t3">Collapsed section (click to expand)</text><line x1="186" y1="118" x2="710" y2="118" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="710" y="115" text-anchor="start" class="t3">Expanded section</text>
-</svg><p>Explore mode works with a single dataset (Dataset A). Select it with the <strong>Explore</strong> button at the top.</p>
+</svg><p>Explore mode works with a single slot (A) holding either a characterization dataset or an ICC profile. Select it with the <strong>Explore</strong> button at the top.</p>
+<p>When the slot holds an ICC profile, Explore shows a profile summary panel (color space, device class, available rendering intents, colorant list) and — for CMYK profiles — an optional table of the profile's IT8.7/5 patch evaluations at the current rendering intent.</p>
 <h3 id="4-1-data-table">4.1 Data table</h3>
 <p>Click <strong>Display File</strong> in the Dataset A panel to open a sortable table of all rows.</p>
 <ul>
@@ -380,6 +414,7 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <tr><td>Show spectral data when point selected</td><td>Enables spectral reflectance popup on click</td></tr>
 </tbody></table>
 <p>When both global and per-slot checkboxes are visible, the global checkbox shows an <strong>indeterminate</strong> state when the two slots differ. Clicking the global checkbox sets both slots to the same state.</p>
+<p><strong>Defaults differ by file type.</strong> When a characterization dataset loads, the slot defaults to <strong>gamut shell off, data points on</strong>. When an ICC profile loads, the slot defaults to <strong>gamut shell on, data points off</strong> — profiles encode a continuous transform rather than a sample cloud, so the shell is the more meaningful representation. You can override either default with the per-slot checkboxes.</p>
 <h4>Spectral popup</h4>
 <p>If the dataset has spectral columns and <strong>Show spectral data when point selected</strong> is enabled, clicking a data point opens a popup showing the spectral reflectance curve for that patch.</p>
 <h4>Legend</h4>
@@ -437,7 +472,11 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <text x="140" y="197" text-anchor="end" class="t3">Colorant sliders</text><line x1="478" y1="240" x2="478" y2="298" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="478" y="295" text-anchor="end" class="t3">Model prediction</text><line x1="558" y1="240" x2="710" y2="298" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="710" y="295" text-anchor="start" class="t3">Nearest in dataset</text>
-</svg><p>The <strong>Estimate</strong> section fits a polynomial model to the dataset, mapping device colorants → L*a*b*. It allows you to predict the L*a*b* for any combination of colorant values, and see the nearest actual patch in the dataset.</p>
+</svg><p>The <strong>Estimate</strong> section maps device colorants → L*a*b* and lets you predict the L*a*b* for any combination of colorant values.</p>
+<ul>
+<li>For <strong>characterization datasets</strong>, CharData fits a polynomial model to the data and uses it for prediction. The nearest actual patch in the dataset is shown alongside.</li>
+<li>For <strong>ICC profiles</strong>, prediction uses the profile's A2B transform directly at the current rendering intent — no polynomial fit is needed and no "Generate model" step is required.</li>
+</ul>
 <h4>Generating a model</h4>
 <p>Click <strong>Generate model</strong>. A blue <strong>Computing</strong> badge appears in the top-left corner of the screen while the fit runs (it may take a moment for large datasets). The badge also appears during other computationally intensive operations such as rendering the 3D gamut shell. If the fit fails, an error message and <strong>Retry</strong> button appear.</p>
 <h4>Model fitting strategy</h4>
@@ -494,6 +533,7 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <p>The Y-axis range is computed from the data for the current dataset, method, and filter combination, then fixed. In Gain mode the range is determined from interior tone steps only (excluding 0% and 100% endpoints), with padding for readability. The range is recalculated if the dataset, method, or filter changes.</p>
 <h4>Availability</h4>
 <p>Tone Value requires rows where only a single colorant is non-zero at a time (a primary tone ramp). Murray-Davies additionally requires spectral reflectance columns; if absent the chart prompts you to switch to CTV.</p>
+<p>For ICC profile slots, CharData synthesises a primary ramp by evaluating the profile at fixed tint percentages (0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95, 100) along each channel with all other channels at zero. Profiles have no spectral data, so only <strong>CTV</strong> works for ICC slots — Murray-Davies traces are skipped with a "no spectral" indicator. Changing the rendering intent re-samples the profile and re-fits the Y-axis range.</p>
 <hr>
 <h2 id="5-compare-mode">5. Compare mode</h2>
 
@@ -537,18 +577,33 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <rect x="0" y="0" width="720" height="310" rx="0" class="bg"/><rect x="10" y="10" width="150" height="290" rx="5" class="pnl"/><rect x="10" y="10" width="150" height="22" rx="5" class="hd"/><text x="85" y="25" text-anchor="middle" class="tT">File Select</text><rect x="16" y="38" width="138" height="68" rx="5" class="pnl"/><rect x="16" y="38" width="138" height="18" rx="5" class="hd"/><text x="85" y="50" text-anchor="middle" class="tB">Dataset A  ✓</text><text x="85" y="68" text-anchor="middle" class="t3">profile_A.csv</text><text x="85" y="82" text-anchor="middle" class="t3">1 200 rows</text><text x="85" y="96" text-anchor="middle" class="t3">CMYK+LAB</text><rect x="16" y="112" width="138" height="68" rx="5" class="pnl"/><rect x="16" y="112" width="138" height="18" rx="5" class="hd"/><text x="85" y="124" text-anchor="middle" class="tB">Dataset B  ✓</text><text x="85" y="142" text-anchor="middle" class="t3">profile_B.csv</text><text x="85" y="156" text-anchor="middle" class="t3">1 180 rows</text><text x="85" y="170" text-anchor="middle" class="t3">CMYK+LAB</text><rect x="168" y="10" width="542" height="290" rx="5" class="pnl"/><rect x="176" y="18" width="90" height="22" rx="4" class="btn"/><text x="221" y="33" text-anchor="middle" class="t2">Explore</text><rect x="272" y="18" width="90" height="22" rx="4" class="act"/><text x="317" y="33" text-anchor="middle" class="tW tB">Compare</text><rect x="176" y="48" width="526" height="46" rx="4" class="sec"/><text x="206" y="65" text-anchor="middle" class="t3">Mean ΔE00</text><text x="206" y="83" text-anchor="middle" class="tB">2.41</text><text x="276" y="65" text-anchor="middle" class="t3">Min ΔE00</text><text x="276" y="83" text-anchor="middle" class="tB">0.18</text><text x="346" y="65" text-anchor="middle" class="t3">Max ΔE00</text><text x="346" y="83" text-anchor="middle" class="tB">8.93</text><text x="416" y="65" text-anchor="middle" class="t3">Std Dev</text><text x="416" y="83" text-anchor="middle" class="tB">1.67</text><rect x="176" y="102" width="526" height="22" rx="0" class="hd"/><text x="197.91666666666666" y="117" text-anchor="middle" class="t3">C</text><text x="241.75" y="117" text-anchor="middle" class="t3">M</text><line x1="219.83333333333334" y1="102" x2="219.83333333333334" y2="124" class="div"/><text x="285.58333333333337" y="117" text-anchor="middle" class="t3">Y</text><line x1="263.6666666666667" y1="102" x2="263.6666666666667" y2="124" class="div"/><text x="329.4166666666667" y="117" text-anchor="middle" class="t3">K</text><line x1="307.5" y1="102" x2="307.5" y2="124" class="div"/><text x="373.25000000000006" y="117" text-anchor="middle" class="t3">L*(A)</text><line x1="351.33333333333337" y1="102" x2="351.33333333333337" y2="124" class="div"/><text x="417.08333333333337" y="117" text-anchor="middle" class="t3">a*(A)</text><line x1="395.1666666666667" y1="102" x2="395.1666666666667" y2="124" class="div"/><text x="460.9166666666667" y="117" text-anchor="middle" class="t3">b*(A)</text><line x1="439" y1="102" x2="439" y2="124" class="div"/><text x="504.75000000000006" y="117" text-anchor="middle" class="t3">L*(B)</text><line x1="482.83333333333337" y1="102" x2="482.83333333333337" y2="124" class="div"/><text x="548.5833333333334" y="117" text-anchor="middle" class="t3">a*(B)</text><line x1="526.6666666666667" y1="102" x2="526.6666666666667" y2="124" class="div"/><text x="592.4166666666666" y="117" text-anchor="middle" class="t3">b*(B)</text><line x1="570.5" y1="102" x2="570.5" y2="124" class="div"/><text x="636.25" y="117" text-anchor="middle" class="t3">ΔE</text><line x1="614.3333333333334" y1="102" x2="614.3333333333334" y2="124" class="div"/><text x="680.0833333333334" y="117" text-anchor="middle" class="t3">ΔH</text><line x1="658.1666666666667" y1="102" x2="658.1666666666667" y2="124" class="div"/><rect x="176" y="124" width="526" height="22" rx="0" class="sec"/><text x="197.91666666666666" y="139" text-anchor="middle" class="t3">100</text><text x="241.75" y="139" text-anchor="middle" class="t3">0</text><text x="285.58333333333337" y="139" text-anchor="middle" class="t3">0</text><text x="329.4166666666667" y="139" text-anchor="middle" class="t3">0</text><text x="373.25000000000006" y="139" text-anchor="middle" class="t3">28</text><text x="417.08333333333337" y="139" text-anchor="middle" class="t3">48</text><text x="460.9166666666667" y="139" text-anchor="middle" class="t3">-3</text><text x="504.75000000000006" y="139" text-anchor="middle" class="t3">27</text><text x="548.5833333333334" y="139" text-anchor="middle" class="t3">47</text><text x="592.4166666666666" y="139" text-anchor="middle" class="t3">-2</text><text x="636.25" y="139" text-anchor="middle" class="t3">0.9</text><text x="680.0833333333334" y="139" text-anchor="middle" class="t3">0.5</text><rect x="176" y="146" width="526" height="22" rx="0" class="pnl"/><text x="197.91666666666666" y="161" text-anchor="middle" class="t3">…</text><text x="241.75" y="161" text-anchor="middle" class="t3">…</text><text x="285.58333333333337" y="161" text-anchor="middle" class="t3">…</text><text x="329.4166666666667" y="161" text-anchor="middle" class="t3">…</text><text x="373.25000000000006" y="161" text-anchor="middle" class="t3">…</text><text x="417.08333333333337" y="161" text-anchor="middle" class="t3">…</text><text x="460.9166666666667" y="161" text-anchor="middle" class="t3">…</text><text x="504.75000000000006" y="161" text-anchor="middle" class="t3">…</text><text x="548.5833333333334" y="161" text-anchor="middle" class="t3">…</text><text x="592.4166666666666" y="161" text-anchor="middle" class="t3">…</text><text x="636.25" y="161" text-anchor="middle" class="t3">…</text><text x="680.0833333333334" y="161" text-anchor="middle" class="t3">…</text><rect x="176" y="168" width="526" height="22" rx="0" class="sec"/><text x="197.91666666666666" y="183" text-anchor="middle" class="t3">…</text><text x="241.75" y="183" text-anchor="middle" class="t3">…</text><text x="285.58333333333337" y="183" text-anchor="middle" class="t3">…</text><text x="329.4166666666667" y="183" text-anchor="middle" class="t3">…</text><text x="373.25000000000006" y="183" text-anchor="middle" class="t3">…</text><text x="417.08333333333337" y="183" text-anchor="middle" class="t3">…</text><text x="460.9166666666667" y="183" text-anchor="middle" class="t3">…</text><text x="504.75000000000006" y="183" text-anchor="middle" class="t3">…</text><text x="548.5833333333334" y="183" text-anchor="middle" class="t3">…</text><text x="592.4166666666666" y="183" text-anchor="middle" class="t3">…</text><text x="636.25" y="183" text-anchor="middle" class="t3">…</text><text x="680.0833333333334" y="183" text-anchor="middle" class="t3">…</text><rect x="176" y="190" width="526" height="22" rx="0" class="pnl"/><text x="197.91666666666666" y="205" text-anchor="middle" class="t3">…</text><text x="241.75" y="205" text-anchor="middle" class="t3">…</text><text x="285.58333333333337" y="205" text-anchor="middle" class="t3">…</text><text x="329.4166666666667" y="205" text-anchor="middle" class="t3">…</text><text x="373.25000000000006" y="205" text-anchor="middle" class="t3">…</text><text x="417.08333333333337" y="205" text-anchor="middle" class="t3">…</text><text x="460.9166666666667" y="205" text-anchor="middle" class="t3">…</text><text x="504.75000000000006" y="205" text-anchor="middle" class="t3">…</text><text x="548.5833333333334" y="205" text-anchor="middle" class="t3">…</text><text x="592.4166666666666" y="205" text-anchor="middle" class="t3">…</text><text x="636.25" y="205" text-anchor="middle" class="t3">…</text><text x="680.0833333333334" y="205" text-anchor="middle" class="t3">…</text><rect x="176" y="212" width="526" height="22" rx="0" class="sec"/><text x="197.91666666666666" y="227" text-anchor="middle" class="t3">…</text><text x="241.75" y="227" text-anchor="middle" class="t3">…</text><text x="285.58333333333337" y="227" text-anchor="middle" class="t3">…</text><text x="329.4166666666667" y="227" text-anchor="middle" class="t3">…</text><text x="373.25000000000006" y="227" text-anchor="middle" class="t3">…</text><text x="417.08333333333337" y="227" text-anchor="middle" class="t3">…</text><text x="460.9166666666667" y="227" text-anchor="middle" class="t3">…</text><text x="504.75000000000006" y="227" text-anchor="middle" class="t3">…</text><text x="548.5833333333334" y="227" text-anchor="middle" class="t3">…</text><text x="592.4166666666666" y="227" text-anchor="middle" class="t3">…</text><text x="636.25" y="227" text-anchor="middle" class="t3">…</text><text x="680.0833333333334" y="227" text-anchor="middle" class="t3">…</text><line x1="296" y1="65" x2="296" y2="46" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="296" y="43" text-anchor="end" class="t3">Summary statistics</text><line x1="439" y1="117" x2="715" y2="107" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="715" y="104" text-anchor="start" class="t3">Sortable columns</text>
-</svg><p>Compare mode loads two datasets (A and B) and shows a row-by-row colour difference table. Select it with the <strong>Compare</strong> button at the top.</p>
-<p>Rows are matched by <strong>device colorant values</strong>. Rows where all colorants are zero are excluded. If the two datasets have different colorant columns, the union of both sets is used.</p>
+</svg><p>Compare mode loads two slots (A and B) and shows a row-by-row colour difference table. Select it with the <strong>Compare</strong> button at the top. Each slot can hold either a characterization dataset or an ICC profile; all four combinations are supported (data vs data, data vs ICC, ICC vs data, ICC vs ICC).</p>
+<p>Matching depends on what's loaded:</p>
+<ul>
+<li><strong>data vs data</strong> — rows are matched by device colorant values; rows where all colorants are zero are excluded. The union of both files' colorant columns is used as the matching key.</li>
+<li><strong>data vs ICC</strong> — the dataset's rows drive the matching; for each row, the ICC profile is evaluated at the row's colorant values.</li>
+<li><strong>ICC vs ICC</strong> — both profiles are evaluated against the standard IT8.7/5 patch set; both profiles must be CMYK.</li>
+</ul>
 <h3 id="5-1-compare-table">5.1 Compare table</h3>
 <p>The table shows, for each matched patch:</p>
 <ul>
-<li>Device colorant values</li>
-<li>L*, a*, b* for Dataset A</li>
-<li>L*, a*, b* for Dataset B</li>
-<li>ΔE (using the selected method)</li>
-<li>ΔH (hue difference)</li>
+<li>Device colorant values (decimal-aligned)</li>
+<li>For Dataset A: L*, a*, b*, C*, h*(deg)</li>
+<li>For Dataset B: L*, a*, b*, C*, h*(deg)</li>
+<li><strong>Difference</strong> columns:</li>
+<p>
+  - ΔE (using the selected method)
+ 
+  - ΔL* — lightness difference (L*<sub>B</sub> − L*<sub>A</sub>)
+ 
+  - ΔC* — chroma difference (C*<sub>B</sub> − C*<sub>A</sub>)
+ 
+  - ΔH* — geometric hue distance (chroma-weighted, computed via the selected ΔE method)
+ 
+  - Δh*(deg) — hue-angle difference, signed shortest-path in (−180°, +180°]
 </ul>
-<p>Columns are sortable by clicking the header.</p>
+</p>
+<p>Columns are sortable by clicking the header. The same column set and decimal alignment applies for every Compare combination, including ICC slots.</p>
 <h4>Summary statistics</h4>
 <p>Above the table, a statistics box shows:</p>
 <table><thead>
@@ -564,11 +619,11 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <li><strong>Solids Only</strong> — show only patches where all non-zero colorants are at 100%.</li>
 </ul>
 <h3 id="5-2-3d-gamut-plot-compare">5.2 3D Gamut plot (Compare)</h3>
-<p>The 3D plot in Compare mode shows both datasets overlaid in L*a*b* space. Dataset A is shown in blue, Dataset B in red. All the same controls as Explore mode apply, with per-slot gear panels for independent control of each dataset's shell/points/colour mode.</p>
+<p>The 3D plot in Compare mode shows both slots overlaid in L*a*b* space. Slot A is shown in blue, Slot B in red. All the same controls as Explore mode apply, with per-slot gear panels for independent control of each slot's shell / points / colour mode. Per-slot defaults still apply: ICC slots open with shell on / points off, characterization datasets with shell off / points on. Changing a slot's rendering intent rebuilds its 3D shell and patch cloud immediately.</p>
 <h3 id="5-3-tone-value-compare">5.3 Tone Value (Compare)</h3>
-<p>The Tone Value section also appears in Compare mode, below the Comparison Table. Both datasets are plotted on the same chart: Dataset A uses solid lines, Dataset B uses dashed lines in a slightly darker shade of the same colour.</p>
-<p>The controls bar includes two additional checkboxes — <strong>Show Dataset A</strong> and <strong>Show Dataset B</strong> — to toggle all curves from either dataset at once.</p>
-<p>All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work identically to <a href="#4-6-tone-value">Explore mode</a>.</p>
+<p>The Tone Value section also appears in Compare mode, below the Comparison Table. Both slots are plotted on the same chart: Slot A uses solid lines, Slot B uses dashed lines in a slightly darker shade of the same colour.</p>
+<p>The controls bar includes two additional checkboxes — <strong>Show Dataset A</strong> and <strong>Show Dataset B</strong> — to toggle all curves from either slot at once.</p>
+<p>All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work identically to <a href="#4-6-tone-value">Explore mode</a>. When either slot is an ICC profile, the chart auto-uses the CTV method for that slot; Murray-Davies traces from the ICC slot are skipped (no spectral data). The Y-axis range invalidates whenever a rendering intent changes so the curves stay correctly framed.</p>
 <hr>
 <h2 id="6-mobile">6. Mobile</h2>
 <p>On screens narrower than 700 px:</p>

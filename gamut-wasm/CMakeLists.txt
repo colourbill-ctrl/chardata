@@ -26,11 +26,20 @@ file(CREATE_LINK
   "${CMAKE_CURRENT_BINARY_DIR}/third-party/nlohmann"
   SYMBOLIC)
 
+# ── lcms2 ────────────────────────────────────────────────────────────────────
+# Compile all lcms2 .c sources directly into the WASM target so we get full
+# linker dead-code elimination without an intermediate static library step.
+file(GLOB LCMS2_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/third-party/lcms2/src/*.c")
+if(NOT LCMS2_SOURCES)
+  message(FATAL_ERROR "lcms2 sources not found — run: git submodule update --init --recursive")
+endif()
+
 # ── compwas-gamut target ─────────────────────────────────────────────────────
-add_executable(compwas-gamut gamut-wrapper.cpp)
+add_executable(compwas-gamut gamut-wrapper.cpp ${LCMS2_SOURCES})
 
 target_include_directories(compwas-gamut PRIVATE
-  "${CMAKE_CURRENT_BINARY_DIR}/third-party")
+  "${CMAKE_CURRENT_BINARY_DIR}/third-party"
+  "${CMAKE_CURRENT_SOURCE_DIR}/third-party/lcms2/include")
 
 target_compile_options(compwas-gamut PRIVATE
   -O3

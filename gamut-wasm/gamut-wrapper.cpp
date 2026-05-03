@@ -25,6 +25,7 @@
 
 #include <nlohmann/json.hpp>
 #include <emscripten/bind.h>
+#include <lcms2.h>
 
 #include <algorithm>
 #include <array>
@@ -32,6 +33,7 @@
 #include <functional>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 using json = nlohmann::json;
@@ -507,9 +509,432 @@ static std::string buildSlice(const std::string& modelJsonStr,
     return result.dump();
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── ICC profile evaluation via lcms2 ──────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── Base64 decoder ────────────────────────────────────────────────────────────
+static std::vector<uint8_t> base64Decode(const std::string& enc) {
+    static const char* tbl =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::vector<uint8_t> out;
+    out.reserve(enc.size() * 3 / 4);
+    int val = 0, valb = -8;
+    for (unsigned char c : enc) {
+        if (c == '=') break;
+        const char* p = std::strchr(tbl, (char)c);
+        if (!p) continue;
+        val = (val << 6) + (int)(p - tbl);
+        valb += 6;
+        if (valb >= 0) {
+            out.push_back((uint8_t)((val >> valb) & 0xFF));
+            valb -= 8;
+        }
+    }
+    return out;
+}
+
+// ── ICC profile state ─────────────────────────────────────────────────────────
+struct IccProfile {
+    cmsHPROFILE      hProfile    = nullptr;
+    cmsHTRANSFORM    xforms[4]   = {nullptr, nullptr, nullptr, nullptr};
+    cmsUInt32Number  inputFmt    = 0;
+    int              nColorants  = 0;
+    std::string      colorSpace;   // "CMYK", "RGB ", etc.
+    std::string      deviceClass;  // "prtr", "mntr", "scnr"
+    std::string      description;
+    // lcms2 floating-point input convention is 0..100 for ink spaces (CMYK, CMY)
+    // and 0..1 for non-ink (RGB, GRAY) — see UnrollDoubleTo16 in cmspack.c.
+    // The UI/JS layer always sends 0..100, so this is the multiplier used to
+    // map UI value into lcms's expected device-channel range.
+    double           inputMax    = 1.0;
+};
+
+static std::unordered_map<int, IccProfile> gIccProfiles;
+static int gNextIccHandle = 1;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+static std::string sig4str(cmsUInt32Number sig) {
+    char buf[5] = {0};
+    buf[0] = (char)((sig >> 24) & 0xFF);
+    buf[1] = (char)((sig >> 16) & 0xFF);
+    buf[2] = (char)((sig >>  8) & 0xFF);
+    buf[3] = (char)((sig      ) & 0xFF);
+    // trim trailing spaces
+    for (int i = 3; i >= 0 && buf[i] == ' '; i--) buf[i] = 0;
+    return std::string(buf);
+}
+
+// TYPE_CMY_DBL is not defined in lcms2 — build it from the macro primitives.
+// FLOAT_SH(1)|COLORSPACE_SH(PT_CMY)|CHANNELS_SH(3)|BYTES_SH(0) == 3-channel 64-bit float.
+#define TYPE_CMY_DBL (FLOAT_SH(1)|COLORSPACE_SH(PT_CMY)|CHANNELS_SH(3)|BYTES_SH(0))
+
+static cmsUInt32Number csInputFmt(cmsColorSpaceSignature cs) {
+    switch (cs) {
+        case cmsSigCmykData: return TYPE_CMYK_DBL;
+        case cmsSigRgbData:  return TYPE_RGB_DBL;
+        case cmsSigGrayData: return TYPE_GRAY_DBL;
+        case cmsSigCmyData:  return TYPE_CMY_DBL;
+        default:             return 0;
+    }
+}
+
+static std::vector<std::string> csColorantNames(cmsColorSpaceSignature cs) {
+    switch (cs) {
+        case cmsSigCmykData: return {"CYAN","MAGENTA","YELLOW","BLACK"};
+        case cmsSigRgbData:  return {"RED","GREEN","BLUE"};
+        case cmsSigGrayData: return {"GRAY"};
+        case cmsSigCmyData:  return {"CYAN","MAGENTA","YELLOW"};
+        default: {
+            int n = (int)cmsChannelsOf(cs);
+            std::vector<std::string> names;
+            for (int i = 0; i < n; i++) names.push_back("CH" + std::to_string(i + 1));
+            return names;
+        }
+    }
+}
+
+// Get or create a Lab4 transform for the given rendering intent (0–3).
+static cmsHTRANSFORM iccGetTransform(IccProfile& p, int intent) {
+    if (intent < 0 || intent > 3) intent = 1;
+    if (p.xforms[intent]) return p.xforms[intent];
+    cmsHPROFILE hLab = cmsCreateLab4Profile(nullptr);
+    if (!hLab) return nullptr;
+    p.xforms[intent] = cmsCreateTransform(
+        p.hProfile, p.inputFmt,
+        hLab,        TYPE_Lab_DBL,
+        intent, cmsFLAGS_NOCACHE);
+    cmsCloseProfile(hLab);
+    return p.xforms[intent];
+}
+
+// ── loadIccProfile ────────────────────────────────────────────────────────────
+// Accepts: base64-encoded ICC binary.
+// Returns: JSON { handle, colorSpace, deviceClass, description, nColorants,
+//                 colorants[], intents[] }
+//          or   { error: "..." }
+static std::string loadIccProfile(const std::string& base64Data) {
+    auto bytes = base64Decode(base64Data);
+    if (bytes.empty()) return "{\"error\":\"empty data\"}";
+    // Reject oversized profiles — typical ICC files are <2 MB; cap at 32 MB to
+    // protect the WASM heap from DoS via a maliciously huge profile.
+    if (bytes.size() > 32u * 1024u * 1024u) return "{\"error\":\"profile too large (>32 MB)\"}";
+    // ICC v2/v4 header is 128 bytes minimum; the magic check at offset 36 also
+    // requires this. Reject obviously truncated input before lcms2 sees it.
+    if (bytes.size() < 128) return "{\"error\":\"profile too small (<128 bytes)\"}";
+
+    cmsHPROFILE h = cmsOpenProfileFromMem(bytes.data(), (cmsUInt32Number)bytes.size());
+    if (!h) return "{\"error\":\"not a valid ICC profile\"}";
+
+    cmsProfileClassSignature cls = cmsGetDeviceClass(h);
+    if (cls != cmsSigOutputClass &&
+        cls != cmsSigInputClass  &&
+        cls != cmsSigDisplayClass) {
+        cmsCloseProfile(h);
+        return "{\"error\":\"only output/input/display profiles supported\"}";
+    }
+
+    cmsColorSpaceSignature cs = cmsGetColorSpace(h);
+    cmsUInt32Number fmt = csInputFmt(cs);
+    if (fmt == 0) {
+        cmsCloseProfile(h);
+        return "{\"error\":\"unsupported device color space\"}";
+    }
+
+    char descBuf[512] = {0};
+    cmsGetProfileInfoASCII(h, cmsInfoDescription, "en", "US", descBuf, sizeof(descBuf));
+
+    std::vector<int> avail;
+    for (int i = 0; i < 4; i++)
+        if (cmsIsIntentSupported(h, i, LCMS_USED_AS_INPUT)) avail.push_back(i);
+
+    IccProfile prof;
+    prof.hProfile    = h;
+    prof.inputFmt    = fmt;
+    prof.nColorants  = (int)cmsChannelsOf(cs);
+    prof.colorSpace  = sig4str((cmsUInt32Number)cs);
+    prof.deviceClass = sig4str((cmsUInt32Number)cls);
+    prof.description = std::string(descBuf);
+    // Ink spaces (CMYK, CMY) take 0..100; non-ink (RGB, GRAY) take 0..1.
+    prof.inputMax    = (cs == cmsSigCmykData || cs == cmsSigCmyData) ? 100.0 : 1.0;
+
+    int handle = gNextIccHandle++;
+    gIccProfiles[handle] = std::move(prof);
+
+    auto& stored = gIccProfiles[handle];
+    auto  names  = csColorantNames(cs);
+
+    json r;
+    r["handle"]      = handle;
+    r["colorSpace"]  = stored.colorSpace;
+    r["deviceClass"] = stored.deviceClass;
+    r["description"] = stored.description;
+    r["nColorants"]  = stored.nColorants;
+    r["colorants"]   = names;
+    r["intents"]     = avail;
+    return r.dump();
+}
+
+// ── evalIccA2B ────────────────────────────────────────────────────────────────
+// colorantsJson: JSON array of values in 0–100 range.
+// Returns: JSON { L, a, b }
+static std::string evalIccA2B(int handle, const std::string& colorantsJson, int intent) {
+    auto it = gIccProfiles.find(handle);
+    if (it == gIccProfiles.end()) return "{\"error\":\"invalid handle\"}";
+    auto& p = it->second;
+    cmsHTRANSFORM xf = iccGetTransform(p, intent);
+    if (!xf) return "{\"error\":\"transform failed\"}";
+
+    json inp = json::parse(colorantsJson);
+    int N = p.nColorants;
+    const double s = p.inputMax / 100.0;   // UI 0..100 → lcms 0..inputMax
+    std::vector<double> in(N, 0.0), out(3, 0.0);
+    for (int i = 0; i < N && i < (int)inp.size(); i++)
+        in[i] = inp[i].get<double>() * s;
+
+    cmsDoTransform(xf, in.data(), out.data(), 1);
+
+    json r;
+    r["L"] = out[0]; r["a"] = out[1]; r["b"] = out[2];
+    return r.dump();
+}
+
+// ── evalIccBatch ─────────────────────────────────────────────────────────────
+// patchesJson: [[c,m,y,k], ...] values in 0–100 range.
+// Returns: [{L,a,b}, ...] — one per patch in same order.
+static std::string evalIccBatch(int handle, const std::string& patchesJson, int intent) {
+    auto it = gIccProfiles.find(handle);
+    if (it == gIccProfiles.end()) return "{\"error\":\"invalid handle\"}";
+    auto& p = it->second;
+    cmsHTRANSFORM xf = iccGetTransform(p, intent);
+    if (!xf) return "{\"error\":\"transform failed\"}";
+
+    json patches = json::parse(patchesJson);
+    int N = p.nColorants;
+    int nPts = (int)patches.size();
+    const double s = p.inputMax / 100.0;
+
+    std::vector<double> inBuf(nPts * N, 0.0);
+    for (int i = 0; i < nPts; i++)
+        for (int j = 0; j < N && j < (int)patches[i].size(); j++)
+            inBuf[i * N + j] = patches[i][j].get<double>() * s;
+
+    std::vector<double> outBuf(nPts * 3, 0.0);
+    cmsDoTransform(xf, inBuf.data(), outBuf.data(), (cmsUInt32Number)nPts);
+
+    json r = json::array();
+    for (int i = 0; i < nPts; i++) {
+        json pt;
+        pt["L"] = outBuf[i * 3 + 0];
+        pt["a"] = outBuf[i * 3 + 1];
+        pt["b"] = outBuf[i * 3 + 2];
+        r.push_back(std::move(pt));
+    }
+    return r.dump();
+}
+
+// ── buildIccGamutMesh ─────────────────────────────────────────────────────────
+// Same 2-skeleton sweep as buildGamutMesh, but evaluated via ICC CLUT.
+// Uses one batch cmsDoTransform call for the entire mesh.
+// Returns: JSON { vertices: [[L,a,b],...], triangles: [[i,j,k],...] }
+static std::string buildIccGamutMesh(int handle, int intent, int steps) {
+    auto it = gIccProfiles.find(handle);
+    if (it == gIccProfiles.end()) return "{\"error\":\"invalid handle\"}";
+    auto& p = it->second;
+    if (steps < 2 || steps > 200)
+        return "{\"error\":\"steps must be 2..200\"}";
+
+    cmsHTRANSFORM xf = iccGetTransform(p, intent);
+    if (!xf) return "{\"error\":\"transform failed\"}";
+
+    int N = p.nColorants;
+    int S = steps;
+
+    // Phase 1: collect all device-space sample points (flat buffer, N doubles each)
+    // and record the base-vertex index for each face (for triangle building).
+    std::vector<double>   inputBatch;
+    std::vector<int>      faceBaseV;
+
+    for (int di = 0; di < N; di++) {
+        for (int dj = di + 1; dj < N; dj++) {
+            std::vector<int> fixedDims;
+            for (int d = 0; d < N; d++)
+                if (d != di && d != dj) fixedDims.push_back(d);
+            int nFixed  = (int)fixedDims.size();
+            int nCombos = 1 << nFixed;
+
+            for (int combo = 0; combo < nCombos; combo++) {
+                faceBaseV.push_back((int)(inputBatch.size() / N));
+
+                for (int u = 0; u <= S; u++) {
+                    for (int w = 0; w <= S; w++) {
+                        std::vector<double> cv(N, 0.0);
+                        cv[di] = (double)u / S * p.inputMax;
+                        cv[dj] = (double)w / S * p.inputMax;
+                        for (int k = 0; k < nFixed; k++)
+                            cv[fixedDims[k]] = ((combo >> k) & 1) ? p.inputMax : 0.0;
+                        for (int d = 0; d < N; d++) inputBatch.push_back(cv[d]);
+                    }
+                }
+            }
+        }
+    }
+
+    int nPts = (int)(inputBatch.size() / N);
+
+    // Phase 2: batch evaluate (device → Lab)
+    std::vector<double> labBatch(nPts * 3);
+    cmsDoTransform(xf, inputBatch.data(), labBatch.data(), (cmsUInt32Number)nPts);
+
+    // Phase 3: build vertex and triangle lists
+    json vertices = json::array();
+    for (int i = 0; i < nPts; i++)
+        vertices.push_back(json::array({labBatch[i*3], labBatch[i*3+1], labBatch[i*3+2]}));
+
+    json triangles = json::array();
+    int faceIdx = 0;
+    for (int di = 0; di < N; di++) {
+        for (int dj = di + 1; dj < N; dj++) {
+            std::vector<int> fixedDims;
+            for (int d = 0; d < N; d++)
+                if (d != di && d != dj) fixedDims.push_back(d);
+            int nCombos = 1 << (int)fixedDims.size();
+
+            for (int combo = 0; combo < nCombos; combo++) {
+                int baseV = faceBaseV[faceIdx++];
+                for (int u = 0; u < S; u++) {
+                    for (int w = 0; w < S; w++) {
+                        int v00 = baseV +  u      * (S + 1) + w;
+                        int v01 = baseV +  u      * (S + 1) + (w + 1);
+                        int v10 = baseV + (u + 1) * (S + 1) + w;
+                        int v11 = baseV + (u + 1) * (S + 1) + (w + 1);
+                        triangles.push_back(json::array({v00, v01, v11}));
+                        triangles.push_back(json::array({v00, v11, v10}));
+                    }
+                }
+            }
+        }
+    }
+
+    json result;
+    result["vertices"]  = std::move(vertices);
+    result["triangles"] = std::move(triangles);
+    return result.dump();
+}
+
+// ── buildIccSlice ─────────────────────────────────────────────────────────────
+// Same isoline-crossing approach as buildSlice, using ICC CLUT evaluation.
+// Processes one 2-face at a time to keep memory bounded.
+static std::string buildIccSlice(int handle, int intent, int axis, double value, int steps) {
+    auto it = gIccProfiles.find(handle);
+    if (it == gIccProfiles.end()) return "{\"error\":\"invalid handle\"}";
+    auto& p = it->second;
+    if (axis < 0 || axis > 2)  return "{\"error\":\"axis must be 0..2\"}";
+    if (steps < 2 || steps > 200) return "{\"error\":\"steps must be 2..200\"}";
+
+    cmsHTRANSFORM xf = iccGetTransform(p, intent);
+    if (!xf) return "{\"error\":\"transform failed\"}";
+
+    int N = p.nColorants;
+    int S = steps;
+    int gridSize = (S + 1) * (S + 1);
+
+    int au = (axis == 0) ? 1 : 0;   // (L-slice→a*, else→L*)
+    int av = (axis == 2) ? 1 : 2;   // (b-slice→a*, else→b*)
+
+    std::vector<double> inputFace(gridSize * N);
+    std::vector<double> labFace(gridSize * 3);
+    std::vector<std::array<double, 2>> raw;
+
+    for (int di = 0; di < N; di++) {
+        for (int dj = di + 1; dj < N; dj++) {
+            std::vector<int> fixedDims;
+            for (int d = 0; d < N; d++)
+                if (d != di && d != dj) fixedDims.push_back(d);
+            int nFixed  = (int)fixedDims.size();
+            int nCombos = 1 << nFixed;
+
+            for (int combo = 0; combo < nCombos; combo++) {
+                // Build face input grid
+                for (int u = 0; u <= S; u++) {
+                    for (int w = 0; w <= S; w++) {
+                        int idx = u * (S + 1) + w;
+                        std::vector<double> cv(N, 0.0);
+                        cv[di] = (double)u / S * p.inputMax;
+                        cv[dj] = (double)w / S * p.inputMax;
+                        for (int k = 0; k < nFixed; k++)
+                            cv[fixedDims[k]] = ((combo >> k) & 1) ? p.inputMax : 0.0;
+                        for (int d = 0; d < N; d++) inputFace[idx * N + d] = cv[d];
+                    }
+                }
+
+                cmsDoTransform(xf, inputFace.data(), labFace.data(), (cmsUInt32Number)gridSize);
+
+                auto pushCrossing = [&](int idxA, int idxB) {
+                    double sa = labFace[idxA * 3 + axis];
+                    double sb = labFace[idxB * 3 + axis];
+                    double dA = sa - value, dB = sb - value;
+                    if ((dA > 0 && dB > 0) || (dA < 0 && dB < 0)) return;
+                    if (sa == sb) {
+                        if (dA == 0) {
+                            raw.push_back({labFace[idxA*3+au], labFace[idxA*3+av]});
+                            raw.push_back({labFace[idxB*3+au], labFace[idxB*3+av]});
+                        }
+                        return;
+                    }
+                    double t = (value - sa) / (sb - sa);
+                    raw.push_back({
+                        labFace[idxA*3+au] + t * (labFace[idxB*3+au] - labFace[idxA*3+au]),
+                        labFace[idxA*3+av] + t * (labFace[idxB*3+av] - labFace[idxA*3+av])
+                    });
+                };
+
+                for (int u = 0; u < S; u++)
+                    for (int w = 0; w <= S; w++)
+                        pushCrossing(u*(S+1)+w, (u+1)*(S+1)+w);
+                for (int u = 0; u <= S; u++)
+                    for (int w = 0; w < S; w++)
+                        pushCrossing(u*(S+1)+w, u*(S+1)+(w+1));
+            }
+        }
+    }
+
+    auto hull = convexHull2D(raw);
+
+    json rawJ = json::array();
+    for (auto& pt : raw)  rawJ.push_back(json::array({pt[0], pt[1]}));
+    json polyJ = json::array();
+    for (auto& pt : hull) polyJ.push_back(json::array({pt[0], pt[1]}));
+
+    json result;
+    result["axis"]    = (axis == 0) ? "L" : (axis == 1) ? "a" : "b";
+    result["value"]   = value;
+    result["raw"]     = std::move(rawJ);
+    result["polygon"] = std::move(polyJ);
+    return result.dump();
+}
+
+// ── freeIccProfile ────────────────────────────────────────────────────────────
+static void freeIccProfile(int handle) {
+    auto it = gIccProfiles.find(handle);
+    if (it == gIccProfiles.end()) return;
+    auto& p = it->second;
+    for (int i = 0; i < 4; i++)
+        if (p.xforms[i]) { cmsDeleteTransform(p.xforms[i]); p.xforms[i] = nullptr; }
+    if (p.hProfile)  { cmsCloseProfile(p.hProfile); p.hProfile = nullptr; }
+    gIccProfiles.erase(it);
+}
+
 // ── embind ────────────────────────────────────────────────────────────────────
 EMSCRIPTEN_BINDINGS(compwas) {
-    emscripten::function("fitModel",       &fitModel);
-    emscripten::function("buildGamutMesh", &buildGamutMesh);
-    emscripten::function("buildSlice",     &buildSlice);
+    emscripten::function("fitModel",          &fitModel);
+    emscripten::function("buildGamutMesh",    &buildGamutMesh);
+    emscripten::function("buildSlice",        &buildSlice);
+    // ICC profile functions
+    emscripten::function("loadIccProfile",    &loadIccProfile);
+    emscripten::function("evalIccA2B",        &evalIccA2B);
+    emscripten::function("evalIccBatch",      &evalIccBatch);
+    emscripten::function("buildIccGamutMesh", &buildIccGamutMesh);
+    emscripten::function("buildIccSlice",     &buildIccSlice);
+    emscripten::function("freeIccProfile",    &freeIccProfile);
 }

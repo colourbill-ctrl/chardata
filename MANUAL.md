@@ -2,15 +2,16 @@
 
 CharData is a browser-based tool for loading, exploring, and comparing colour characterisation datasets — the kind produced by measuring a printed test chart (e.g. IT8, P2P, ECI2002) on a spectrophotometer.
 
-**CharData** is a browser-based tool for exploring and comparing colour characterisation datasets — the collections of device colorant and L\*a\*b\* measurement data generated when profiling printing systems. It runs entirely in your browser with no installation required, and works on both desktop and mobile.
+**CharData** is a browser-based tool for exploring and comparing colour characterisation datasets and ICC profiles. It runs entirely in your browser with no installation required, and works on both desktop and mobile.
 
-A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L\*a\*b\* colorimetry and, optionally, spectral reflectance. CharData accepts these files in **CGATS/IT8** and **CSV** formats.
+A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L\*a\*b\* colorimetry and, optionally, spectral reflectance. CharData accepts these files in **CGATS/IT8** and **CSV** formats. CharData also accepts **ICC profiles** (output, input, and display classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.
 
 **What you can do with CharData:**
 
-- **Explore a single dataset** — browse the data table, visualise the colour gamut in 3D L\*a\*b\* space, examine a 2D slice at any L\*, a\*, or b\* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L\*a\*b\* for any device colorant combination.
-- **Compare two datasets** — see a row-by-row ΔE table for matched patches, with summary statistics (mean, min, max, std dev), and view both gamuts and tone value curves overlaid on the same charts.
+- **Explore a single dataset or profile** — browse the data table, visualise the colour gamut in 3D L\*a\*b\* space, examine a 2D slice at any L\*, a\*, or b\* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L\*a\*b\* for any device colorant combination.
+- **Compare two datasets, two profiles, or one of each** — see a row-by-row ΔE / ΔL\* / ΔC\* / ΔH\* / Δh\* table for matched patches, with summary statistics (mean, min, max, std dev), and view both gamuts and tone value curves overlaid on the same charts.
 - **Work with spectral data** — if spectral reflectance columns are present, CharData computes L\*a\*b\* from them using a selectable illuminant (D50/D65), observer (2°/10°), and M-condition (M0/M1/M2), and can display the spectral curve for any clicked data point.
+- **Switch rendering intent** — for ICC profiles, change between Perceptual / Relative Colorimetric / Saturation / Absolute Colorimetric and have every view (3D shell, 2D slice, comparison table, tone curves, estimate) recompute against the new transform.
 
 The suggested workflow is to load an entire directory of characterisation files via the File Select panel, then pick individual files to explore or compare.
 
@@ -87,28 +88,69 @@ The following column names are automatically remapped on load:
 
 If the file contains spectral reflectance columns (named `NMxxx`, `NM_xxx`, or `SPECTRAL_NMxxx`, where `xxx` is the wavelength in nm), CharData can compute L\*a\*b\* from the spectral data instead of using the file's pre-computed LAB values. See [Settings — Spectral → LAB](#spectral-lab).
 
+### ICC profiles
+
+CharData also accepts ICC profiles (`.icc`, `.icm`). A file is recognised as an ICC profile by checking for the `acsp` signature at byte offset 36 of the binary header — files that don't carry that magic are rejected.
+
+| Supported | Notes |
+|---|---|
+| Output / Input / Display class | Other classes (link, abstract, etc.) are rejected |
+| CMYK, CMY, RGB, GRAY device color spaces | Other spaces are rejected |
+| All four ICC rendering intents | Only those actually present in the profile are selectable; unsupported intents are greyed out |
+
+When a profile loads, CharData treats it as a virtual dataset evaluated on demand through the profile's A2B (device-to-Lab) transform at the chosen rendering intent. CMYK profiles are pre-evaluated against the standard IT8.7/5 patch set so that 3D scatter clouds and ΔE comparisons against another dataset are immediate.
+
 ---
 
 ## 2. Loading datasets
 
-Files can be loaded via the **Dataset A** and **Dataset B** panels in the **File Select** panel (left side of the screen).
+Files (datasets and profiles) load through the **File Select** panel on the left edge of the screen.
 
-- On **desktop**, click the narrow tab on the left edge of the screen to open/close the File Select panel. The panel slides over the content without resizing it.
+- On **desktop**, click the narrow tab on the left edge of the screen to open/close the File Select panel. The panel slides over the content without resizing it. Drag the **right edge of the panel** (vertical grip dots) to widen or narrow it; the width is remembered across sessions.
 - On **mobile**, tap the folder icon (bottom-right) to open/close File Select.
-- **Drag and drop** a file from your file system directly onto a Dataset panel, or use the file picker button.
-- Click **Display File** (after a file is loaded) to view its data table.
 
-Once a file loads successfully, the panel shows:
-- File name
-- File type (CSV / CGATS / ISO 28178)
-- Number of rows (after deduplication, if enabled)
-- Column validation result
+The panel is split into two collapsible sections:
 
-If required columns are missing (LAB or no device colorants detected), the file is rejected with a specific error message. The G7 report additionally requires CMYK colorants and will show a targeted error if they are absent.
+| Section | Contains |
+|---|---|
+| **Characterization data** | CSV and CGATS/IT8 files |
+| **ICC Profiles** | `.icc` / `.icm` binary profiles |
+
+Click a section header (▾) to collapse or expand that section; the state persists between sessions. The button at the top loads files of either kind — CharData detects each file's type and routes it into the correct section automatically.
+
+- **Drag and drop** files from your file system directly onto a Dataset panel or anywhere inside the File Select panel.
+- **Drag a card** from the File Select panel onto Dataset A or Dataset B to assign it.
+- **Click a card** to assign it to the next available slot (Explore mode → A; Compare mode → first empty of A / B).
+- Click **Display File** (after a dataset loads) to view its data table. Display File is disabled for ICC profiles, which are binary.
+
+Once a file loads, the slot panel shows:
+
+| Type | Information shown |
+|---|---|
+| CSV | File name, type **CSV**, row count, validation, device colorants, spectral status |
+| CGATS / ISO 28178 | File name, type **Characterization dataset**, row count, validation, device colorants, spectral status |
+| ICC profile | File name, type **ICC Profile**, color space + colorants, **Rendering intent** dropdown |
+
+Row counts, CGATS header warnings, and the "Colorimetric only" message are not shown for ICC profiles — they don't apply.
+
+If a CSV/CGATS file is missing required columns (LAB or any device colorant), it is rejected with a specific error message. The G7 report additionally requires CMYK colorants. ICC profiles that fail header validation, or whose device class or color space is unsupported, are rejected with a matching message.
 
 <div class="note">
 <strong>CGATS header note:</strong> If the first line of a CGATS/IT8 file does not contain <code>CGATS</code> or <code>ISO28178</code>, a warning is shown but the file is still loaded and processed normally.
 </div>
+
+### Rendering intent
+
+When a slot holds an ICC profile, the slot panel shows a **Rendering intent** dropdown directly below its colorants line. The default is **Absolute Colorimetric** (or the first intent the profile supports if Absolute is absent). Intents not encoded in the profile are greyed out.
+
+Changing the intent immediately recomputes:
+- The 3D gamut shell and IT8.7/5 patch cloud for that slot.
+- The 2D gamut slice for that slot.
+- The Comparison Table, all difference columns, and the summary statistics (in Compare mode with both slots loaded).
+- The Tone Value chart (the Y-axis range is recomputed against the new data).
+- The Estimate prediction (re-evaluates on the next slider move).
+
+The Rendering intent control is only visible when the slot holds an ICC profile.
 
 ---
 
@@ -169,7 +211,9 @@ Overrides the interface language. **System default** detects the browser locale 
 
 ## 4. Explore mode
 
-Explore mode works with a single dataset (Dataset A). Select it with the **Explore** button at the top.
+Explore mode works with a single slot (A) holding either a characterization dataset or an ICC profile. Select it with the **Explore** button at the top.
+
+When the slot holds an ICC profile, Explore shows a profile summary panel (color space, device class, available rendering intents, colorant list) and — for CMYK profiles — an optional table of the profile's IT8.7/5 patch evaluations at the current rendering intent.
 
 ### 4.1 Data table
 
@@ -203,6 +247,8 @@ The main control panel (above the plot) contains global settings. Each dataset a
 
 When both global and per-slot checkboxes are visible, the global checkbox shows an **indeterminate** state when the two slots differ. Clicking the global checkbox sets both slots to the same state.
 
+**Defaults differ by file type.** When a characterization dataset loads, the slot defaults to **gamut shell off, data points on**. When an ICC profile loads, the slot defaults to **gamut shell on, data points off** — profiles encode a continuous transform rather than a sample cloud, so the shell is the more meaningful representation. You can override either default with the per-slot checkboxes.
+
 #### Spectral popup
 
 If the dataset has spectral columns and **Show spectral data when point selected** is enabled, clicking a data point opens a popup showing the spectral reflectance curve for that patch.
@@ -225,7 +271,10 @@ The slice updates live as you adjust the controls.
 
 ### 4.5 Estimate section
 
-The **Estimate** section fits a polynomial model to the dataset, mapping device colorants → L\*a\*b\*. It allows you to predict the L\*a\*b\* for any combination of colorant values, and see the nearest actual patch in the dataset.
+The **Estimate** section maps device colorants → L\*a\*b\* and lets you predict the L\*a\*b\* for any combination of colorant values.
+
+- For **characterization datasets**, CharData fits a polynomial model to the data and uses it for prediction. The nearest actual patch in the dataset is shown alongside.
+- For **ICC profiles**, prediction uses the profile's A2B transform directly at the current rendering intent — no polynomial fit is needed and no "Generate model" step is required.
 
 #### Generating a model
 
@@ -304,25 +353,34 @@ The Y-axis range is computed from the data for the current dataset, method, and 
 
 Tone Value requires rows where only a single colorant is non-zero at a time (a primary tone ramp). Murray-Davies additionally requires spectral reflectance columns; if absent the chart prompts you to switch to CTV.
 
+For ICC profile slots, CharData synthesises a primary ramp by evaluating the profile at fixed tint percentages (0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95, 100) along each channel with all other channels at zero. Profiles have no spectral data, so only **CTV** works for ICC slots — Murray-Davies traces are skipped with a "no spectral" indicator. Changing the rendering intent re-samples the profile and re-fits the Y-axis range.
+
 ---
 
 ## 5. Compare mode
 
-Compare mode loads two datasets (A and B) and shows a row-by-row colour difference table. Select it with the **Compare** button at the top.
+Compare mode loads two slots (A and B) and shows a row-by-row colour difference table. Select it with the **Compare** button at the top. Each slot can hold either a characterization dataset or an ICC profile; all four combinations are supported (data vs data, data vs ICC, ICC vs data, ICC vs ICC).
 
-Rows are matched by **device colorant values**. Rows where all colorants are zero are excluded. If the two datasets have different colorant columns, the union of both sets is used.
+Matching depends on what's loaded:
+- **data vs data** — rows are matched by device colorant values; rows where all colorants are zero are excluded. The union of both files' colorant columns is used as the matching key.
+- **data vs ICC** — the dataset's rows drive the matching; for each row, the ICC profile is evaluated at the row's colorant values.
+- **ICC vs ICC** — both profiles are evaluated against the standard IT8.7/5 patch set; both profiles must be CMYK.
 
 ### 5.1 Compare table
 
 The table shows, for each matched patch:
 
-- Device colorant values
-- L\*, a\*, b\* for Dataset A
-- L\*, a\*, b\* for Dataset B
-- ΔE (using the selected method)
-- ΔH (hue difference)
+- Device colorant values (decimal-aligned)
+- For Dataset A: L\*, a\*, b\*, C\*, h\*(deg)
+- For Dataset B: L\*, a\*, b\*, C\*, h\*(deg)
+- **Difference** columns:
+  - ΔE (using the selected method)
+  - ΔL\* — lightness difference (L\*<sub>B</sub> − L\*<sub>A</sub>)
+  - ΔC\* — chroma difference (C\*<sub>B</sub> − C\*<sub>A</sub>)
+  - ΔH\* — geometric hue distance (chroma-weighted, computed via the selected ΔE method)
+  - Δh\*(deg) — hue-angle difference, signed shortest-path in (−180°, +180°]
 
-Columns are sortable by clicking the header.
+Columns are sortable by clicking the header. The same column set and decimal alignment applies for every Compare combination, including ICC slots.
 
 #### Summary statistics
 
@@ -342,15 +400,15 @@ The compare table includes filter controls to narrow down the rows shown:
 
 ### 5.2 3D Gamut plot (Compare)
 
-The 3D plot in Compare mode shows both datasets overlaid in L\*a\*b\* space. Dataset A is shown in blue, Dataset B in red. All the same controls as Explore mode apply, with per-slot gear panels for independent control of each dataset's shell/points/colour mode.
+The 3D plot in Compare mode shows both slots overlaid in L\*a\*b\* space. Slot A is shown in blue, Slot B in red. All the same controls as Explore mode apply, with per-slot gear panels for independent control of each slot's shell / points / colour mode. Per-slot defaults still apply: ICC slots open with shell on / points off, characterization datasets with shell off / points on. Changing a slot's rendering intent rebuilds its 3D shell and patch cloud immediately.
 
 ### 5.3 Tone Value (Compare)
 
-The Tone Value section also appears in Compare mode, below the Comparison Table. Both datasets are plotted on the same chart: Dataset A uses solid lines, Dataset B uses dashed lines in a slightly darker shade of the same colour.
+The Tone Value section also appears in Compare mode, below the Comparison Table. Both slots are plotted on the same chart: Slot A uses solid lines, Slot B uses dashed lines in a slightly darker shade of the same colour.
 
-The controls bar includes two additional checkboxes — **Show Dataset A** and **Show Dataset B** — to toggle all curves from either dataset at once.
+The controls bar includes two additional checkboxes — **Show Dataset A** and **Show Dataset B** — to toggle all curves from either slot at once.
 
-All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work identically to [Explore mode](#4-6-tone-value).
+All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work identically to [Explore mode](#4-6-tone-value). When either slot is an ICC profile, the chart auto-uses the CTV method for that slot; Murray-Davies traces from the ICC slot are skipped (no spectral data). The Y-axis range invalidates whenever a rendering intent changes so the curves stay correctly framed.
 
 ---
 

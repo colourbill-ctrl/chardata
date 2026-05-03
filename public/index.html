@@ -231,6 +231,7 @@
 
       /* Hide desktop toggle strips */
       #fs-blade-toggle, #blade-toggle, #blade-help-btn, #blade-contact-btn { display: none !important; }
+      #fs-resize-handle { display: none !important; }
       /* Show mobile controls */
       #mobile-fab-files { display: flex; }
       #mobile-hamburger { display: flex; }
@@ -431,12 +432,52 @@
     }
     #file-select-dropzone {
       flex: 1; display: flex; flex-direction: column;
-      overflow-y: auto; padding: 0 8px 10px;
+      overflow-y: auto; padding: 0 8px 10px; gap: 8px;
     }
     #file-select-dropzone.dragover-blade {
       background: #e8f0fe;
       outline: 2px dashed #4a90e2; outline-offset: -4px;
     }
+    /* Collapsible sections inside the blade */
+    .fs-section { display: flex; flex-direction: column; }
+    .fs-section-header {
+      display: flex; align-items: center; gap: 5px;
+      padding: 4px 4px 4px 2px; font-size: 12px; font-weight: bold; color: #555;
+      cursor: pointer; user-select: none;
+      border-bottom: 1px solid #e3e6ea;
+    }
+    .fs-section-header:hover { color: #4a90e2; }
+    .fs-section-caret { display: inline-block; transition: transform 0.15s; font-size: 10px; color: #888; }
+    .fs-section.collapsed .fs-section-caret { transform: rotate(-90deg); }
+    .fs-section-title { flex: 1; }
+    .fs-section-count { font-weight: normal; color: #999; font-size: 11px; }
+    .fs-section-body { display: flex; flex-direction: column; padding-top: 4px; }
+    .fs-section.collapsed .fs-section-body { display: none; }
+    .fs-section-empty {
+      font-size: 11px; color: #888; text-align: center;
+      padding: 10px 6px; line-height: 1.4;
+      border: 1px dashed #d0d4d9; border-radius: 4px;
+    }
+    /* Resize handle on right edge of blade (desktop only).
+       Persistent vertical grip dots; brighter on hover/drag. */
+    #fs-resize-handle {
+      width: 7px; flex-shrink: 0; align-self: stretch;
+      cursor: ew-resize;
+      background-color: transparent;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='3' height='22' viewBox='0 0 3 22'><circle cx='1.5' cy='2' r='1' fill='%23999'/><circle cx='1.5' cy='8' r='1' fill='%23999'/><circle cx='1.5' cy='14' r='1' fill='%23999'/><circle cx='1.5' cy='20' r='1' fill='%23999'/></svg>");
+      border-left: 1px solid #e3e6ea;
+      transition: background-color 0.15s;
+    }
+    #fs-resize-handle:hover, #fs-resize-handle.dragging {
+      background-color: #4a90e2;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='3' height='22' viewBox='0 0 3 22'><circle cx='1.5' cy='2' r='1' fill='white'/><circle cx='1.5' cy='8' r='1' fill='white'/><circle cx='1.5' cy='14' r='1' fill='white'/><circle cx='1.5' cy='20' r='1' fill='white'/></svg>");
+      border-left-color: #4a90e2;
+    }
+    body.dark #fs-resize-handle { border-left-color: #3a3b40; }
+    #file-select-blade.collapsed #fs-resize-handle { display: none; }
+    body.fs-resizing { cursor: ew-resize !important; user-select: none !important; }
     .file-card {
       background: #fafafa;
       border-top: 1px solid #e8e8e8;
@@ -552,6 +593,10 @@
     body.dark #blade-content, body.dark #file-select-blade-content { color: #ccc; }
     body.dark #file-select-blade-header { color: #bbb; border-color: #3a3b40; }
     body.dark #file-select-empty { color: #777; border-color: #3a3b40 !important; }
+    body.dark .fs-section-header { color: #bbb; border-color: #3a3b40; }
+    body.dark .fs-section-header:hover { color: #4a90e2; }
+    body.dark .fs-section-caret { color: #888; }
+    body.dark .fs-section-empty { color: #777; border-color: #3a3b40 !important; }
     body.dark .blade-label { color: #666; }
     body.dark .blade-select { background: linear-gradient(to bottom,#2c2d31,#232427); color: #ddd; border-color: #444; border-bottom-color: #555; }
     body.dark .blade-select:hover { background: linear-gradient(to bottom,#33343a,#2a2b2e); }
@@ -625,16 +670,37 @@
       <div id="file-select-add-btn-wrap" style="display:flex;align-items:flex-start;gap:6px;">
         <label class="file-label"
                style="display:block;text-align:center;font-size:12px;padding:6px 10px;flex:1;position:relative;overflow:visible;cursor:pointer;">
-          <span style="white-space:nowrap;pointer-events:none;" data-i18n="choose_file">Choose char data file</span><br><span style="white-space:nowrap;pointer-events:none;">(CGATS, CSV)</span>
+          <span style="white-space:pre-line;pointer-events:none;" data-i18n="choose_file">Select files:
+characterization data or ICC profiles</span>
           <input type="file" id="file-select-input" multiple>
         </label>
         <button id="file-sort-btn" onclick="toggleFileSort()" data-i18n-title="sort_alpha" title="Sort files alphabetically"
                 style="padding:5px 7px;font-size:13px;line-height:1;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;cursor:pointer;color:#555;box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);transition:all 0.08s ease;flex-shrink:0;">&#8597;</button>
       </div>
       <div id="file-select-dropzone">
-        <div id="file-select-empty"><span data-i18n="drop_line1">Drop files here</span><br><span data-i18n="drop_line2">or use button above</span></div>
+        <div class="fs-section" id="fs-section-data">
+          <div class="fs-section-header" onclick="toggleFsSection('data')">
+            <span class="fs-section-caret">&#9662;</span>
+            <span class="fs-section-title" data-i18n="fs_section_data">Characterization data</span>
+            <span class="fs-section-count" id="fs-count-data"></span>
+          </div>
+          <div class="fs-section-body" id="fs-body-data">
+            <div class="fs-section-empty" id="fs-empty-data" data-i18n="fs_empty_data">No characterization datasets loaded</div>
+          </div>
+        </div>
+        <div class="fs-section" id="fs-section-icc">
+          <div class="fs-section-header" onclick="toggleFsSection('icc')">
+            <span class="fs-section-caret">&#9662;</span>
+            <span class="fs-section-title" data-i18n="fs_section_icc">ICC Profiles</span>
+            <span class="fs-section-count" id="fs-count-icc"></span>
+          </div>
+          <div class="fs-section-body" id="fs-body-icc">
+            <div class="fs-section-empty" id="fs-empty-icc" data-i18n="fs_empty_icc">No ICC profiles loaded</div>
+          </div>
+        </div>
       </div>
     </div>
+    <div id="fs-resize-handle" title="Drag to resize"></div>
     <button id="fs-blade-toggle" data-i18n-title="fs_blade_tooltip" title="File Select: Drop or load files here to select."><span class="fs-icon"><svg width="13" height="16" viewBox="0 0 13 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1.5C1 1.22 1.22 1 1.5 1H8L12 5V14.5C12 14.78 11.78 15 11.5 15H1.5C1.22 15 1 14.78 1 14.5V1.5Z" fill="#a8d4f0" stroke="#6aabd8" stroke-width="1"/><path d="M8 1V5H12" fill="#c8e8f8" stroke="#6aabd8" stroke-width="1" stroke-linejoin="round"/></svg></span><span class="fs-arrow">&#8250;</span></button>
   </div>
 
@@ -664,9 +730,9 @@
         <select id="icc-intent-a" style="font-size:12px;padding:2px 6px;margin-left:4px;"
                 onchange="setRenderingIntent('a',+this.value)">
           <option value="0">Perceptual</option>
-          <option value="1" selected>Relative Colorimetric</option>
+          <option value="1">Relative Colorimetric</option>
           <option value="2">Saturation</option>
-          <option value="3">Absolute Colorimetric</option>
+          <option value="3" selected>Absolute Colorimetric</option>
         </select>
       </div>
       <div id="status-a" class="dataset-status"></div>
@@ -690,9 +756,9 @@
         <select id="icc-intent-b" style="font-size:12px;padding:2px 6px;margin-left:4px;"
                 onchange="setRenderingIntent('b',+this.value)">
           <option value="0">Perceptual</option>
-          <option value="1" selected>Relative Colorimetric</option>
+          <option value="1">Relative Colorimetric</option>
           <option value="2">Saturation</option>
-          <option value="3">Absolute Colorimetric</option>
+          <option value="3" selected>Absolute Colorimetric</option>
         </select>
       </div>
       <div id="status-b" class="dataset-status"></div>
@@ -898,9 +964,14 @@
         weighted:'Weighted', on:'On', off:'Off',
         yes:'Yes', no:'No', median:'Median', mean:'Mean',
         system:'System', light:'Light', dark:'Dark',
-        file_select:'File Select', choose_file:'Choose char data file',
+        file_select:'File Select', choose_file:'Select files:\ncharacterization data or ICC profiles',
         drop_line1:'Drop files here', drop_line2:'or use button above',
         sort_alpha:'Sort files alphabetically',
+        fs_section_data:'Characterization data', fs_section_icc:'ICC Profiles',
+        fs_empty_data:'No characterization datasets loaded',
+        fs_empty_icc:'No ICC profiles loaded',
+        type_char_dataset:'Characterization dataset', type_icc_profile:'ICC Profile',
+        icc_invalid:'Not a valid ICC profile (header magic missing).',
         explore:'Explore', compare:'Compare',
         display_file:'Display File',
         drag_line1:'Drag files here from', drag_line2:'File Select pane or file system',
@@ -993,7 +1064,12 @@
         weighted:'Pondéré', on:'Activé', off:'Désactivé',
         yes:'Oui', no:'Non', median:'Médiane', mean:'Moyenne',
         system:'Système', light:'Clair', dark:'Sombre',
-        file_select:'Sélection de fichier', choose_file:'Choisir un fichier de données',
+        file_select:'Sélection de fichier', choose_file:'Sélectionner des fichiers :\ndonnées de caractérisation ou profils ICC',
+        fs_section_data:'Données de caractérisation', fs_section_icc:'Profils ICC',
+        fs_empty_data:'Aucun jeu de données de caractérisation chargé',
+        fs_empty_icc:'Aucun profil ICC chargé',
+        type_char_dataset:'Jeu de caractérisation', type_icc_profile:'Profil ICC',
+        icc_invalid:'Profil ICC non valide (signature d’en-tête manquante).',
         drop_line1:'Déposez les fichiers ici', drop_line2:'ou utilisez le bouton ci-dessus',
         sort_alpha:'Trier alphabétiquement',
         explore:'Explorer', compare:'Comparer',
@@ -1083,7 +1159,12 @@
         weighted:'Gewichtet', on:'Ein', off:'Aus',
         yes:'Ja', no:'Nein', median:'Median', mean:'Mittelwert',
         system:'System', light:'Hell', dark:'Dunkel',
-        file_select:'Dateiauswahl', choose_file:'Datendatei auswählen',
+        file_select:'Dateiauswahl', choose_file:'Dateien auswählen:\nCharakterisierungsdaten oder ICC-Profile',
+        fs_section_data:'Charakterisierungsdaten', fs_section_icc:'ICC-Profile',
+        fs_empty_data:'Keine Charakterisierungsdaten geladen',
+        fs_empty_icc:'Keine ICC-Profile geladen',
+        type_char_dataset:'Charakterisierungsdatensatz', type_icc_profile:'ICC-Profil',
+        icc_invalid:'Kein gültiges ICC-Profil (Header-Signatur fehlt).',
         drop_line1:'Dateien hier ablegen', drop_line2:'oder Schaltfläche oben nutzen',
         sort_alpha:'Alphabetisch sortieren',
         explore:'Erkunden', compare:'Vergleichen',
@@ -1173,7 +1254,12 @@
         weighted:'Ponderato', on:'Attivo', off:'Disattivo',
         yes:'Sì', no:'No', median:'Mediana', mean:'Media',
         system:'Sistema', light:'Chiaro', dark:'Scuro',
-        file_select:'Selezione file', choose_file:'Scegli file dati',
+        file_select:'Selezione file', choose_file:'Seleziona file:\ndati di caratterizzazione o profili ICC',
+        fs_section_data:'Dati di caratterizzazione', fs_section_icc:'Profili ICC',
+        fs_empty_data:'Nessun dataset di caratterizzazione caricato',
+        fs_empty_icc:'Nessun profilo ICC caricato',
+        type_char_dataset:'Dataset di caratterizzazione', type_icc_profile:'Profilo ICC',
+        icc_invalid:'Profilo ICC non valido (signature dell’header mancante).',
         drop_line1:'Rilascia i file qui', drop_line2:'o usa il pulsante sopra',
         sort_alpha:'Ordina alfabeticamente',
         explore:'Esplora', compare:'Confronta',
@@ -1263,7 +1349,12 @@
         weighted:'Ponderado', on:'Activado', off:'Desactivado',
         yes:'Sí', no:'No', median:'Mediana', mean:'Media',
         system:'Sistema', light:'Claro', dark:'Oscuro',
-        file_select:'Selección de archivo', choose_file:'Elegir archivo de datos',
+        file_select:'Selección de archivo', choose_file:'Seleccionar archivos:\ndatos de caracterización o perfiles ICC',
+        fs_section_data:'Datos de caracterización', fs_section_icc:'Perfiles ICC',
+        fs_empty_data:'Ningún conjunto de datos de caracterización cargado',
+        fs_empty_icc:'Ningún perfil ICC cargado',
+        type_char_dataset:'Conjunto de caracterización', type_icc_profile:'Perfil ICC',
+        icc_invalid:'Perfil ICC no válido (falta la firma del encabezado).',
         drop_line1:'Suelte los archivos aquí', drop_line2:'o use el botón de arriba',
         sort_alpha:'Ordenar alfabéticamente',
         explore:'Explorar', compare:'Comparar',
@@ -1353,7 +1444,12 @@
         weighted:'Ponderado', on:'Ativo', off:'Inativo',
         yes:'Sim', no:'Não', median:'Mediana', mean:'Média',
         system:'Sistema', light:'Claro', dark:'Escuro',
-        file_select:'Selecionar ficheiro', choose_file:'Escolher ficheiro de dados',
+        file_select:'Selecionar ficheiro', choose_file:'Selecionar ficheiros:\ndados de caracterização ou perfis ICC',
+        fs_section_data:'Dados de caracterização', fs_section_icc:'Perfis ICC',
+        fs_empty_data:'Nenhum conjunto de dados de caracterização carregado',
+        fs_empty_icc:'Nenhum perfil ICC carregado',
+        type_char_dataset:'Conjunto de caracterização', type_icc_profile:'Perfil ICC',
+        icc_invalid:'Perfil ICC inválido (assinatura do cabeçalho ausente).',
         drop_line1:'Largue os ficheiros aqui', drop_line2:'ou utilize o botão acima',
         sort_alpha:'Ordenar alfabeticamente',
         explore:'Explorar', compare:'Comparar',
@@ -1443,7 +1539,12 @@
         weighted:'Ponderado', on:'Ligado', off:'Desligado',
         yes:'Sim', no:'Não', median:'Mediana', mean:'Média',
         system:'Sistema', light:'Claro', dark:'Escuro',
-        file_select:'Selecionar arquivo', choose_file:'Escolher arquivo de dataset',
+        file_select:'Selecionar arquivo', choose_file:'Selecionar arquivos:\ndados de caracterização ou perfis ICC',
+        fs_section_data:'Dados de caracterização', fs_section_icc:'Perfis ICC',
+        fs_empty_data:'Nenhum conjunto de dados de caracterização carregado',
+        fs_empty_icc:'Nenhum perfil ICC carregado',
+        type_char_dataset:'Conjunto de caracterização', type_icc_profile:'Perfil ICC',
+        icc_invalid:'Perfil ICC inválido (assinatura do cabeçalho ausente).',
         drop_line1:'Solte os arquivos aqui', drop_line2:'ou use o botão acima',
         sort_alpha:'Ordenar alfabeticamente',
         explore:'Explorar', compare:'Comparar',
@@ -1533,7 +1634,12 @@
         weighted:'加权', on:'开', off:'关',
         yes:'是', no:'否', median:'中位数', mean:'平均值',
         system:'系统', light:'浅色', dark:'深色',
-        file_select:'文件选择', choose_file:'选择色彩数据文件',
+        file_select:'文件选择', choose_file:'选择文件：\n色彩特性化数据或 ICC 描述文件',
+        fs_section_data:'色彩特性化数据', fs_section_icc:'ICC 描述文件',
+        fs_empty_data:'未加载色彩特性化数据',
+        fs_empty_icc:'未加载 ICC 描述文件',
+        type_char_dataset:'色彩特性化数据集', type_icc_profile:'ICC 描述文件',
+        icc_invalid:'不是有效的 ICC 描述文件（缺少头部标识）。',
         drop_line1:'在此拖放文件', drop_line2:'或使用上方按钮',
         sort_alpha:'按字母排序',
         explore:'探索', compare:'比较',
@@ -1623,7 +1729,12 @@
         weighted:'加權', on:'開', off:'關',
         yes:'是', no:'否', median:'中位數', mean:'平均值',
         system:'系統', light:'淺色', dark:'深色',
-        file_select:'檔案選擇', choose_file:'選擇色彩數據檔案',
+        file_select:'檔案選擇', choose_file:'選擇檔案：\n色彩特性化資料或 ICC 描述檔',
+        fs_section_data:'色彩特性化資料', fs_section_icc:'ICC 描述檔',
+        fs_empty_data:'未載入色彩特性化資料',
+        fs_empty_icc:'未載入 ICC 描述檔',
+        type_char_dataset:'色彩特性化資料集', type_icc_profile:'ICC 描述檔',
+        icc_invalid:'不是有效的 ICC 描述檔（缺少標頭標識）。',
         drop_line1:'在此拖放檔案', drop_line2:'或使用上方按鈕',
         sort_alpha:'按字母排序',
         explore:'探索', compare:'比較',
@@ -1713,7 +1824,12 @@
         weighted:'重み付き', on:'オン', off:'オフ',
         yes:'はい', no:'いいえ', median:'中央値', mean:'平均値',
         system:'システム', light:'ライト', dark:'ダーク',
-        file_select:'ファイル選択', choose_file:'データファイルを選択',
+        file_select:'ファイル選択', choose_file:'ファイルを選択:\nキャラクタリゼーションデータまたは ICC プロファイル',
+        fs_section_data:'キャラクタリゼーションデータ', fs_section_icc:'ICC プロファイル',
+        fs_empty_data:'キャラクタリゼーションデータが読み込まれていません',
+        fs_empty_icc:'ICC プロファイルが読み込まれていません',
+        type_char_dataset:'キャラクタリゼーションデータ', type_icc_profile:'ICC プロファイル',
+        icc_invalid:'有効な ICC プロファイルではありません（ヘッダーマジックがありません）。',
         drop_line1:'ここにドロップ', drop_line2:'または上のボタンを使用',
         sort_alpha:'名前順に並べ替え',
         explore:'探索', compare:'比較',
@@ -1803,7 +1919,12 @@
         weighted:'가중', on:'켜기', off:'끄기',
         yes:'예', no:'아니요', median:'중앙값', mean:'평균',
         system:'시스템', light:'밝음', dark:'어두움',
-        file_select:'파일 선택', choose_file:'색채 데이터 파일 선택',
+        file_select:'파일 선택', choose_file:'파일 선택:\n특성화 데이터 또는 ICC 프로파일',
+        fs_section_data:'특성화 데이터', fs_section_icc:'ICC 프로파일',
+        fs_empty_data:'로드된 특성화 데이터셋 없음',
+        fs_empty_icc:'로드된 ICC 프로파일 없음',
+        type_char_dataset:'특성화 데이터셋', type_icc_profile:'ICC 프로파일',
+        icc_invalid:'유효한 ICC 프로파일이 아닙니다 (헤더 매직 누락).',
         drop_line1:'파일을 여기에 드롭', drop_line2:'또는 위 버튼 사용',
         sort_alpha:'알파벳 순 정렬',
         explore:'탐색', compare:'비교',
@@ -1893,7 +2014,12 @@
         weighted:'Viktad', on:'På', off:'Av',
         yes:'Ja', no:'Nej', median:'Median', mean:'Medelvärde',
         system:'System', light:'Ljust', dark:'Mörkt',
-        file_select:'Filval', choose_file:'Välj karakteriseringsdata',
+        file_select:'Filval', choose_file:'Välj filer:\nkarakteriseringsdata eller ICC-profiler',
+        fs_section_data:'Karakteriseringsdata', fs_section_icc:'ICC-profiler',
+        fs_empty_data:'Inga karakteriseringsdataset inlästa',
+        fs_empty_icc:'Inga ICC-profiler inlästa',
+        type_char_dataset:'Karakteriseringsdataset', type_icc_profile:'ICC-profil',
+        icc_invalid:'Ogiltig ICC-profil (header-signatur saknas).',
         drop_line1:'Släpp filer här', drop_line2:'eller använd knappen ovan',
         sort_alpha:'Sortera alfabetiskt',
         explore:'Utforska', compare:'Jämför',
@@ -2040,13 +2166,30 @@
     function refreshPanelUI(slot) {
       const s = state[slot];
       if (!s) return;
-      // Row count
       const rowsEl = document.getElementById('rows-' + slot);
+      const validEl = document.getElementById('valid-' + slot);
+      const colorantsEl = document.getElementById('colorants-' + slot);
+      const typeEl = document.getElementById('type-' + slot);
+
+      if (s.dataType === 'icc') {
+        // ICC: no row count, no spectral message; re-localize type + valid + colorants
+        if (rowsEl) rowsEl.textContent = '';
+        if (typeEl) typeEl.textContent = t('type_icc_profile');
+        if (validEl) validEl.innerHTML = '<div class="valid">✓ ' + t('type_icc_profile') + '</div>';
+        if (colorantsEl) {
+          const info = _iccState[slot] && _iccState[slot].info;
+          colorantsEl.textContent = info
+            ? (info.colorSpace ? info.colorSpace + ' — ' : '') + (info.colorants || []).join(', ')
+            : s.colorants.join(', ');
+        }
+        return;
+      }
+
+      // Row count
       if (rowsEl) rowsEl.textContent = (s.filterType != null && s.rowsBefore !== s.rowsAfter)
         ? t('loaded_rows_dedup', {n: s.rowsBefore, m: s.rowsAfter, method: s.filterType})
         : t('loaded_rows', {n: s.rowsBefore});
       // Valid checkmark
-      const validEl = document.getElementById('valid-' + slot);
       if (validEl) {
         const vDiv = validEl.querySelector('.i18n-valid');
         if (vDiv) vDiv.textContent = t('valid');
@@ -2059,7 +2202,6 @@
         }
       }
       // Colorants + spectral status
-      const colorantsEl = document.getElementById('colorants-' + slot);
       if (colorantsEl) {
         let html = s.colorants.length
           ? t('device_colorants') + ' ' + s.colorants.join(', ')
@@ -2189,10 +2331,9 @@
     };
     // ICC profile state — parallel to _gamutState, one entry per slot.
     const _iccState = {
-      a: { handleId: null, info: null, renderingIntent: 1, patchLabValues: null },
-      b: { handleId: null, info: null, renderingIntent: 1, patchLabValues: null }
+      a: { handleId: null, info: null, renderingIntent: 3, patchLabValues: null },
+      b: { handleId: null, info: null, renderingIntent: 3, patchLabValues: null }
     };
-    let _iccCmpData = null;   // ICC compare data (parallel to _cmpData for CSV compares)
 
     // ── IT8.7/5-compatible CMYK patch set ─────────────────────────────────────
     // Used as the canonical evaluation set for ICC profile comparison and
@@ -2688,29 +2829,11 @@
     }
 
     function loadFile(slot, file) {
-      // Peek at first 128 bytes to detect ICC profile ('acsp' at offset 36).
-      const sniffer = new FileReader();
-      sniffer.onload = e => {
-        const view = new DataView(e.target.result);
-        const isIcc = view.byteLength >= 40 &&
-          view.getUint8(36) === 0x61 && view.getUint8(37) === 0x63 &&
-          view.getUint8(38) === 0x73 && view.getUint8(39) === 0x70;
-        if (isIcc) {
-          loadIccFile(slot, file);
-        } else {
-          const reader = new FileReader();
-          reader.onload = e2 => {
-            _rawFileData[slot] = { text: e2.target.result, fileName: file.name, isIcc: false };
-            setPanelName(slot, file.name);
-            processFileText(slot, e2.target.result, file.name);
-          };
-          reader.readAsText(file);
-        }
-      };
-      sniffer.readAsArrayBuffer(file.slice(0, 128));
+      // Single sniffing path — addFileToList determines kind, then assignFile routes.
+      addFileToList(file, slot);
     }
 
-    async function loadIccFile(slot, file) {
+    async function loadIccFromBuffer(slot, buffer, fileName) {
       if (!window.Gamut) return;
 
       // Release any previously loaded ICC handle for this slot.
@@ -2720,17 +2843,18 @@
         _iccState[slot].patchLabValues = null;
       }
 
-      // Reset UI for this slot (same as processFileText reset)
+      // Reset UI for this slot
       document.getElementById('valid-' + slot).textContent = '';
       document.getElementById('valid-' + slot).className = 'validation';
-      document.getElementById('type-' + slot).textContent = 'ICC';
+      document.getElementById('type-' + slot).textContent = t('type_icc_profile');
       document.getElementById('rows-' + slot).textContent = '';
       document.getElementById('colorants-' + slot).textContent = '';
 
+      _rawFileData[slot] = { text: null, fileName, isIcc: true, buffer };
+      setPanelName(slot, fileName);
+
       let iccInfo;
       try {
-        const buffer = await file.arrayBuffer();
-        _rawFileData[slot] = { text: null, fileName: file.name, isIcc: true, buffer };
         iccInfo = await Gamut.loadIccProfile(buffer);
       } catch (err) {
         document.getElementById('valid-' + slot).textContent = 'ICC load error: ' + (err.message || err);
@@ -2752,33 +2876,34 @@
 
       _iccState[slot].handleId       = iccInfo.handle;
       _iccState[slot].info           = iccInfo;
-      _iccState[slot].renderingIntent = 1;   // default: Relative Colorimetric
+      _iccState[slot].renderingIntent = 3;   // default: Absolute Colorimetric
 
       state[slot] = {
         dataType:    'icc',
-        name:        file.name,
+        name:        fileName,
         colorants:   iccInfo.colorants,
         hasSpectral: false,
         rowsBefore:  0,
         rowsAfter:   0
       };
 
-      // Reset gamut state for this slot
-      _gamutState[slot].shellOn   = false;
-      _gamutState[slot].pointsOn  = true;
+      // Reset gamut state for this slot — ICC default: shell ON, data points OFF.
+      _gamutState[slot].shellOn   = true;
+      _gamutState[slot].pointsOn  = false;
       _gamutState[slot].hueOn     = false;
       _gamutState[slot].valueOn   = true;
       _gamutState[slot].cachedModel = null;
       _gamutState[slot].cachedMesh  = null;
       _gamutState[slot].cachedXYZ   = null;
       if (slot === 'a') _estimateInputs = {};
-      const perFileCb = document.getElementById('gs-shell-cb-' + slot);
-      if (perFileCb) perFileCb.checked = false;
+      const perFileShellCb  = document.getElementById('gs-shell-cb-'  + slot);
+      const perFilePointsCb = document.getElementById('gs-points-cb-' + slot);
+      if (perFileShellCb)  perFileShellCb.checked  = true;
+      if (perFilePointsCb) perFilePointsCb.checked = false;
       syncShellCheckbox(); syncPointsCheckbox(); syncColorCheckboxes();
 
-      setPanelName(slot, file.name);
       document.getElementById('show-file-' + slot).disabled = true;   // binary — no text view
-      document.getElementById('valid-' + slot).innerHTML = '<div class="valid">\u2713 ICC Profile</div>';
+      document.getElementById('valid-' + slot).innerHTML = '<div class="valid">\u2713 ' + t('type_icc_profile') + '</div>';
       document.getElementById('valid-' + slot).className = 'validation';
       document.getElementById('colorants-' + slot).textContent =
         (iccInfo.colorSpace ? iccInfo.colorSpace + ' \u2014 ' : '') + iccInfo.colorants.join(', ');
@@ -2822,18 +2947,28 @@
       Array.from(sel.options).forEach(opt => {
         opt.disabled = !available.has(+opt.value);
       });
-      // Default to RelCol if available, else first available
-      const preferred = available.has(1) ? 1 : [...available][0];
+      // Default to AbsCol if available, else first available
+      const preferred = available.has(3) ? 3 : [...available][0];
       sel.value = preferred;
       _iccState[slot].renderingIntent = preferred;
       row.style.display = '';
     }
 
-    function setRenderingIntent(slot, intent) {
+    async function setRenderingIntent(slot, intent) {
       _iccState[slot].renderingIntent = intent;
       // Invalidate cached patch Lab values — they depend on intent
       _iccState[slot].patchLabValues = null;
-      regenerateGamutShell(slot);
+      // 3D mesh + patch cloud (rebuilds cachedMesh and cachedXYZ)
+      await regenerateGamutShell(slot);
+      // 2D slice (uses Gamut.buildIccSlice with the new intent)
+      await renderSlicePlot();
+      // Compare table / TV chart / Estimate / explore patch table all read the
+      // intent at render time — re-run the appropriate top-level renderer.
+      if (_mode === 'compare' && state.a && state.b) {
+        runCompare();
+      } else if (_mode === 'explore' && state.a) {
+        renderExplore();
+      }
     }
 
     function processFileText(slot, text, fileName) {
@@ -2843,6 +2978,16 @@
       document.getElementById('type-' + slot).textContent = '';
       document.getElementById('rows-' + slot).textContent = '';
       document.getElementById('colorants-' + slot).textContent = '';
+      // If this slot previously held an ICC profile, drop its handle and hide the
+      // rendering-intent dropdown — char data has no rendering intent.
+      if (_iccState[slot].handleId !== null) {
+        Gamut.freeIccProfile(_iccState[slot].handleId);
+        _iccState[slot].handleId = null;
+        _iccState[slot].info = null;
+        _iccState[slot].patchLabValues = null;
+      }
+      const intentRow = document.getElementById('icc-intent-row-' + slot);
+      if (intentRow) intentRow.style.display = 'none';
 
       const lines = text.split(/\r\n|\r|\n/);
       const firstLine = lines[0] || '';
@@ -2863,7 +3008,7 @@
         return;
       }
 
-      typeEl.textContent = isCSV ? 'CSV' : (firstLine.toUpperCase().includes('ISO28178') ? 'ISO28178' : 'CGATS');
+      typeEl.textContent = isCSV ? 'CSV' : t('type_char_dataset');
 
       if (isCGATS) {
         const cgats = validateCGATS(text);
@@ -3038,30 +3183,54 @@
       if (_mode === 'compare' && state.a && state.b) runCompare();
     }
 
+    function _sniffIcc(buffer) {
+      if (!buffer || buffer.byteLength < 40) return false;
+      const v = new DataView(buffer);
+      return v.getUint8(36) === 0x61 && v.getUint8(37) === 0x63 &&
+             v.getUint8(38) === 0x73 && v.getUint8(39) === 0x70;
+    }
+
     function addFileToList(file, thenAssignSlot) {
       const fileKey = file.name + '|' + file.size + '|' + file.lastModified;
-      if (_fileList.some(f => f.key === fileKey)) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        const entry = { id: _nextFileId++, name: file.name, key: fileKey, text: e.target.result };
-        _fileList.push(entry);
-        if (thenAssignSlot) {
-          assignFile(entry.id, thenAssignSlot);
-        } else {
-          renderFileList();
-        }
+      if (_fileList.some(f => f.key === fileKey)) {
+        const existing = _fileList.find(f => f.key === fileKey);
+        if (thenAssignSlot && existing) assignFile(existing.id, thenAssignSlot);
+        return;
+      }
+      // Sniff first 128 bytes as binary, then re-read fully as either text or buffer.
+      const sniffer = new FileReader();
+      sniffer.onload = se => {
+        const isIcc = _sniffIcc(se.target.result);
+        const finalReader = new FileReader();
+        finalReader.onload = e => {
+          const entry = isIcc
+            ? { id: _nextFileId++, name: file.name, key: fileKey, kind: 'icc',  buffer: e.target.result }
+            : { id: _nextFileId++, name: file.name, key: fileKey, kind: 'data', text:   e.target.result };
+          _fileList.push(entry);
+          if (thenAssignSlot) {
+            assignFile(entry.id, thenAssignSlot);
+          } else {
+            renderFileList();
+          }
+        };
+        if (isIcc) finalReader.readAsArrayBuffer(file);
+        else       finalReader.readAsText(file);
       };
-      reader.readAsText(file);
+      sniffer.readAsArrayBuffer(file.slice(0, 128));
     }
 
     function assignFile(fileId, slot) {
       const entry = _fileList.find(f => f.id === fileId);
       if (!entry) return;
       if (slot === 'a') { _pendingColorantDeletes.clear(); _hasExtracted = false; }
-      _rawFileData[slot] = { text: entry.text, fileName: entry.name };
-      setPanelName(slot, entry.name);
-      processFileText(slot, entry.text, entry.name);
       _cardAssignments[slot] = fileId;
+      if (entry.kind === 'icc') {
+        loadIccFromBuffer(slot, entry.buffer, entry.name);
+      } else {
+        _rawFileData[slot] = { text: entry.text, fileName: entry.name };
+        setPanelName(slot, entry.name);
+        processFileText(slot, entry.text, entry.name);
+      }
       renderFileList();
     }
 
@@ -3089,6 +3258,14 @@
           _cardAssignments[slot] = null;
           state[slot] = null;
           _rawFileData[slot] = null;
+          if (_iccState[slot].handleId !== null) {
+            Gamut.freeIccProfile(_iccState[slot].handleId);
+            _iccState[slot].handleId = null;
+            _iccState[slot].info = null;
+            _iccState[slot].patchLabValues = null;
+          }
+          const intentRow = document.getElementById('icc-intent-row-' + slot);
+          if (intentRow) intentRow.style.display = 'none';
           setPanelName(slot, '');
           document.getElementById('type-' + slot).textContent = '';
           document.getElementById('rows-' + slot).textContent = '';
@@ -3116,17 +3293,25 @@
 
     function renderFileList() {
       const zone = document.getElementById('file-select-dropzone');
-      const empty = document.getElementById('file-select-empty');
       Array.from(zone.querySelectorAll('.file-card')).forEach(el => el.remove());
 
-      if (_fileList.length === 0) { empty.style.display = ''; return; }
-      empty.style.display = 'none';
+      const dataBody = document.getElementById('fs-body-data');
+      const iccBody  = document.getElementById('fs-body-icc');
+      const dataEmpty = document.getElementById('fs-empty-data');
+      const iccEmpty  = document.getElementById('fs-empty-icc');
 
       const entries = _fileListSort
         ? [..._fileList].sort((a, b) => _fileListSort === 'asc'
             ? a.name.localeCompare(b.name)
             : b.name.localeCompare(a.name))
         : _fileList;
+
+      const dataEntries = entries.filter(e => e.kind !== 'icc');
+      const iccEntries  = entries.filter(e => e.kind === 'icc');
+      document.getElementById('fs-count-data').textContent = dataEntries.length ? '(' + dataEntries.length + ')' : '';
+      document.getElementById('fs-count-icc').textContent  = iccEntries.length  ? '(' + iccEntries.length  + ')' : '';
+      dataEmpty.style.display = dataEntries.length ? 'none' : '';
+      iccEmpty.style.display  = iccEntries.length  ? 'none' : '';
 
       for (const entry of entries) {
         const card = document.createElement('div');
@@ -3167,7 +3352,7 @@
           e.dataTransfer.effectAllowed = 'copy';
         });
 
-        zone.appendChild(card);
+        (entry.kind === 'icc' ? iccBody : dataBody).appendChild(card);
       }
     }
 
@@ -3207,7 +3392,74 @@
       const collapsed = fsBlade.classList.contains('collapsed');
       fsArrow.textContent = collapsed ? '\u203a' : '\u2039';
       localStorage.setItem('fsBladeCollapsed', collapsed ? '1' : '0');
+      // Inline width from resize handle would override .collapsed CSS \u2014 clear/restore.
+      if (collapsed) {
+        fsBlade.style.width = '';
+        fsBlade.style.minWidth = '';
+      } else {
+        const saved = parseInt(localStorage.getItem('fsBladeWidth') || '', 10);
+        if (saved) {
+          fsBlade.style.width = saved + 'px';
+          fsBlade.style.minWidth = saved + 'px';
+        }
+      }
     });
+
+    // Section collapse/expand inside the File Select blade
+    function toggleFsSection(kind) {
+      const sec = document.getElementById('fs-section-' + kind);
+      if (!sec) return;
+      sec.classList.toggle('collapsed');
+      const state = JSON.parse(localStorage.getItem('fsSectionCollapsed') || '{}');
+      state[kind] = sec.classList.contains('collapsed');
+      localStorage.setItem('fsSectionCollapsed', JSON.stringify(state));
+    }
+    (function restoreFsSections() {
+      const state = JSON.parse(localStorage.getItem('fsSectionCollapsed') || '{}');
+      ['data', 'icc'].forEach(k => {
+        if (state[k]) document.getElementById('fs-section-' + k).classList.add('collapsed');
+      });
+    })();
+
+    // Resize handle for the File Select blade (desktop only)
+    (function setupFsResize() {
+      const handle = document.getElementById('fs-resize-handle');
+      if (!handle || _isMobile) return;
+      const MIN = 180, MAX = 500;
+      const saved = parseInt(localStorage.getItem('fsBladeWidth') || '', 10);
+      if (saved && saved >= MIN && saved <= MAX && !fsBlade.classList.contains('collapsed')) {
+        fsBlade.style.width = saved + 'px';
+        fsBlade.style.minWidth = saved + 'px';
+      }
+      let dragging = false;
+      handle.addEventListener('pointerdown', e => {
+        if (fsBlade.classList.contains('collapsed')) return;
+        dragging = true;
+        handle.setPointerCapture(e.pointerId);
+        handle.classList.add('dragging');
+        document.body.classList.add('fs-resizing');
+        // Disable transition during drag for snappy feedback
+        fsBlade.style.transition = 'none';
+      });
+      handle.addEventListener('pointermove', e => {
+        if (!dragging) return;
+        const w = Math.min(MAX, Math.max(MIN, e.clientX));
+        fsBlade.style.width = w + 'px';
+        fsBlade.style.minWidth = w + 'px';
+      });
+      const stop = e => {
+        if (!dragging) return;
+        dragging = false;
+        try { handle.releasePointerCapture(e.pointerId); } catch (_) {}
+        handle.classList.remove('dragging');
+        document.body.classList.remove('fs-resizing');
+        fsBlade.style.transition = '';
+        const w = parseInt(fsBlade.style.width, 10);
+        if (w) localStorage.setItem('fsBladeWidth', String(w));
+      };
+      handle.addEventListener('pointerup', stop);
+      handle.addEventListener('pointercancel', stop);
+    })();
 
     // Mobile sheets + hamburger
     // Append blade elements directly to <body> so position:fixed works on iOS Safari
@@ -3345,6 +3597,17 @@
       return deltaEab(L1, a1, b1, L2, a2, b2);
     }
 
+    function labChroma(a, b) { return Math.sqrt(a*a + b*b); }
+    function labHueDeg(a, b) {
+      const h = Math.atan2(b, a) * 180 / Math.PI;
+      return h < 0 ? h + 360 : h;
+    }
+    function deltaHueDeg(h1, h2) {
+      let d = h2 - h1;
+      if (d > 180) d -= 360;
+      else if (d < -180) d += 360;
+      return d;
+    }
     function calcDeltaH(method, L1, a1, b1, L2, a2, b2) {
       if (method === 'dE00') {
         // Use ΔH' from CIEDE2000 (same intermediate value as in deltaE00)
@@ -4104,7 +4367,35 @@
       return den > 0 ? num / den : NaN;
     }
 
-    function tvGetPrimaryRows(dataset, colorantName) {
+    function tvGetIccPrimaryRows(slot, colorantName) {
+      // Synthesize primary rows for an ICC slot by sampling the profile along
+      // colorantName at fixed tint percentages (all other channels = 0).
+      const ic = _iccState[slot];
+      if (!ic || ic.handleId == null || !window.Gamut || !ic.info) return [];
+      const colorants = ic.info.colorants || [];
+      const targetPos = colorants.indexOf(colorantName);
+      if (targetPos === -1) return [];
+      const tints = [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95, 100];
+      const patches = tints.map(pct => {
+        const arr = colorants.map(() => 0);
+        arr[targetPos] = pct;
+        return arr;
+      });
+      let labs;
+      try {
+        labs = Gamut.evalIccBatchSync(ic.handleId, patches, ic.renderingIntent ?? 1);
+      } catch (_) { return []; }
+      return tints.map((inkPct, i) => ({
+        inkPct,
+        spectral: { wavelengths: [], values: [] },
+        L: labs[i] ? labs[i].L : NaN,
+        a: labs[i] ? labs[i].a : NaN,
+        b: labs[i] ? labs[i].b : NaN
+      }));
+    }
+
+    function tvGetPrimaryRows(dataset, colorantName, slot) {
+      if (dataset && dataset.dataType === 'icc' && slot) return tvGetIccPrimaryRows(slot, colorantName);
       // Returns [{inkPct, spectral:{wavelengths,values}, L, a, b}] sorted by inkPct,
       // for rows where only colorantName is non-zero.
       const { headers, rows, colorants } = dataset;
@@ -4290,7 +4581,7 @@
         ds.colorants.forEach(colorant => {
           const cb = document.getElementById(`tv-cb-${slot}-${colorant}`);
           if (cb && !cb.checked) return;
-          const primaryRows = tvGetPrimaryRows(ds, colorant);
+          const primaryRows = tvGetPrimaryRows(ds, colorant, slot);
           if (primaryRows.length < 2) return;
           let points;
           if (method === 'murray-davies') {
@@ -4312,10 +4603,13 @@
         });
       });
 
-      // Compute Y range from ALL data traces (cached per dataset+method+filter key)
+      // Compute Y range from ALL data traces (cached per dataset+method+filter+intent key).
+      // Intent must be in the key so ICC slots invalidate when the user changes intent.
       const newKey = [state.a?.name, state.a?.rows?.length,
                       state.b?.name, state.b?.rows?.length,
-                      method, statusType].join('|');
+                      method, statusType,
+                      _iccState.a.handleId, _iccState.a.renderingIntent,
+                      _iccState.b.handleId, _iccState.b.renderingIntent].join('|');
       if (!_tvRangeCache || _tvDatasetKey !== newKey) {
         _tvDatasetKey = newKey;
         let tMin = 0, tMax = 100, gMin = Infinity, gMax = -Infinity;
@@ -4324,7 +4618,7 @@
           const ds = state[slot];
           if (!ds) return;
           ds.colorants.forEach(colorant => {
-            const primaryRows = tvGetPrimaryRows(ds, colorant);
+            const primaryRows = tvGetPrimaryRows(ds, colorant, slot);
             if (primaryRows.length < 2) return;
             let pts;
             if (method === 'murray-davies') {
@@ -4572,7 +4866,7 @@
         }).join('');
         patchTableHTML = `
           <div onclick="(function(){const w=document.getElementById('icc-patches-wrap'),ar=document.getElementById('icc-patches-arrow');if(!w)return;const open=w.style.display!=='none';w.style.display=open?'none':'';if(ar)ar.textContent=open?'▶':'▼';})()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
-            <span>IT8.7/5 Patches (${IT875_PATCHES.length}): ${a.name}</span><span id="icc-patches-arrow">▶</span>
+            <span>IT8.7/5 Patches (${IT875_PATCHES.length}): ${escapeHtml(a.name)}</span><span id="icc-patches-arrow">▶</span>
           </div>
           <div id="icc-patches-wrap" style="display:none;overflow-x:auto;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:8px 0 8px 8px;">
             <table style="border-collapse:collapse;font-size:12px;">
@@ -4585,13 +4879,14 @@
           </div>`;
       }
 
+      saveTvDomState();
       resultEl.innerHTML = `
         <div style="margin-top:16px;padding:12px 14px;background:#f8f9fa;border:1px solid #ddd;border-radius:6px;font-size:13px;">
-          <div style="font-weight:bold;font-size:14px;margin-bottom:8px;color:#333;">${a.name}</div>
+          <div style="font-weight:bold;font-size:14px;margin-bottom:8px;color:#333;">${escapeHtml(a.name)}</div>
           <table style="border-collapse:collapse;font-size:12px;color:#555;">
             <tr><td style="padding:2px 16px 2px 0;color:#888;">Color space</td><td style="padding:2px 0;">${info.colorSpace || '—'}</td></tr>
             <tr><td style="padding:2px 16px 2px 0;color:#888;">Device class</td><td style="padding:2px 0;">${info.deviceClass || '—'}</td></tr>
-            <tr><td style="padding:2px 16px 2px 0;color:#888;">Colorants</td><td style="padding:2px 0;">${a.colorants.join(', ')}</td></tr>
+            <tr><td style="padding:2px 16px 2px 0;color:#888;">Colorants</td><td style="padding:2px 0;">${a.colorants.map(escapeHtml).join(', ')}</td></tr>
             <tr><td style="padding:2px 16px 2px 0;color:#888;">Rendering intents</td><td style="padding:2px 0;">${intentsAvail}</td></tr>
           </table>
         </div>
@@ -4601,7 +4896,8 @@
         </div>
         <div id="est-wrap" style="display:none;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;">
           ${buildEstimateHTML()}
-        </div>`;
+        </div>
+        ${buildTvSectionHTML(false)}`;
 
       _openSections.forEach(id => {
         const wrap = document.getElementById(id);
@@ -4613,6 +4909,8 @@
 
       renderPlot();
       updateEstimate();
+      buildTvColorantCheckboxes();
+      renderTvChart();
       applyTranslations();
     }
 
@@ -4923,27 +5221,50 @@
         _cmpSortCol = colIdx;
         _cmpSortDir = 'asc';
       }
-      if (_iccCmpData) { renderIccCmpTable(); } else { renderCmpTable(); }
+      renderCmpTable();
     }
 
     function renderCmpTable() {
       if (!_cmpData) return;
-      const { matches, deRaw, dhRaw, a, b, displayColorants, aLabIdx, bLabIdx, method, PR, TH, VL } = _cmpData;
+      const { matches, deRaw, dhRaw, dlRaw, dcRaw, dhAngleRaw, a, b, displayColorants, method, PR, TH, VL, hasSpectral } = _cmpData;
       const LAB_LABELS = ['L*', 'a*', 'b*'];
       const CH_LABELS = ['C*', 'h*(deg)'];
       const colorantCount = displayColorants.length;
 
-      // Build spectral lookup: two entries per display row (File A then File B)
+      // Build spectral lookup (only when char-data side has rowA/rowB)
       _spectralPopupData = [];
-      _cmpSortedIdx.forEach(origIdx => {
-        const { rowA, rowB } = matches[origIdx];
-        const sA = extractSpectral(a.headers, rowA);
-        const sB = extractSpectral(b.headers, rowB);
-        _spectralPopupData.push({ ...sA, label: buildSpectralLabel(a.name, a.headers, rowA, a.colorants), color: '#4a90e2' });
-        _spectralPopupData.push({ ...sB, label: buildSpectralLabel(b.name, b.headers, rowB, b.colorants), color: '#e24a4a' });
-      });
+      if (hasSpectral) {
+        _cmpSortedIdx.forEach(origIdx => {
+          const { rowA, rowB } = matches[origIdx];
+          if (rowA && rowB) {
+            const sA = extractSpectral(a.headers, rowA);
+            const sB = extractSpectral(b.headers, rowB);
+            _spectralPopupData.push({ ...sA, label: buildSpectralLabel(a.name, a.headers, rowA, a.colorants), color: '#4a90e2' });
+            _spectralPopupData.push({ ...sB, label: buildSpectralLabel(b.name, b.headers, rowB, b.colorants), color: '#e24a4a' });
+          } else {
+            _spectralPopupData.push(null, null);
+          }
+        });
+      }
 
-      // Sorted indices
+      function getSortVal(rowIdx) {
+        const col = _cmpSortCol;
+        const m = matches[rowIdx];
+        if (col < colorantCount) {
+          const v = parseFloat(m.colorants[col]);
+          return isNaN(v) ? Infinity : v;
+        }
+        const rel = col - colorantCount;
+        const lab = rel < 5 ? m.aLab : (rel < 10 ? m.bLab : null);
+        if (rel < 3) { const v = lab[['L','a','b'][rel]]; return isFinite(v) ? v : Infinity; }
+        if (rel === 3 || rel === 8) { const v = labChroma(lab.a, lab.b); return isFinite(v) ? v : Infinity; }
+        if (rel === 4 || rel === 9) { const v = labHueDeg(lab.a, lab.b); return isFinite(v) ? v : Infinity; }
+        if (rel === 5 || rel === 6 || rel === 7) { const v = m.bLab[['L','a','b'][rel - 5]]; return isFinite(v) ? v : Infinity; }
+        const diffArr = [deRaw, dlRaw, dcRaw, dhRaw, dhAngleRaw][rel - 10];
+        const v = parseFloat(diffArr[rowIdx]);
+        return isNaN(v) ? Infinity : v;
+      }
+
       if (_cmpSortCol !== null) {
         _cmpSortedIdx.sort((ii, jj) => {
           const vi = getSortVal(ii), vj = getSortVal(jj);
@@ -4952,100 +5273,59 @@
       }
       const sortedIdx = _cmpSortedIdx;
 
-      function getSortVal(rowIdx) {
-        const col = _cmpSortCol;
-        if (col < colorantCount) {
-          const colorantName = displayColorants[col];
-          const idxA = a.headers.indexOf(colorantName);
-          const idxB = b.headers.indexOf(colorantName);
-          const raw = idxA !== -1 ? matches[rowIdx].rowA[idxA] : (idxB !== -1 ? matches[rowIdx].rowB[idxB] : '');
-          const v = parseFloat(raw);
-          return isNaN(v) ? Infinity : v;
-        }
-        const rel = col - colorantCount;
-        if (rel < 3) {
-          const v = parseFloat(matches[rowIdx].rowA[aLabIdx[rel]]);
-          return isNaN(v) ? Infinity : v;
-        }
-        if (rel < 5) {
-          // A's C* (rel=3) or h* (rel=4)
-          const ai = aLabIdx[1], bi = aLabIdx[2];
-          const av = parseFloat(matches[rowIdx].rowA[ai]), bv = parseFloat(matches[rowIdx].rowA[bi]);
-          if (isNaN(av) || isNaN(bv)) return Infinity;
-          return rel === 3 ? Math.sqrt(av*av+bv*bv) : (Math.atan2(bv,av)*180/Math.PI+360)%360;
-        }
-        if (rel < 8) {
-          const v = parseFloat(matches[rowIdx].rowB[bLabIdx[rel - 5]]);
-          return isNaN(v) ? Infinity : v;
-        }
-        if (rel < 10) {
-          // B's C* (rel=8) or h* (rel=9)
-          const ai = bLabIdx[1], bi = bLabIdx[2];
-          const av = parseFloat(matches[rowIdx].rowB[ai]), bv = parseFloat(matches[rowIdx].rowB[bi]);
-          if (isNaN(av) || isNaN(bv)) return Infinity;
-          return rel === 8 ? Math.sqrt(av*av+bv*bv) : (Math.atan2(bv,av)*180/Math.PI+360)%360;
-        }
-        if (col === colorantCount + 10) {
-          const v = parseFloat(deRaw[rowIdx]);
-          return isNaN(v) ? Infinity : v;
-        }
-        const v = parseFloat(dhRaw[rowIdx]);
-        return isNaN(v) ? Infinity : v;
-      }
-
       // Column headers with sort indicators
       const arrow = i => `<span style="display:inline-block;width:1em;text-align:right;opacity:0.6;">${_cmpSortCol === i ? (_cmpSortDir === 'asc' ? '↑' : '↓') : ''}</span>`;
+      const diffLabels = [fmtMethod(method), 'ΔL*', 'ΔC*', 'ΔH*', 'Δh*(deg)'];
       const colHeaderCells = [
-        ...displayColorants.map((c, i) => `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
+        ...displayColorants.map((c, i) => `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${i})" style="${PR}${TH}cursor:pointer;">${escapeHtml(c)}${arrow(i)}</th>`),
         ...LAB_LABELS.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
         ...CH_LABELS.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`),
         ...LAB_LABELS.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + 5 + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + 5 + i)}</th>`),
         ...CH_LABELS.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + 8 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 8 + i)}</th>`),
-        `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + 10})" style="${PR}${TH}${VL}cursor:pointer;">${fmtMethod(method)}${arrow(colorantCount + 10)}</th>`,
-        `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + 11})" style="${PR}${TH}cursor:pointer;">ΔH*${arrow(colorantCount + 11)}</th>`
+        ...diffLabels.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortCmpTable(${colorantCount + 10 + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + 10 + i)}</th>`)
       ].join('');
       document.getElementById('cmp-col-headers').innerHTML = colHeaderCells;
 
       // Build and render rows
-      const fmtLab = v => { const n = parseFloat(v); return isNaN(n) ? '—' : n.toFixed(3); };
-      const colorantCols = displayColorants.map(c => {
-        const idxA = a.headers.indexOf(c);
-        const idxB = b.headers.indexOf(c);
-        return alignDecimals(sortedIdx.map(ri => {
-          if (idxA !== -1) return matches[ri].rowA[idxA] ?? '';
-          if (idxB !== -1) return matches[ri].rowB[idxB] ?? '';
-          return '';
-        }));
-      });
-      const aLabCols = aLabIdx.map(i => sortedIdx.map(ri => i !== -1 ? fmtLab(matches[ri].rowA[i]) : '—'));
-      const bLabCols = bLabIdx.map(i => sortedIdx.map(ri => i !== -1 ? fmtLab(matches[ri].rowB[i]) : '—'));
-      const deCol = alignDecimals(sortedIdx.map(i => deRaw[i]));
-      const dhCol = alignDecimals(sortedIdx.map(i => dhRaw[i]));
+      const fmtLab = v => isFinite(v) ? Number(v).toFixed(2) : '—';
+      const fmtCH  = v => isFinite(v) ? Number(v).toFixed(2) : '—';
 
-      const calcCH = (row, labIdx) => {
-        const ai = labIdx[1], bi = labIdx[2];
-        if (ai === -1 || bi === -1) return { c: '—', h: '—' };
-        const av = parseFloat(row[ai]), bv = parseFloat(row[bi]);
-        if (isNaN(av) || isNaN(bv)) return { c: '—', h: '—' };
-        return {
-          c: Math.sqrt(av*av+bv*bv).toFixed(2),
-          h: ((Math.atan2(bv,av)*180/Math.PI+360)%360).toFixed(1)
-        };
-      };
+      const colorantCols = displayColorants.map((_, ci) =>
+        alignDecimals(sortedIdx.map(ri => matches[ri].colorants[ci] ?? ''))
+      );
+      const aLCols = ['L','a','b'].map(k => alignDecimals(sortedIdx.map(ri => fmtLab(matches[ri].aLab[k]))));
+      const bLCols = ['L','a','b'].map(k => alignDecimals(sortedIdx.map(ri => fmtLab(matches[ri].bLab[k]))));
+      const aCCol  = alignDecimals(sortedIdx.map(ri => fmtCH(labChroma(matches[ri].aLab.a, matches[ri].aLab.b))));
+      const aHCol  = alignDecimals(sortedIdx.map(ri => fmtCH(labHueDeg(matches[ri].aLab.a, matches[ri].aLab.b))));
+      const bCCol  = alignDecimals(sortedIdx.map(ri => fmtCH(labChroma(matches[ri].bLab.a, matches[ri].bLab.b))));
+      const bHCol  = alignDecimals(sortedIdx.map(ri => fmtCH(labHueDeg(matches[ri].bLab.a, matches[ri].bLab.b))));
+      const deCol = alignDecimals(sortedIdx.map(i => deRaw[i]));
+      const dlCol = alignDecimals(sortedIdx.map(i => dlRaw[i]));
+      const dcCol = alignDecimals(sortedIdx.map(i => dcRaw[i]));
+      const dhCol = alignDecimals(sortedIdx.map(i => dhRaw[i]));
+      const dhaCol= alignDecimals(sortedIdx.map(i => dhAngleRaw[i]));
 
       document.getElementById('cmp-table-body').innerHTML = sortedIdx.map((origIdx, ri) => {
-        const colorantCells = colorantCols.map(col => `<td style="${PR}">${col[ri]}</td>`).join('');
-        const aLabCells = aLabCols.map((col, i) =>
-          `<td onclick="showSpectral(event,${ri*2})" style="${PR}${i===0?VL:''}cursor:pointer;" title="${t('click_spectral')}">${col[ri]}</td>`
-        ).join('');
-        const aCH = calcCH(matches[origIdx].rowA, aLabIdx);
-        const aCHCells = `<td style="${PR}">${aCH.c}</td><td style="${PR}">${aCH.h}</td>`;
-        const bLabCells = bLabCols.map((col, i) =>
-          `<td onclick="showSpectral(event,${ri*2+1})" style="${PR}${i===0?VL:''}cursor:pointer;" title="${t('click_spectral')}">${col[ri]}</td>`
-        ).join('');
-        const bCH = calcCH(matches[origIdx].rowB, bLabIdx);
-        const bCHCells = `<td style="${PR}">${bCH.c}</td><td style="${PR}">${bCH.h}</td>`;
-        return `<tr>${colorantCells}${aLabCells}${aCHCells}${bLabCells}${bCHCells}<td style="${PR}${VL}font-weight:bold;">${deCol[ri]}</td><td style="${PR}font-weight:bold;">${dhCol[ri]}</td></tr>`;
+        const m = matches[origIdx];
+        const canSpectral = hasSpectral && m.rowA && m.rowB;
+        const cells = [];
+        colorantCols.forEach(col => cells.push(`<td style="${PR}">${escapeHtml(col[ri])}</td>`));
+        aLCols.forEach((col, i) => {
+          const click = canSpectral ? `onclick="showSpectral(event,${ri*2})" title="${t('click_spectral')}" style="${PR}${i===0?VL:''}cursor:pointer;"` : `style="${PR}${i===0?VL:''}"`;
+          cells.push(`<td ${click}>${col[ri]}</td>`);
+        });
+        cells.push(`<td style="${PR}">${aCCol[ri]}</td><td style="${PR}">${aHCol[ri]}</td>`);
+        bLCols.forEach((col, i) => {
+          const click = canSpectral ? `onclick="showSpectral(event,${ri*2+1})" title="${t('click_spectral')}" style="${PR}${i===0?VL:''}cursor:pointer;"` : `style="${PR}${i===0?VL:''}"`;
+          cells.push(`<td ${click}>${col[ri]}</td>`);
+        });
+        cells.push(`<td style="${PR}">${bCCol[ri]}</td><td style="${PR}">${bHCol[ri]}</td>`);
+        cells.push(`<td style="${PR}${VL}font-weight:bold;">${deCol[ri]}</td>`);
+        cells.push(`<td style="${PR}">${dlCol[ri]}</td>`);
+        cells.push(`<td style="${PR}">${dcCol[ri]}</td>`);
+        cells.push(`<td style="${PR}">${dhCol[ri]}</td>`);
+        cells.push(`<td style="${PR}">${dhaCol[ri]}</td>`);
+        return `<tr>${cells.join('')}</tr>`;
       }).join('');
     }
 
@@ -5097,15 +5377,27 @@
       const TH = 'font-weight:bold;border-bottom:2px solid #ddd;color:#555;';
       const VL = 'border-left:1px solid #ccc;padding-left:12px;';
 
-      // Compute ΔE and ΔH per match
-      const deRaw = [], dhRaw = [];
-      matches.forEach(({ rowA, rowB }) => {
-        const aVals = aLabIdx.map(i => i !== -1 ? parseFloat(rowA[i]) : NaN);
-        const bVals = bLabIdx.map(i => i !== -1 ? parseFloat(rowB[i]) : NaN);
-        const [L1, a1, b1] = aVals, [L2, a2, b2] = bVals;
-        const valid = !isNaN(L1) && !isNaN(a1) && !isNaN(b1) && !isNaN(L2) && !isNaN(a2) && !isNaN(b2);
-        deRaw.push(valid ? calcDeltaE(method, L1, a1, b1, L2, a2, b2).toFixed(2) : '—');
-        dhRaw.push(valid ? calcDeltaH(method, L1, a1, b1, L2, a2, b2).toFixed(2) : '—');
+      // Pre-compute per-match Lab, colorants (aligned to displayColorants), and diffs.
+      const deRaw = [], dhRaw = [], dlRaw = [], dcRaw = [], dhAngleRaw = [];
+      matches.forEach(m => {
+        const { rowA, rowB } = m;
+        m.colorants = displayColorants.map(c => {
+          const ia = a.headers.indexOf(c);
+          if (ia !== -1 && rowA[ia] != null) return rowA[ia];
+          const ib = b.headers.indexOf(c);
+          if (ib !== -1 && rowB[ib] != null) return rowB[ib];
+          return '';
+        });
+        const aL = parseFloat(rowA[aLabIdx[0]]), aA = parseFloat(rowA[aLabIdx[1]]), aB = parseFloat(rowA[aLabIdx[2]]);
+        const bL = parseFloat(rowB[bLabIdx[0]]), bA = parseFloat(rowB[bLabIdx[1]]), bB = parseFloat(rowB[bLabIdx[2]]);
+        m.aLab = { L: aL, a: aA, b: aB };
+        m.bLab = { L: bL, a: bA, b: bB };
+        const valid = isFinite(aL) && isFinite(aA) && isFinite(aB) && isFinite(bL) && isFinite(bA) && isFinite(bB);
+        deRaw.push(valid ? calcDeltaE(method, aL, aA, aB, bL, bA, bB).toFixed(2) : '—');
+        dhRaw.push(valid ? calcDeltaH(method, aL, aA, aB, bL, bA, bB).toFixed(2) : '—');
+        dlRaw.push(valid ? (bL - aL).toFixed(2) : '—');
+        dcRaw.push(valid ? (labChroma(bA, bB) - labChroma(aA, aB)).toFixed(2) : '—');
+        dhAngleRaw.push(valid ? deltaHueDeg(labHueDeg(aA, aB), labHueDeg(bA, bB)).toFixed(2) : '—');
       });
 
       // Summary statistics
@@ -5127,15 +5419,15 @@
       const colorantSpan = displayColorants.length;
       const spanningRow = `<tr>
         <th colspan="${colorantSpan}" style="padding:4px 0;text-align:center;${TH}" data-i18n="device_colorants_hdr">Device Colorants</th>
-        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">${a.name}</th>
-        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">${b.name}</th>
-        <th colspan="2" style="padding:4px 0;text-align:center;${TH}${VL}" data-i18n="difference">Difference</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">${escapeHtml(a.name)}</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">${escapeHtml(b.name)}</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}" data-i18n="difference">Difference</th>
       </tr>`;
 
       // Store data and reset sort state
       _cmpSortCol = null;
       _cmpSortDir = 'asc';
-      _cmpData = { matches, deRaw, dhRaw, a, b, displayColorants, aLabIdx, bLabIdx, method, PR, TH, VL };
+      _cmpData = { matches, deRaw, dhRaw, dlRaw, dcRaw, dhAngleRaw, a, b, displayColorants, aLabIdx, bLabIdx, method, PR, TH, VL, hasSpectral: !!(a.hasSpectral || b.hasSpectral) };
       _cmpSortedIdx = Array.from({ length: matches.length }, (_, i) => i);
 
       saveTvDomState();
@@ -5212,7 +5504,7 @@
         const bLabIdx = ['LAB_L','LAB_A','LAB_B'].map(l => b.headers.indexOf(l));
         const bColIdx = a.colorants.map(c => b.headers.indexOf(c));
         if (bColIdx.some(i => i < 0)) {
-          resultEl.innerHTML = `<div style="padding:20px 16px;color:#888;font-size:13px;">CSV file B does not contain colorants matching ICC profile A.</div>`;
+          resultEl.innerHTML = `<div style="padding:20px 16px;color:#888;font-size:13px;">Dataset B does not contain colorants matching ICC profile A.</div>`;
           return;
         }
         const patches = [], bLabs = [], colorantsList = [];
@@ -5230,7 +5522,7 @@
         const aLabIdx = ['LAB_L','LAB_A','LAB_B'].map(l => a.headers.indexOf(l));
         const aColIdx = b.colorants.map(c => a.headers.indexOf(c));
         if (aColIdx.some(i => i < 0)) {
-          resultEl.innerHTML = `<div style="padding:20px 16px;color:#888;font-size:13px;">CSV file A does not contain colorants matching ICC profile B.</div>`;
+          resultEl.innerHTML = `<div style="padding:20px 16px;color:#888;font-size:13px;">Dataset A does not contain colorants matching ICC profile B.</div>`;
           return;
         }
         const patches = [], aLabs = [], colorantsList = [];
@@ -5249,10 +5541,16 @@
         renderPlot(); return;
       }
 
-      // Compute ΔE per match
-      const deRaw = matches.map(({ aLab, bLab }) => {
+      // Compute ΔE, ΔH*, ΔL*, ΔC*, Δh* per match
+      const deRaw = [], dhRaw = [], dlRaw = [], dcRaw = [], dhAngleRaw = [];
+      matches.forEach(({ aLab, bLab }) => {
         const valid = aLab && bLab && isFinite(aLab.L) && isFinite(bLab.L);
-        return valid ? calcDeltaE(method, aLab.L, aLab.a, aLab.b, bLab.L, bLab.a, bLab.b).toFixed(2) : '—';
+        if (!valid) { deRaw.push('—'); dhRaw.push('—'); dlRaw.push('—'); dcRaw.push('—'); dhAngleRaw.push('—'); return; }
+        deRaw.push(calcDeltaE(method, aLab.L, aLab.a, aLab.b, bLab.L, bLab.a, bLab.b).toFixed(2));
+        dhRaw.push(calcDeltaH(method, aLab.L, aLab.a, aLab.b, bLab.L, bLab.a, bLab.b).toFixed(2));
+        dlRaw.push((bLab.L - aLab.L).toFixed(2));
+        dcRaw.push((labChroma(bLab.a, bLab.b) - labChroma(aLab.a, aLab.b)).toFixed(2));
+        dhAngleRaw.push(deltaHueDeg(labHueDeg(aLab.a, aLab.b), labHueDeg(bLab.a, bLab.b)).toFixed(2));
       });
       const deNums = deRaw.filter(v => v !== '—').map(Number);
       const deMean = deNums.reduce((s, v) => s + v, 0) / deNums.length;
@@ -5277,17 +5575,36 @@
       ];
       const colorantSpan = displayColorants.length;
 
+      // Determine the source ordering of `match.colorants` per branch so we can
+      // re-align to `displayColorants`.
+      let colorantSourceOrder;
+      if (aIsIcc && bIsIcc)        colorantSourceOrder = ['CYAN','MAGENTA','YELLOW','BLACK'];
+      else if (aIsIcc && !bIsIcc)  colorantSourceOrder = a.colorants;
+      else                         colorantSourceOrder = b.colorants;
+
+      // Normalize each match: align `colorants` to displayColorants (string values).
+      matches.forEach(m => {
+        const src = m.colorants;
+        m.colorants = displayColorants.map(c => {
+          const i = colorantSourceOrder.indexOf(c);
+          return i >= 0 && src[i] != null ? String(src[i]) : '';
+        });
+        m.rowA = m.rowA || null;
+        m.rowB = m.rowB || null;
+      });
+
       const spanningRow = `<tr>
         <th colspan="${colorantSpan}" style="padding:4px 0;text-align:center;${TH}" data-i18n="device_colorants_hdr">Device Colorants</th>
-        <th colspan="3" style="padding:4px 0;text-align:center;${TH}${VL}">${a.name}</th>
-        <th colspan="3" style="padding:4px 0;text-align:center;${TH}${VL}">${b.name}</th>
-        <th colspan="1" style="padding:4px 0;text-align:center;${TH}${VL}" data-i18n="difference">Difference</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">${escapeHtml(a.name)}</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">${escapeHtml(b.name)}</th>
+        <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}" data-i18n="difference">Difference</th>
       </tr>`;
 
-      _iccCmpData = { matches, deRaw, displayColorants, a, b, method, PR, TH, VL };
+      _cmpData = { matches, deRaw, dhRaw, dlRaw, dcRaw, dhAngleRaw, a, b, displayColorants, aLabIdx: null, bLabIdx: null, method, PR, TH, VL, hasSpectral: false };
       _cmpSortCol = null; _cmpSortDir = 'asc';
       _cmpSortedIdx = Array.from({ length: matches.length }, (_, i) => i);
 
+      saveTvDomState();
       resultEl.innerHTML = `
         <p style="margin-bottom:8px;font-size:13px;color:#555;">${matches.length !== 1 ? t('match_count_pl',{n:matches.length}) : t('match_count',{n:matches.length})}</p>
         ${summaryBox}
@@ -5299,63 +5616,14 @@
             <thead>${spanningRow}<tr id="cmp-col-headers"></tr></thead>
             <tbody id="cmp-table-body" style="font-family:monospace;color:#333;"></tbody>
           </table>
-        </div>`;
+        </div>
+        ${buildTvSectionHTML(true)}`;
 
-      renderIccCmpTable();
+      renderCmpTable();
       renderPlot();
+      buildTvColorantCheckboxes();
+      renderTvChart();
       applyTranslations();
-    }
-
-    function renderIccCmpTable() {
-      if (!_iccCmpData) return;
-      const { matches, deRaw, displayColorants, PR, TH, VL } = _iccCmpData;
-      const method = _iccCmpData.method;
-
-      const thEl = document.getElementById('cmp-col-headers');
-      const tbEl = document.getElementById('cmp-table-body');
-      if (!thEl || !tbEl) return;
-
-      // Sort _cmpSortedIdx if a sort column is set
-      if (_cmpSortCol !== null) {
-        _cmpSortedIdx.sort((ii, jj) => {
-          let vi, vj;
-          if (_cmpSortCol === 'de') {
-            vi = parseFloat(deRaw[ii]) || Infinity;
-            vj = parseFloat(deRaw[jj]) || Infinity;
-          } else {
-            const ci = displayColorants.indexOf(_cmpSortCol);
-            vi = ci >= 0 ? (matches[ii].colorants[ci] ?? Infinity) : Infinity;
-            vj = ci >= 0 ? (matches[jj].colorants[ci] ?? Infinity) : Infinity;
-          }
-          return _cmpSortDir === 'asc' ? vi - vj : vj - vi;
-        });
-      }
-
-      // Column headers
-      thEl.innerHTML = displayColorants.map(c =>
-        `<th style="${PR}${TH}cursor:pointer;" onclick="sortCmpTable('${c}')">${c}<span style="margin-left:3px;color:#aaa;">${_cmpSortCol===c?(_cmpSortDir==='asc'?'▲':'▼'):'⇅'}</span></th>`
-      ).join('') +
-        `<th style="${TH}${VL}padding-right:8px;">L*</th><th style="${TH}padding-right:8px;">a*</th><th style="${TH}padding-right:8px;">b*</th>` +
-        `<th style="${TH}${VL}padding-right:8px;">L*</th><th style="${TH}padding-right:8px;">a*</th><th style="${TH}padding-right:8px;">b*</th>` +
-        `<th style="${TH}${VL}cursor:pointer;" onclick="sortCmpTable('de')">${fmtMethod(method)}<span style="margin-left:3px;color:#aaa;">${_cmpSortCol==='de'?(_cmpSortDir==='asc'?'▲':'▼'):'⇅'}</span></th>`;
-
-      // Sorted row indices
-      const sorted = _cmpSortedIdx.slice();
-
-      tbEl.innerHTML = sorted.map(i => {
-        const { colorants, aLab, bLab } = matches[i];
-        const de = deRaw[i];
-        const deNum = parseFloat(de);
-        const deColor = isNaN(deNum) ? '#333' : deNum < 1 ? '#2ecc71' : deNum < 3 ? '#e67e22' : '#e74c3c';
-        const colCells = displayColorants.map((_, ci) => {
-          const v = colorants[ci];
-          return `<td style="${PR}color:#555;">${v != null ? v.toFixed(0) : '—'}</td>`;
-        }).join('');
-        const fmtLab = (lab) => lab
-          ? `<td style="${VL}padding-right:8px;font-family:monospace;">${lab.L.toFixed(2)}</td><td style="padding-right:8px;font-family:monospace;">${lab.a.toFixed(2)}</td><td style="padding-right:8px;font-family:monospace;">${lab.b.toFixed(2)}</td>`
-          : `<td style="${VL}padding-right:8px;">—</td><td>—</td><td>—</td>`;
-        return `<tr>${colCells}${fmtLab(aLab)}${fmtLab(bLab)}<td style="${VL}font-family:monospace;font-weight:bold;color:${deColor};">${de}</td></tr>`;
-      }).join('');
     }
 
     function togglePlot() {

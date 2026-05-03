@@ -40,6 +40,12 @@ fi
 echo "Emscripten: $(emcc --version | head -1)"
 echo ""
 
+# ── Ensure submodules are initialised (lcms2) ─────────────────────────────────
+if [[ ! -f "$PROJECT_ROOT/gamut-wasm/third-party/lcms2/include/lcms2.h" ]]; then
+  echo "Initialising git submodules (lcms2)..."
+  git -C "$PROJECT_ROOT" submodule update --init --recursive
+fi
+
 # ── Configure ────────────────────────────────────────────────────────────────
 mkdir -p "$BUILD_DIR" "$OUT_DIR"
 cd "$BUILD_DIR"
