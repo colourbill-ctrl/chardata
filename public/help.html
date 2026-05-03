@@ -56,18 +56,15 @@
   <h1>CharData Help</h1>
   <p class="subtitle">Browser-based colour characterisation data explorer and comparator</p>
 
-  <p><strong>CharData</strong> is a browser-based tool for exploring and comparing colour characterisation datasets — the collections of device colorant and L*a*b* measurement data generated when profiling printing systems. It runs entirely in your browser with no installation required, and works on both desktop and mobile.</p>
-
-  <p>A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L*a*b* colorimetry and, optionally, spectral reflectance. CharData accepts these files in <strong>CGATS/IT8</strong> and <strong>CSV</strong> formats.</p>
-
-  <p><strong>What you can do with CharData:</strong></p>
-  <ul>
-    <li><strong>Explore a single dataset</strong> — browse the data table, visualise the colour gamut in 3D L*a*b* space, examine a 2D slice at any L*, a*, or b* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L*a*b* for any device colorant combination.</li>
-    <li><strong>Compare two datasets</strong> — see a row-by-row ΔE table for matched patches, with summary statistics (mean, min, max, std dev), and view both gamuts and tone value curves overlaid on the same charts.</li>
-    <li><strong>Work with spectral data</strong> — if spectral reflectance columns are present, CharData computes L*a*b* from them using a selectable illuminant (D50/D65), observer (2°/10°), and M-condition (M0/M1/M2), and can display the spectral curve for any clicked data point.</li>
-  </ul>
-
-  <p>The suggested workflow is to load an entire directory of characterisation files via the File Select panel, then pick individual files to explore or compare.</p>
+<p><strong>CharData</strong> is a browser-based tool for exploring and comparing colour characterisation datasets — the collections of device colorant and L*a*b* measurement data generated when profiling printing systems. It runs entirely in your browser with no installation required, and works on both desktop and mobile.</p>
+<p>A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L*a*b* colorimetry and, optionally, spectral reflectance. CharData accepts these files in <strong>CGATS/IT8</strong> and <strong>CSV</strong> formats.</p>
+<p><strong>What you can do with CharData:</strong></p>
+<ul>
+<li><strong>Explore a single dataset</strong> — browse the data table, visualise the colour gamut in 3D L*a*b* space, examine a 2D slice at any L*, a*, or b* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L*a*b* for any device colorant combination.</li>
+<li><strong>Compare two datasets</strong> — see a row-by-row ΔE table for matched patches, with summary statistics (mean, min, max, std dev), and view both gamuts and tone value curves overlaid on the same charts.</li>
+<li><strong>Work with spectral data</strong> — if spectral reflectance columns are present, CharData computes L*a*b* from them using a selectable illuminant (D50/D65), observer (2°/10°), and M-condition (M0/M1/M2), and can display the spectral curve for any clicked data point.</li>
+</ul>
+<p>The suggested workflow is to load an entire directory of characterisation files via the File Select panel, then pick individual files to explore or compare.</p>
 
   <nav>
     <strong>Contents</strong>
@@ -135,18 +132,14 @@ text.t3   { fill:var(--tx3); font-size:10px; }
 text.tW   { fill:var(--txW); }
 text.tA   { fill:var(--txA); font-weight:bold; }
 </style>
-<rect x="0" y="0" width="760" height="330" rx="0" class="bg"/><rect x="10" y="10" width="155" height="310" rx="5" class="pnl"/><rect x="10" y="10" width="155" height="28" rx="5" class="hd"/><text x="87.5" y="28" text-anchor="middle" class="tT">File Select</text><rect x="18" y="46" width="139" height="88" rx="5" class="pnl"/><rect x="18" y="46" width="139" height="20" rx="5" class="hd"/><text x="87.5" y="60" text-anchor="middle" class="tB">Dataset A</text><text x="87.5" y="78" text-anchor="middle" class="t3">filename.csv</text><text x="87.5" y="92" text-anchor="middle" class="t3">1200 rows  CMYK+LAB</text><text x="87.5" y="106" text-anchor="middle" class="t2">✓ Valid</text><rect x="24" y="116" width="127" height="14" rx="3" class="btn"/><text x="87.5" y="127" text-anchor="middle" class="t3">Display File</text><rect x="18" y="142" width="139" height="88" rx="5" class="pnl"/><rect x="18" y="142" width="139" height="20" rx="5" class="hd"/><text x="87.5" y="156" text-anchor="middle" class="tB">Dataset B</text><text x="87.5" y="174" text-anchor="middle" class="t3">(drop file here)</text><text x="87.5" y="250" text-anchor="middle" class="t3">Drag & drop files</text><text x="87.5" y="264" text-anchor="middle" class="t3">or use file picker</text><rect x="18" y="282" width="139" height="18" rx="3" class="btn"/><text x="87.5" y="294" text-anchor="middle" class="t3">☕  Ko-fi  ↑ Top</text><rect x="172" y="10" width="430" height="310" rx="5" class="pnl"/><rect x="182" y="20" width="100" height="24" rx="4" class="act"/><text x="232" y="36" text-anchor="middle" class="tW tB">Explore</text><rect x="290" y="20" width="100" height="24" rx="4" class="btn"/><text x="340" y="36" text-anchor="middle" class="t2">Compare</text><rect x="182" y="54" width="410" height="256" rx="4" class="lnbd"/><text x="387" y="130" text-anchor="middle" class="tT">Mode Content Area</text><text x="387" y="150" text-anchor="middle" class="t3">(Data Table · G7 Report · 3D Gamut · 2D Slice · Estimate)</text><rect x="610" y="10" width="140" height="310" rx="5" class="pnl"/><rect x="610" y="10" width="38" height="34" rx="0" class="btn"/><text x="629" y="31" text-anchor="middle" class="t2">⚙</text><rect x="610" y="52" width="38" height="34" rx="0" class="btn"/><text x="629" y="72" text-anchor="middle" class="t2">?</text><line x1="648" y1="10" x2="648" y2="320" class="div"/><text x="690" y="30" text-anchor="middle" class="tT">Settings</text><text x="690" y="55" text-anchor="middle" class="t2">ΔE Method</text><text x="690" y="72" text-anchor="middle" class="t2">Filter Duplicates</text><text x="690" y="89" text-anchor="middle" class="t2">Spectral → LAB</text><text x="690" y="106" text-anchor="middle" class="t2">Model</text><text x="690" y="123" text-anchor="middle" class="t2">Background</text><text x="690" y="140" text-anchor="middle" class="t2">Language</text><line x1="87.5" y1="60" x2="32.5" y2="20" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<rect x="0" y="0" width="760" height="330" rx="0" class="bg"/><rect x="10" y="10" width="155" height="310" rx="5" class="pnl"/><rect x="10" y="10" width="155" height="28" rx="5" class="hd"/><text x="87.5" y="28" text-anchor="middle" class="tT">File Select</text><rect x="18" y="46" width="139" height="88" rx="5" class="pnl"/><rect x="18" y="46" width="139" height="20" rx="5" class="hd"/><text x="87.5" y="60" text-anchor="middle" class="tB">Dataset A</text><text x="87.5" y="78" text-anchor="middle" class="t3">filename.csv</text><text x="87.5" y="92" text-anchor="middle" class="t3">1200 rows  CMYK+LAB</text><text x="87.5" y="106" text-anchor="middle" class="t2">✓ Valid</text><rect x="24" y="116" width="127" height="14" rx="3" class="btn"/><text x="87.5" y="127" text-anchor="middle" class="t3">Display File</text><rect x="18" y="142" width="139" height="88" rx="5" class="pnl"/><rect x="18" y="142" width="139" height="20" rx="5" class="hd"/><text x="87.5" y="156" text-anchor="middle" class="tB">Dataset B</text><text x="87.5" y="174" text-anchor="middle" class="t3">(drop file here)</text><text x="87.5" y="250" text-anchor="middle" class="t3">Drag & drop files</text><text x="87.5" y="264" text-anchor="middle" class="t3">or use file picker</text><rect x="18" y="282" width="139" height="18" rx="3" class="btn"/><text x="87.5" y="294" text-anchor="middle" class="t3">☕  Ko-fi  ↑ Top</text><rect x="172" y="10" width="430" height="310" rx="5" class="pnl"/><rect x="182" y="20" width="100" height="24" rx="4" class="act"/><text x="232" y="36" text-anchor="middle" class="tW tB">Explore</text><rect x="290" y="20" width="100" height="24" rx="4" class="btn"/><text x="340" y="36" text-anchor="middle" class="t2">Compare</text><rect x="182" y="54" width="410" height="256" rx="4" class="lnbd"/><text x="387" y="130" text-anchor="middle" class="tT">Mode Content Area</text><text x="387" y="150" text-anchor="middle" class="t3">(Data Table · G7 Report · 3D Gamut · 2D Slice · Estimate)</text><rect x="610" y="10" width="140" height="310" rx="5" class="pnl"/><rect x="610" y="10" width="38" height="34" rx="0" class="btn"/><text x="629" y="31" text-anchor="middle" class="t2">⚙</text><rect x="610" y="52" width="38" height="34" rx="0" class="btn"/><text x="629" y="72" text-anchor="middle" class="t2">?</text><line x1="648" y1="10" x2="648" y2="320" class="div"/><text x="690" y="30" text-anchor="middle" class="tT">Settings</text><text x="690" y="60" text-anchor="middle" class="t2">ΔE Method</text><text x="690" y="78" text-anchor="middle" class="t2">Filter Duplicates</text><text x="690" y="96" text-anchor="middle" class="t2">Spectral → LAB</text><text x="690" y="114" text-anchor="middle" class="t2">Background</text><line x1="87.5" y1="60" x2="32.5" y2="20" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="32.5" y="17" text-anchor="end" class="t3">Dataset A panel</text><line x1="232" y1="36" x2="232" y2="6" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="232" y="3" text-anchor="end" class="t3">Mode selector</text><line x1="629" y1="31" x2="570" y2="31" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="570" y="28" text-anchor="end" class="t3">⚙ Settings</text><line x1="629" y1="72" x2="570" y2="72" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="570" y="69" text-anchor="end" class="t3">? Help</text>
-</svg><p>
-CharData accepts <strong>CSV</strong> and <strong>CGATS/IT8</strong> text files. CGATS is also published as <strong>ISO 28178</strong> — these are the same format.
-</p>
+</svg><p>CharData accepts <strong>CSV</strong> and <strong>CGATS/IT8</strong> text files. CGATS is also published as <strong>ISO 28178</strong> — these are the same format.</p>
 <h3 id="required-columns">Required columns</h3>
-<p>
-Every file must contain L\<em>a\</em>b* columns and at least one device colorant column:
-</p>
+<p>Every file must contain L*a*b* columns and at least one device colorant column:</p>
 <table><thead>
 <tr><th>Column</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>LAB_L</code></td><td>CIE L*</td></tr>
@@ -154,13 +147,9 @@ Every file must contain L\<em>a\</em>b* columns and at least one device colorant
 <tr><td><code>LAB_B</code></td><td>CIE b*</td></tr>
 <tr><td><em>(colorant)</em></td><td>At least one device colorant column (e.g. <code>CYAN</code>, <code>7CLR_1</code>)</td></tr>
 </tbody></table>
-<p>
-Files with spectral data but no pre-computed LAB columns are also accepted — CharData computes L\<em>a\</em>b* from the spectral data automatically (see <a href="#spectral--lab">Settings — Spectral → LAB</a>).
-</p>
+<p>Files with spectral data but no pre-computed LAB columns are also accepted — CharData computes L*a*b* from the spectral data automatically (see <a href="#spectral-lab">Settings — Spectral → LAB</a>).</p>
 <h3 id="device-colorant-detection">Device colorant detection</h3>
-<p>
-Any column that does not match a known non-colorant pattern is treated as a device colorant. The following are <strong>excluded</strong> from colorant detection:
-</p>
+<p>Any column that does not match a known non-colorant pattern is treated as a device colorant. The following are <strong>excluded</strong> from colorant detection:</p>
 <table><thead>
 <tr><th>Pattern</th><th>Examples</th></tr></thead><tbody>
 <tr><td><code>LAB_*</code></td><td><code>LAB_L</code>, <code>LAB_A</code>, <code>LAB_B</code></td></tr>
@@ -172,16 +161,10 @@ Any column that does not match a known non-colorant pattern is treated as a devi
 <tr><td><code>STATUS_*</code></td><td><code>STATUS_T</code></td></tr>
 <tr><td><code>COLOR_NAME</code>, <code>COLOR_INDEX</code></td><td></td></tr>
 </tbody></table>
-<p>
-Everything else — <code>CYAN</code>, <code>MAGENTA</code>, <code>7CLR_1</code>, <code>ORANGE</code>, etc. — is classified as a device colorant.
-</p>
-<p>
-If all colorant values in the file are in the range \[0, 1\], they are automatically scaled ×100 to the \[0, 100\] range on load.
-</p>
+<p>Everything else — <code>CYAN</code>, <code>MAGENTA</code>, <code>7CLR_1</code>, <code>ORANGE</code>, etc. — is classified as a device colorant.</p>
+<p>If all colorant values in the file are in the range \[0, 1\], they are automatically scaled ×100 to the \[0, 100\] range on load.</p>
 <h3 id="column-name-aliases">Column name aliases</h3>
-<p>
-The following column names are automatically remapped on load:
-</p>
+<p>The following column names are automatically remapped on load:</p>
 <table><thead>
 <tr><th>File column</th><th>Treated as</th></tr></thead><tbody>
 <tr><td><code>CMYK_C</code></td><td><code>CYAN</code></td></tr>
@@ -190,39 +173,31 @@ The following column names are automatically remapped on load:
 <tr><td><code>CMYK_K</code></td><td><code>BLACK</code></td></tr>
 </tbody></table>
 <h3 id="spectral-data">Spectral data</h3>
-<p>
-If the file contains spectral reflectance columns (named <code>NMxxx</code>, <code>NM_xxx</code>, or <code>SPECTRAL_NMxxx</code>, where <code>xxx</code> is the wavelength in nm), CharData can compute L\<em>a\</em>b* from the spectral data instead of using the file's pre-computed LAB values. See <a href="#spectral--lab">Settings — Spectral → LAB</a>.
-</p>
+<p>If the file contains spectral reflectance columns (named <code>NMxxx</code>, <code>NM_xxx</code>, or <code>SPECTRAL_NMxxx</code>, where <code>xxx</code> is the wavelength in nm), CharData can compute L*a*b* from the spectral data instead of using the file's pre-computed LAB values. See <a href="#spectral-lab">Settings — Spectral → LAB</a>.</p>
 <hr>
 <h2 id="2-loading-datasets">2. Loading datasets</h2>
-<p>
-Files can be loaded via the <strong>Dataset A</strong> and <strong>Dataset B</strong> panels in the <strong>File Select</strong> panel (left side of the screen).
-</p>
+<p>Files can be loaded via the <strong>Dataset A</strong> and <strong>Dataset B</strong> panels in the <strong>File Select</strong> panel (left side of the screen).</p>
 <ul>
 <li>On <strong>desktop</strong>, click the narrow tab on the left edge of the screen to open/close the File Select panel. The panel slides over the content without resizing it.</li>
 <li>On <strong>mobile</strong>, tap the folder icon (bottom-right) to open/close File Select.</li>
 <li><strong>Drag and drop</strong> a file from your file system directly onto a Dataset panel, or use the file picker button.</li>
 <li>Click <strong>Display File</strong> (after a file is loaded) to view its data table.</li>
 </ul>
-<p>
-Once a file loads successfully, the panel shows:
-</p>
+<p>Once a file loads successfully, the panel shows:</p>
 <ul>
 <li>File name</li>
 <li>File type (CSV / CGATS / ISO 28178)</li>
 <li>Number of rows (after deduplication, if enabled)</li>
 <li>Column validation result</li>
 </ul>
-<p>
-If required columns are missing (LAB or no device colorants detected), the file is rejected with a specific error message. The G7 report additionally requires CMYK colorants and will show a targeted error if they are absent.
-</p>
+<p>If required columns are missing (LAB or no device colorants detected), the file is rejected with a specific error message. The G7 report additionally requires CMYK colorants and will show a targeted error if they are absent.</p>
 <div class="note">
 <strong>CGATS header note:</strong> If the first line of a CGATS/IT8 file does not contain <code>CGATS</code> or <code>ISO28178</code>, a warning is shown but the file is still loaded and processed normally.
 </div>
 <hr>
 <h2 id="3-settings-panel">3. Settings panel</h2>
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 460"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 360"
   style="width:100%;max-width:380px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
 
 <style>
@@ -259,105 +234,47 @@ text.t3   { fill:var(--tx3); font-size:10px; }
 text.tW   { fill:var(--txW); }
 text.tA   { fill:var(--txA); font-weight:bold; }
 </style>
-<rect x="0" y="0" width="380" height="460" rx="0" class="bg"/>
-<rect x="10" y="10" width="360" height="440" rx="5" class="pnl"/>
-<!-- Blade tab: ⚙ toggle and ? help buttons -->
-<rect x="10" y="10" width="38" height="34" rx="0" class="btn"/><text x="29" y="31" text-anchor="middle" class="t2">⚙</text>
-<rect x="10" y="46" width="38" height="34" rx="0" class="btn"/><text x="29" y="67" text-anchor="middle" class="t2">?</text>
-<line x1="48" y1="10" x2="48" y2="450" class="div"/>
-<!-- Title -->
-<text x="209" y="27" text-anchor="middle" class="tT">Settings</text>
-<line x1="58" y1="36" x2="366" y2="36" class="div"/>
-<!-- ΔE Method -->
-<text x="62" y="50" text-anchor="start" class="t3">ΔE METHOD</text>
-<rect x="62" y="54" width="300" height="18" rx="3" class="btn"/><text x="68" y="67" text-anchor="start" class="t2">ΔE00</text><text x="358" y="67" text-anchor="end" class="t3">▾</text>
-<!-- Filter Duplicates -->
-<text x="62" y="86" text-anchor="start" class="t3">FILTER DUPLICATES</text>
-<rect x="62" y="90" width="300" height="18" rx="3" class="btn"/><text x="68" y="103" text-anchor="start" class="t2">Yes</text><text x="358" y="103" text-anchor="end" class="t3">▾</text>
-<!-- Filter Method -->
-<text x="62" y="122" text-anchor="start" class="t3">FILTER METHOD</text>
-<rect x="62" y="126" width="300" height="18" rx="3" class="btn"/><text x="68" y="139" text-anchor="start" class="t2">Median</text><text x="358" y="139" text-anchor="end" class="t3">▾</text>
-<!-- Section: Spectral → LAB -->
-<line x1="58" y1="154" x2="366" y2="154" class="div"/>
-<text x="62" y="168" text-anchor="start" class="t3">SPECTRAL → LAB</text>
-<text x="62" y="184" text-anchor="start" class="t3">ILLUMINANT</text>
-<rect x="62" y="188" width="300" height="18" rx="3" class="btn"/><text x="68" y="201" text-anchor="start" class="t2">D50</text><text x="358" y="201" text-anchor="end" class="t3">▾</text>
-<text x="62" y="220" text-anchor="start" class="t3">STANDARD OBSERVER</text>
-<rect x="62" y="224" width="300" height="18" rx="3" class="btn"/><text x="68" y="237" text-anchor="start" class="t2">2°</text><text x="358" y="237" text-anchor="end" class="t3">▾</text>
-<text x="62" y="256" text-anchor="start" class="t3">M-CONDITION</text>
-<rect x="62" y="260" width="300" height="18" rx="3" class="btn"/><text x="68" y="273" text-anchor="start" class="t2">M0</text><text x="358" y="273" text-anchor="end" class="t3">▾</text>
-<!-- Section: Model -->
-<line x1="58" y1="290" x2="366" y2="290" class="div"/>
-<text x="62" y="304" text-anchor="start" class="t3">MODEL</text>
-<text x="62" y="320" text-anchor="start" class="t3">WEIGHTED</text>
-<rect x="62" y="324" width="300" height="18" rx="3" class="btn"/><text x="68" y="337" text-anchor="start" class="t2">Off</text><text x="358" y="337" text-anchor="end" class="t3">▾</text>
-<!-- Section: Display -->
-<line x1="58" y1="354" x2="366" y2="354" class="div"/>
-<text x="62" y="368" text-anchor="start" class="t3">DISPLAY</text>
-<text x="62" y="384" text-anchor="start" class="t3">BACKGROUND</text>
-<rect x="62" y="388" width="300" height="18" rx="3" class="btn"/><text x="68" y="401" text-anchor="start" class="t2">System</text><text x="358" y="401" text-anchor="end" class="t3">▾</text>
-<text x="62" y="420" text-anchor="start" class="t3">LANGUAGE</text>
-<rect x="62" y="424" width="300" height="18" rx="3" class="btn"/><text x="68" y="437" text-anchor="start" class="t2">System default</text><text x="358" y="437" text-anchor="end" class="t3">▾</text>
-</svg><p>
-Open Settings by clicking the <strong>⚙</strong> button on the right edge of the screen (or the gear icon on mobile). The Settings panel slides over the content without resizing it. A <strong>?</strong> help button sits directly below ⚙ and opens this help page in a new tab.
-</p>
+<rect x="0" y="0" width="380" height="360" rx="0" class="bg"/><rect x="10" y="10" width="360" height="340" rx="5" class="pnl"/><rect x="10" y="10" width="38" height="34" rx="0" class="btn"/><text x="29" y="31" text-anchor="middle" class="t2">⚙</text><rect x="10" y="46" width="38" height="34" rx="0" class="btn"/><text x="29" y="67" text-anchor="middle" class="t2">?</text><line x1="48" y1="10" x2="48" y2="350" class="div"/><text x="214" y="26" text-anchor="middle" class="tT">Settings</text><line x1="58" y1="36" x2="370" y2="36" class="div"/><text x="62" y="60" text-anchor="start" class="t2 tB">ΔE Method</text><rect x="62" y="64" width="304" height="18" rx="3" class="btn"/><text x="70" y="77" text-anchor="start" class="t2">ΔEab</text><rect x="62" y="86" width="304" height="18" rx="3" class="btn"/><text x="70" y="99" text-anchor="start" class="t2">ΔE94</text><rect x="62" y="108" width="304" height="18" rx="3" class="act"/><text x="70" y="121" text-anchor="start" class="tW">ΔE00</text><line x1="58" y1="134" x2="370" y2="134" class="div"/><text x="62" y="154" text-anchor="start" class="t2 tB">Filter Duplicates</text><rect x="62" y="158" width="304" height="18" rx="3" class="act"/><text x="70" y="171" text-anchor="start" class="tW">Yes</text><rect x="62" y="180" width="304" height="18" rx="3" class="btn"/><text x="70" y="193" text-anchor="start" class="t2">No</text><line x1="58" y1="206" x2="370" y2="206" class="div"/><text x="62" y="226" text-anchor="start" class="t2 tB">Filter Method</text><rect x="62" y="230" width="304" height="18" rx="3" class="act"/><text x="70" y="243" text-anchor="start" class="tW">Median</text><rect x="62" y="252" width="304" height="18" rx="3" class="btn"/><text x="70" y="265" text-anchor="start" class="t2">Mean</text><line x1="58" y1="278" x2="370" y2="278" class="div"/><text x="62" y="298" text-anchor="start" class="t2 tB">Spectral → LAB</text><text x="62" y="316" text-anchor="start" class="t3">Illuminant</text><rect x="62" y="320" width="54" height="16" rx="3" class="act"/><text x="89" y="332" text-anchor="middle" class="tW">D50</text><rect x="62" y="320" width="54" height="16" rx="3" class="btn"/><text x="89" y="332" text-anchor="middle" class="t3">D65</text><text x="62" y="352" text-anchor="start" class="t3">Observer</text><rect x="62" y="356" width="54" height="16" rx="3" class="act"/><text x="89" y="368" text-anchor="middle" class="tW">2°</text><rect x="62" y="356" width="54" height="16" rx="3" class="btn"/><text x="89" y="368" text-anchor="middle" class="t3">10°</text><text x="62" y="388" text-anchor="start" class="t3">M-Condition</text><rect x="62" y="392" width="54" height="16" rx="3" class="act"/><text x="89" y="404" text-anchor="middle" class="tW">M0</text><rect x="62" y="392" width="54" height="16" rx="3" class="btn"/><text x="89" y="404" text-anchor="middle" class="t3">M1</text><rect x="62" y="392" width="54" height="16" rx="3" class="btn"/><text x="89" y="404" text-anchor="middle" class="t3">M2</text><line x1="58" y1="412" x2="370" y2="412" class="div"/><text x="62" y="434" text-anchor="start" class="t2 tB">Background</text><rect x="62" y="438" width="66" height="18" rx="3" class="act"/><text x="95" y="451" text-anchor="middle" class="tW">System</text><rect x="132" y="438" width="66" height="18" rx="3" class="btn"/><text x="165" y="451" text-anchor="middle" class="t3">Light</text><rect x="202" y="438" width="66" height="18" rx="3" class="btn"/><text x="235" y="451" text-anchor="middle" class="t3">Dark</text>
+</svg><p>Open Settings by clicking the <strong>⚙</strong> button on the right edge of the screen (or the gear icon on mobile). The Settings panel slides over the content without resizing it. A <strong>?</strong> help button sits directly below ⚙ and opens this help page in a new tab.</p>
 <h3 id="e-method">ΔE Method</h3>
-<p>
-Selects the colour difference formula used throughout the app.
-</p>
+<p>Selects the colour difference formula used throughout the app.</p>
 <table><thead>
 <tr><th>Option</th><th>Description</th></tr></thead><tbody>
 <tr><td>ΔEab</td><td>CIE 1976 — simplest, less perceptually uniform</td></tr>
 <tr><td>ΔE94</td><td>CIE 1994 — weighted by chroma</td></tr>
 <tr><td>ΔE00</td><td>CIE 2000 — most perceptually uniform, industry standard</td></tr>
 </tbody></table>
-<p>
-The selection is remembered between sessions. Changing the method immediately updates the Compare table and the Estimate fit statistics (without refitting the model).
-</p>
+<p>The selection is remembered between sessions. Changing the method immediately updates the Compare table and the Estimate fit statistics (without refitting the model).</p>
 <h3 id="filter-duplicates">Filter Duplicates</h3>
-<p>
-When <strong>Yes</strong>, rows with identical device colorant values are collapsed into a single row, with L\<em>a\</em>b* values averaged. Useful when a test chart contains repeated patches.
-</p>
+<p>When <strong>Yes</strong>, rows with identical device colorant values are collapsed into a single row, with L*a*b* values averaged. Useful when a test chart contains repeated patches.</p>
 <ul>
 <li><strong>Filter Method</strong> — choose <strong>Median</strong> (default, more robust to outliers) or <strong>Mean</strong>.</li>
 </ul>
-<p>
-The row count shown in the dataset panel reflects the deduplicated count.
-</p>
+<p>The row count shown in the dataset panel reflects the deduplicated count.</p>
 <h3 id="spectral-lab">Spectral → LAB</h3>
-<p>
-Controls how L\<em>a\</em>b* is derived when spectral columns are present. These settings have no effect on files without spectral data.
-</p>
+<p>Controls how L*a*b* is derived when spectral columns are present. These settings have no effect on files without spectral data.</p>
 <table><thead>
 <tr><th>Setting</th><th>Options</th></tr></thead><tbody>
 <tr><td>Illuminant</td><td>D50 (default), D65</td></tr>
 <tr><td>Standard Observer</td><td>2° (default), 10°</td></tr>
 <tr><td>M-Condition</td><td>M0 (default), M1 (forces D50), M2 (UV cut)</td></tr>
 </tbody></table>
-<p>
-Changing any of these settings immediately reprocesses all loaded spectral files.
-</p>
+<p>Changing any of these settings immediately reprocesses all loaded spectral files.</p>
 <h3 id="model">Model</h3>
-<p>
-Controls how the polynomial model in the <a href="#4-5-estimate-section">Estimate section</a> is fitted to the dataset.
-</p>
+<p>Controls how the polynomial model in the <a href="#4-5-estimate-section">Estimate section</a> is fitted to the dataset.</p>
 <table><thead>
 <tr><th>Option</th><th>Description</th></tr></thead><tbody>
 <tr><td>Weighted: Off</td><td>Ordinary least-squares — all patches contribute equally to the fit</td></tr>
 <tr><td>Weighted: On</td><td>Iteratively reweighted least-squares — patches with large residuals are progressively down-weighted, making the model more robust to outlier patches</td></tr>
 </tbody></table>
 <h3 id="background">Background</h3>
-<p>
-Switches the app between <strong>Light</strong>, <strong>Dark</strong>, and <strong>System</strong> (follows OS preference) themes.
-</p>
+<p>Switches the app between <strong>Light</strong>, <strong>Dark</strong>, and <strong>System</strong> (follows OS preference) themes.</p>
 <h3 id="language">Language</h3>
-<p>
-Overrides the interface language. <strong>System default</strong> detects the browser locale and selects the closest supported language automatically. Available languages: English, Français, Deutsch, Italiano, Español, Português (PT), Português (BR), 中文（简体）, 中文（繁體）, 日本語, 한국어.
-</p>
+<p>Overrides the interface language. <strong>System default</strong> detects the browser locale and selects the closest supported language automatically. Available languages: English, Français, Deutsch, Italiano, Español, Português (PT), Português (BR), 中文（简体）, 中文（繁體）, 日本語, 한국어.</p>
 <hr>
 <h2 id="4-explore-mode">4. Explore mode</h2>
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 394"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 370"
   style="width:100%;max-width:720px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
 
 <style>
@@ -394,28 +311,20 @@ text.t3   { fill:var(--tx3); font-size:10px; }
 text.tW   { fill:var(--txW); }
 text.tA   { fill:var(--txA); font-weight:bold; }
 </style>
-<rect x="0" y="0" width="720" height="394" rx="0" class="bg"/><rect x="10" y="10" width="150" height="374" rx="5" class="pnl"/><rect x="10" y="10" width="150" height="22" rx="5" class="hd"/><text x="85" y="25" text-anchor="middle" class="tT">File Select</text><rect x="16" y="38" width="138" height="80" rx="5" class="pnl"/><rect x="16" y="38" width="138" height="18" rx="5" class="hd"/><text x="85" y="50" text-anchor="middle" class="tB">Dataset A  ✓</text><text x="85" y="66" text-anchor="middle" class="t3">profile.csv</text><text x="85" y="78" text-anchor="middle" class="t3">1 200 rows</text><text x="85" y="90" text-anchor="middle" class="t3">CMYK + Spectral</text><rect x="22" y="122" width="126" height="14" rx="3" class="btn"/><text x="85" y="132" text-anchor="middle" class="t3">Dataset B  (empty)</text><rect x="168" y="10" width="542" height="374" rx="5" class="pnl"/><rect x="176" y="18" width="90" height="22" rx="4" class="act"/><text x="221" y="33" text-anchor="middle" class="tW tB">Explore</text><rect x="272" y="18" width="90" height="22" rx="4" class="btn"/><text x="317" y="33" text-anchor="middle" class="t2">Compare</text><rect x="176" y="50" width="526" height="22" rx="3" class="sec"/><text x="186" y="65" text-anchor="start" class="t2">▶  Data Table</text><rect x="176" y="74" width="526" height="22" rx="3" class="sec"/><text x="186" y="89" text-anchor="start" class="t2">▶  Tone Value</text><rect x="176" y="98" width="526" height="22" rx="3" class="pnl"/><text x="186" y="113" text-anchor="start" class="tA">▼  3D Gamut Plot</text><rect x="176" y="122" width="526" height="22" rx="3" class="pnl"/><text x="186" y="137" text-anchor="start" class="t3">     ☑ Show gamut shell · ☑ Show data points · ☑ Color by hue · ☑ Color by value</text><rect x="176" y="146" width="526" height="22" rx="3" class="pnl"/><text x="186" y="161" text-anchor="start" class="t3">     Shell opacity ░░░░░░░░░░░░░░░░</text><rect x="176" y="170" width="526" height="22" rx="3" class="pnl"/><text x="186" y="185" text-anchor="start" class="t3">     ☐ Show spectral data when point selected</text><rect x="176" y="194" width="526" height="22" rx="3" class="sec"/><text x="186" y="209" text-anchor="start" class="t2">▶  Gamut Slice (2D)</text><rect x="176" y="218" width="526" height="22" rx="3" class="sec"/><text x="186" y="233" text-anchor="start" class="t2">▶  G7 Report</text><rect x="176" y="242" width="526" height="22" rx="3" class="sec"/><text x="186" y="257" text-anchor="start" class="t2">▶  Estimate</text><line x1="221" y1="33" x2="221" y2="3" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<rect x="0" y="0" width="720" height="370" rx="0" class="bg"/><rect x="10" y="10" width="150" height="350" rx="5" class="pnl"/><rect x="10" y="10" width="150" height="22" rx="5" class="hd"/><text x="85" y="25" text-anchor="middle" class="tT">File Select</text><rect x="16" y="38" width="138" height="80" rx="5" class="pnl"/><rect x="16" y="38" width="138" height="18" rx="5" class="hd"/><text x="85" y="50" text-anchor="middle" class="tB">Dataset A  ✓</text><text x="85" y="66" text-anchor="middle" class="t3">profile.csv</text><text x="85" y="78" text-anchor="middle" class="t3">1 200 rows</text><text x="85" y="90" text-anchor="middle" class="t3">CMYK + Spectral</text><rect x="22" y="122" width="126" height="14" rx="3" class="btn"/><text x="85" y="132" text-anchor="middle" class="t3">Dataset B  (empty)</text><rect x="168" y="10" width="542" height="350" rx="5" class="pnl"/><rect x="176" y="18" width="90" height="22" rx="4" class="act"/><text x="221" y="33" text-anchor="middle" class="tW tB">Explore</text><rect x="272" y="18" width="90" height="22" rx="4" class="btn"/><text x="317" y="33" text-anchor="middle" class="t2">Compare</text><rect x="176" y="50" width="526" height="22" rx="3" class="sec"/><text x="186" y="65" text-anchor="start" class="t2">▶  Data Table</text><rect x="176" y="74" width="526" height="22" rx="3" class="pnl"/><text x="186" y="89" text-anchor="start" class="tA">▼  3D Gamut Plot</text><rect x="176" y="98" width="526" height="22" rx="3" class="pnl"/><text x="186" y="113" text-anchor="start" class="t3">     ☑ Show gamut shell · ☑ Show data points · ☑ Color by hue · ☑ Color by value</text><rect x="176" y="122" width="526" height="22" rx="3" class="pnl"/><text x="186" y="137" text-anchor="start" class="t3">     Shell opacity ░░░░░░░░░░░░░░░░</text><rect x="176" y="146" width="526" height="22" rx="3" class="pnl"/><text x="186" y="161" text-anchor="start" class="t3">     ☐ Show spectral data when point selected</text><rect x="176" y="170" width="526" height="22" rx="3" class="sec"/><text x="186" y="185" text-anchor="start" class="t2">▶  Gamut Slice (2D)</text><rect x="176" y="194" width="526" height="22" rx="3" class="sec"/><text x="186" y="209" text-anchor="start" class="t2">▶  G7 Report</text><rect x="176" y="218" width="526" height="22" rx="3" class="sec"/><text x="186" y="233" text-anchor="start" class="t2">▶  Estimate</text><line x1="221" y1="33" x2="221" y2="3" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="221" y="0" text-anchor="end" class="t3">Active mode</text><line x1="186" y1="72" x2="710" y2="72" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
-<text x="710" y="69" text-anchor="start" class="t3">Collapsed section (click to expand)</text><line x1="186" y1="142" x2="710" y2="142" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
-<text x="710" y="139" text-anchor="start" class="t3">Expanded section</text>
-</svg><p>
-Explore mode works with a single dataset (Dataset A). Select it with the <strong>Explore</strong> button at the top.
-</p>
+<text x="710" y="69" text-anchor="start" class="t3">Collapsed section (click to expand)</text><line x1="186" y1="118" x2="710" y2="118" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="710" y="115" text-anchor="start" class="t3">Expanded section</text>
+</svg><p>Explore mode works with a single dataset (Dataset A). Select it with the <strong>Explore</strong> button at the top.</p>
 <h3 id="4-1-data-table">4.1 Data table</h3>
-<p>
-Click <strong>Display File</strong> in the Dataset A panel to open a sortable table of all rows.
-</p>
+<p>Click <strong>Display File</strong> in the Dataset A panel to open a sortable table of all rows.</p>
 <ul>
 <li>Click any column header to sort ascending; click again to sort descending.</li>
-<li>Columns shown: all device colorants, then L\<em>, a\</em>, b*.</li>
+<li>Columns shown: all device colorants, then L*, a*, b*.</li>
 </ul>
 <h3 id="4-2-g7-report">4.2 G7 report</h3>
-<p>
-The G7 section (below Data Table) analyses the dataset against the IDEAlliance G7 System ADS target patch values (P2P chart, Appendix A). It requires CMYK colorants plus LAB.
-</p>
-<p>
-The report shows measured vs target L\<em>a\</em>b* for key patches (paper white, K solids, CMY solids, and tonal ramps), plus ΔE for each.
-</p>
+<p>The G7 section (below Data Table) analyses the dataset against the IDEAlliance G7 System ADS target patch values (P2P chart, Appendix A). It requires CMYK colorants plus LAB.</p>
+<p>The report shows measured vs target L*a*b* for key patches (paper white, K solids, CMY solids, and tonal ramps), plus ΔE for each.</p>
 <h3 id="4-3-3d-gamut-plot">4.3 3D Gamut plot</h3>
 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 270"
@@ -458,13 +367,9 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <rect x="0" y="0" width="720" height="270" rx="0" class="bg"/><rect x="10" y="10" width="700" height="80" rx="5" class="pnl"/><rect x="10" y="10" width="700" height="22" rx="5" class="hd"/><text x="360" y="25" text-anchor="middle" class="tT">3D Gamut Plot Controls</text><text x="20" y="48" text-anchor="start" class="t2">☑ Show gamut shell</text><text x="195" y="48" text-anchor="start" class="t2">☑ Show data points</text><text x="370" y="48" text-anchor="start" class="t2">☑ Color by hue angle</text><text x="545" y="48" text-anchor="start" class="t2">☑ Color by value</text><text x="20" y="68" text-anchor="start" class="t3">Shell opacity:</text><rect x="98" y="60" width="120" height="12" rx="2" class="btn"/><rect x="98" y="60" width="70" height="12" rx="2" class="act"/><text x="230" y="68" text-anchor="start" class="t3">☐ Show spectral data when point selected</text><line x1="10" y1="92" x2="710" y2="92" class="div"/><text x="20" y="108" text-anchor="start" class="t3">Per-slot controls (gear icon ⚙ in legend):</text><rect x="10" y="118" width="700" height="142" rx="4" class="sec"/><text x="360" y="170" text-anchor="middle" class="tT">3D L*a*b* Gamut Plot</text><text x="360" y="192" text-anchor="middle" class="t3">(interactive — rotate, zoom, click points)</text><rect x="560" y="128" width="140" height="60" rx="4" class="pnl"/><text x="570" y="143" text-anchor="start" class="tA">⚙  Dataset A</text><text x="570" y="161" text-anchor="start" class="t2">⚙  Dataset B</text><text x="570" y="175" text-anchor="start" class="t3">↑ click to toggle</text><line x1="107" y1="48" x2="107" y2="38" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="107" y="35" text-anchor="end" class="t3">Global checkboxes</text><line x1="570" y1="143" x2="575" y2="108" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="575" y="105" text-anchor="start" class="t3">Per-slot gear</text>
-</svg><p>
-Displays the dataset's colour gamut in CIE L\<em>a\</em>b* space.
-</p>
+</svg><p>Displays the dataset's colour gamut in CIE L*a*b* space.</p>
 <h4>Controls</h4>
-<p>
-The main control panel (above the plot) contains global settings. Each dataset also has its own gear icon (⚙) in the plot legend for per-slot overrides.
-</p>
+<p>The main control panel (above the plot) contains global settings. Each dataset also has its own gear icon (⚙) in the plot legend for per-slot overrides.</p>
 <table><thead>
 <tr><th>Control</th><th>Description</th></tr></thead><tbody>
 <tr><td>Show gamut shell</td><td>Renders an alphahull mesh enclosing the gamut surface</td></tr>
@@ -474,30 +379,20 @@ The main control panel (above the plot) contains global settings. Each dataset a
 <tr><td>Shell opacity</td><td>Slider for shell transparency</td></tr>
 <tr><td>Show spectral data when point selected</td><td>Enables spectral reflectance popup on click</td></tr>
 </tbody></table>
-<p>
-When both global and per-slot checkboxes are visible, the global checkbox shows an <strong>indeterminate</strong> state when the two slots differ. Clicking the global checkbox sets both slots to the same state.
-</p>
+<p>When both global and per-slot checkboxes are visible, the global checkbox shows an <strong>indeterminate</strong> state when the two slots differ. Clicking the global checkbox sets both slots to the same state.</p>
 <h4>Spectral popup</h4>
-<p>
-If the dataset has spectral columns and <strong>Show spectral data when point selected</strong> is enabled, clicking a data point opens a popup showing the spectral reflectance curve for that patch.
-</p>
+<p>If the dataset has spectral columns and <strong>Show spectral data when point selected</strong> is enabled, clicking a data point opens a popup showing the spectral reflectance curve for that patch.</p>
 <h4>Legend</h4>
-<p>
-Click any legend item to <strong>toggle that trace on/off</strong>. Hover for the tooltip.
-</p>
+<p>Click any legend item to <strong>toggle that trace on/off</strong>. Hover for the tooltip.</p>
 <h3 id="4-4-2d-gamut-slice">4.4 2D Gamut slice</h3>
-<p>
-Below the 3D plot, the <strong>Gamut Slice (2D)</strong> section shows a cross-section of the gamut.
-</p>
+<p>Below the 3D plot, the <strong>Gamut Slice (2D)</strong> section shows a cross-section of the gamut.</p>
 <table><thead>
 <tr><th>Control</th><th>Description</th></tr></thead><tbody>
-<tr><td>Axis</td><td>Which axis to slice along: L\<em>, a\</em>, or b*</td></tr>
+<tr><td>Axis</td><td>Which axis to slice along: L*, a*, or b*</td></tr>
 <tr><td>Value</td><td>Position of the slice along the chosen axis (0–100)</td></tr>
 <tr><td>Bandwidth ±</td><td>Half-width of the slice band; wider = more points included</td></tr>
 </tbody></table>
-<p>
-The slice updates live as you adjust the controls.
-</p>
+<p>The slice updates live as you adjust the controls.</p>
 <h3 id="4-5-estimate-section">4.5 Estimate section</h3>
 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 310"
@@ -542,13 +437,9 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <text x="140" y="197" text-anchor="end" class="t3">Colorant sliders</text><line x1="478" y1="240" x2="478" y2="298" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="478" y="295" text-anchor="end" class="t3">Model prediction</text><line x1="558" y1="240" x2="710" y2="298" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="710" y="295" text-anchor="start" class="t3">Nearest in dataset</text>
-</svg><p>
-The <strong>Estimate</strong> section fits a polynomial model to the dataset, mapping device colorants → L\<em>a\</em>b\<em>. It allows you to predict the L\</em>a\<em>b\</em> for any combination of colorant values, and see the nearest actual patch in the dataset.
-</p>
+</svg><p>The <strong>Estimate</strong> section fits a polynomial model to the dataset, mapping device colorants → L*a*b*. It allows you to predict the L*a*b* for any combination of colorant values, and see the nearest actual patch in the dataset.</p>
 <h4>Generating a model</h4>
-<p>
-Click <strong>Generate model</strong>. A blue <strong>Computing</strong> badge appears in the top-left corner of the screen while the fit runs (it may take a moment for large datasets). The badge also appears during other computationally intensive operations such as rendering the 3D gamut shell. If the fit fails, an error message and <strong>Retry</strong> button appear.
-</p>
+<p>Click <strong>Generate model</strong>. A blue <strong>Computing</strong> badge appears in the top-left corner of the screen while the fit runs (it may take a moment for large datasets). The badge also appears during other computationally intensive operations such as rendering the 3D gamut shell. If the fit fails, an error message and <strong>Retry</strong> button appear.</p>
 <h4>Model fitting strategy</h4>
 <ul>
 <li>The fitter starts at degree 2 and steps up to a maximum of degree 5 (or the number of colorants, whichever is lower).</li>
@@ -565,63 +456,19 @@ Click <strong>Generate model</strong>. A blue <strong>Computing</strong> badge a
 <tr><td>Std Dev</td><td>Spread of the error distribution</td></tr>
 <tr><td>Points fitted</td><td>Number of rows used for the fit</td></tr>
 </tbody></table>
-<p>
-The model degree is shown next to "Model fit" above the stats.
-</p>
+<p>The model degree is shown next to "Model fit" above the stats.</p>
 <h4>Interactive prediction</h4>
-<p>
-Below the stats, a table allows you to dial in colorant values:
-</p>
+<p>Below the stats, a table allows you to dial in colorant values:</p>
 <ul>
 <li><strong>Sliders</strong> and <strong>number boxes</strong> are linked — adjust either one.</li>
-<li><strong>Model</strong> column shows the predicted L\<em>, a\</em>, b* for the current colorant values.</li>
-<li><strong>Nearest in dataset</strong> column shows the L\<em>, a\</em>, b* (and colorant values) of the closest patch in the dataset by Euclidean distance in colorant space.</li>
+<li><strong>Model</strong> column shows the predicted L*, a*, b* for the current colorant values.</li>
+<li><strong>Nearest in dataset</strong> column shows the L*, a*, b* (and colorant values) of the closest patch in the dataset by Euclidean distance in colorant space.</li>
 </ul>
-<p>
-Click <strong>Regenerate</strong> to refit the model (e.g. after loading a new dataset). Note: changing the ΔE method in Settings updates the displayed statistics immediately without refitting — only click Regenerate if you want to refit from scratch using the new method's stopping criterion.
-</p>
+<p>Click <strong>Regenerate</strong> to refit the model (e.g. after loading a new dataset). Note: changing the ΔE method in Settings updates the displayed statistics immediately without refitting — only click Regenerate if you want to refit from scratch using the new method's stopping criterion.</p>
 <h3 id="4-6-tone-value">4.6 Tone Value</h3>
-
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 258"
-  style="width:100%;max-width:720px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
-<style>
-:root{--bg:#f0f2f5;--pnl:#fff;--pnl-bd:#ccd6e0;--hd:#e8edf2;--hd-bd:#c0ccd8;--sec:#f5f6f8;--sec-bd:#dde4ec;--btn:#e8edf2;--btn-bd:#bbb;--tx:#333;--tx2:#555;--tx3:#888;--txA:#1a5a8a;--ln:#dde4ec;}
-@media(prefers-color-scheme:dark){:root{--bg:#1a1c1f;--pnl:#22262e;--pnl-bd:#3a4048;--hd:#252930;--hd-bd:#3a4048;--sec:#1e2128;--sec-bd:#333a44;--btn:#252930;--btn-bd:#444;--tx:#c8cdd4;--tx2:#9aa0a8;--tx3:#555e6a;--txA:#7ab8e8;--ln:#2e3440;}}
-rect.bg{fill:var(--bg);}rect.pnl{fill:var(--pnl);stroke:var(--pnl-bd);stroke-width:1.5;}rect.hd{fill:var(--hd);stroke:var(--hd-bd);stroke-width:1;}rect.sec{fill:var(--sec);stroke:var(--sec-bd);stroke-width:1;}rect.btn{fill:var(--btn);stroke:var(--btn-bd);stroke-width:1;}rect.lnbd{fill:none;stroke:var(--ln);stroke-width:1;}line.div{stroke:var(--ln);stroke-width:1;}text{font-family:Arial,sans-serif;font-size:11px;fill:var(--tx);}text.tT{font-size:13px;font-weight:bold;fill:var(--txA);}text.tB{font-weight:bold;}text.t2{fill:var(--tx2);}text.t3{fill:var(--tx3);font-size:10px;}text.tA{fill:var(--txA);font-weight:bold;}
-</style>
-<rect x="0" y="0" width="720" height="258" rx="0" class="bg"/>
-<!-- Section header bar -->
-<rect x="10" y="10" width="700" height="22" rx="5" class="hd"/><text x="26" y="25" text-anchor="start" class="tA">▼  Tone Value</text>
-<!-- Chart area (full width) -->
-<rect x="10" y="34" width="700" height="130" rx="4" class="sec"/>
-<text x="360" y="97" text-anchor="middle" class="tT">Tone Value Chart</text>
-<text x="360" y="115" text-anchor="middle" class="t3">X axis: Input (%)   ·   Y axis: Tone Value % or Gain %</text>
-<!-- Legend strip -->
-<rect x="10" y="166" width="700" height="22" rx="4" class="pnl"/>
-<text x="20" y="181" text-anchor="start" class="t3">— CYAN  — MAGENTA  — YELLOW  — BLACK</text>
-<!-- Controls header bar -->
-<rect x="10" y="190" width="700" height="22" rx="3" class="hd"/>
-<text x="18" y="205" text-anchor="start" class="t3">Controls</text>
-<rect x="678" y="192" width="28" height="18" rx="3" class="btn"/><text x="692" y="205" text-anchor="middle" class="t2">▲</text>
-<!-- Controls body (expanded) -->
-<rect x="10" y="214" width="700" height="32" rx="3" class="pnl"/>
-<rect x="18" y="220" width="138" height="16" rx="3" class="btn"/><text x="24" y="232" text-anchor="start" class="t3">Murray-Davies ▾</text>
-<rect x="164" y="220" width="90" height="16" rx="3" class="btn"/><text x="170" y="232" text-anchor="start" class="t3">Status T ▾</text>
-<rect x="262" y="220" width="90" height="16" rx="3" class="btn"/><text x="268" y="232" text-anchor="start" class="t3">Transfer ▾</text>
-<text x="362" y="232" text-anchor="start" class="t3">☑ CYAN  ☑ MAGENTA  ☑ YELLOW  ☑ BLACK</text>
-<!-- Annotations -->
-<line x1="692" y1="192" x2="692" y2="4" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
-<text x="692" y="1" text-anchor="end" class="t3">▲ collapse controls  ▼ expand</text>
-<line x1="18" y1="232" x2="8" y2="248" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
-<text x="8" y="255" text-anchor="start" class="t3">Controls bar (below chart)</text>
-</svg>
-<p>
-The <strong>Tone Value</strong> section analyses the tonal response of each primary colorant — how the printed tone value relates to the input ink percentage. It appears between the Data Table and Estimate sections.
-</p>
+<p>The <strong>Tone Value</strong> section analyses the tonal response of each primary colorant — how the printed tone value relates to the input ink percentage. It appears between the Data Table and Estimate sections.</p>
 <h4>Controls</h4>
-<p>
-A collapsible bar below the chart (click <strong>▲</strong> to collapse, <strong>▼</strong> to expand) contains:
-</p>
+<p>A collapsible bar below the chart (click <strong>▲</strong> to collapse, <strong>▼</strong> to expand) contains:</p>
 <table><thead>
 <tr><th>Control</th><th>Description</th></tr></thead><tbody>
 <tr><td>Tone Method</td><td>Murray-Davies (spectral density) or Colour Tone Value (CTV, ISO 20654)</td></tr>
@@ -630,9 +477,7 @@ A collapsible bar below the chart (click <strong>▲</strong> to collapse, <stro
 <tr><td>Colorant checkboxes</td><td>Toggle individual colorant curves on/off</td></tr>
 </tbody></table>
 <h4>Tone Method</h4>
-<p>
-<strong>Murray-Davies</strong> computes tone value from spectral reflectance using a simulated densitometer filter. The channel used depends on the colorant:
-</p>
+<p><strong>Murray-Davies</strong> computes tone value from spectral reflectance using a simulated densitometer filter. The channel used depends on the colorant:</p>
 <table><thead>
 <tr><th>Colorant</th><th>Filter channel</th></tr></thead><tbody>
 <tr><td>CYAN</td><td>Red (R)</td></tr>
@@ -640,27 +485,15 @@ A collapsible bar below the chart (click <strong>▲</strong> to collapse, <stro
 <tr><td>YELLOW</td><td>Blue (B)</td></tr>
 <tr><td>BLACK and others</td><td>Visual (V)</td></tr>
 </tbody></table>
-<p>
-Paper (lowest ink%) and solid (highest ink%) patches in the primary tone ramp are used as reference points.
-</p>
-<p>
-<strong>Colour Tone Value (CTV)</strong> follows ISO 20654 and computes tone value from CIE L* values only. No spectral data is required, but the dataset must contain a primary tone ramp for each colorant.
-</p>
+<p>Paper (lowest ink%) and solid (highest ink%) patches in the primary tone ramp are used as reference points.</p>
+<p><strong>Colour Tone Value (CTV)</strong> follows ISO 20654 and computes tone value from CIE L* values only. No spectral data is required, but the dataset must contain a primary tone ramp for each colorant.</p>
 <h4>Graph types</h4>
-<p>
-<strong>Transfer</strong> — plots tone value (%) on the Y-axis against ink% on the X-axis. Ideal linear response is a straight diagonal from (0,0) to (100,100). Curves above the diagonal indicate dot gain; below indicate dot loss.
-</p>
-<p>
-<strong>Gain</strong> — plots TV − ink% (percentage points) on the Y-axis. Zero is ideal linear response; positive values = dot gain; negative = dot loss. By definition gain is always zero at 0% and 100% ink.
-</p>
+<p><strong>Transfer</strong> — plots tone value (%) on the Y-axis against ink% on the X-axis. Ideal linear response is a straight diagonal from (0,0) to (100,100). Curves above the diagonal indicate dot gain; below indicate dot loss.</p>
+<p><strong>Gain</strong> — plots TV − ink% (percentage points) on the Y-axis. Zero is ideal linear response; positive values = dot gain; negative = dot loss. By definition gain is always zero at 0% and 100% ink.</p>
 <h4>Y-axis range</h4>
-<p>
-The Y-axis range is computed from the data for the current dataset, method, and filter combination, then fixed. In Gain mode the range is determined from interior tone steps only (excluding 0% and 100% endpoints), with padding for readability. The range is recalculated if the dataset, method, or filter changes.
-</p>
+<p>The Y-axis range is computed from the data for the current dataset, method, and filter combination, then fixed. In Gain mode the range is determined from interior tone steps only (excluding 0% and 100% endpoints), with padding for readability. The range is recalculated if the dataset, method, or filter changes.</p>
 <h4>Availability</h4>
-<p>
-Tone Value requires rows where only a single colorant is non-zero at a time (a primary tone ramp). Murray-Davies additionally requires spectral reflectance columns; if absent the chart prompts you to switch to CTV.
-</p>
+<p>Tone Value requires rows where only a single colorant is non-zero at a time (a primary tone ramp). Murray-Davies additionally requires spectral reflectance columns; if absent the chart prompts you to switch to CTV.</p>
 <hr>
 <h2 id="5-compare-mode">5. Compare mode</h2>
 
@@ -704,30 +537,20 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <rect x="0" y="0" width="720" height="310" rx="0" class="bg"/><rect x="10" y="10" width="150" height="290" rx="5" class="pnl"/><rect x="10" y="10" width="150" height="22" rx="5" class="hd"/><text x="85" y="25" text-anchor="middle" class="tT">File Select</text><rect x="16" y="38" width="138" height="68" rx="5" class="pnl"/><rect x="16" y="38" width="138" height="18" rx="5" class="hd"/><text x="85" y="50" text-anchor="middle" class="tB">Dataset A  ✓</text><text x="85" y="68" text-anchor="middle" class="t3">profile_A.csv</text><text x="85" y="82" text-anchor="middle" class="t3">1 200 rows</text><text x="85" y="96" text-anchor="middle" class="t3">CMYK+LAB</text><rect x="16" y="112" width="138" height="68" rx="5" class="pnl"/><rect x="16" y="112" width="138" height="18" rx="5" class="hd"/><text x="85" y="124" text-anchor="middle" class="tB">Dataset B  ✓</text><text x="85" y="142" text-anchor="middle" class="t3">profile_B.csv</text><text x="85" y="156" text-anchor="middle" class="t3">1 180 rows</text><text x="85" y="170" text-anchor="middle" class="t3">CMYK+LAB</text><rect x="168" y="10" width="542" height="290" rx="5" class="pnl"/><rect x="176" y="18" width="90" height="22" rx="4" class="btn"/><text x="221" y="33" text-anchor="middle" class="t2">Explore</text><rect x="272" y="18" width="90" height="22" rx="4" class="act"/><text x="317" y="33" text-anchor="middle" class="tW tB">Compare</text><rect x="176" y="48" width="526" height="46" rx="4" class="sec"/><text x="206" y="65" text-anchor="middle" class="t3">Mean ΔE00</text><text x="206" y="83" text-anchor="middle" class="tB">2.41</text><text x="276" y="65" text-anchor="middle" class="t3">Min ΔE00</text><text x="276" y="83" text-anchor="middle" class="tB">0.18</text><text x="346" y="65" text-anchor="middle" class="t3">Max ΔE00</text><text x="346" y="83" text-anchor="middle" class="tB">8.93</text><text x="416" y="65" text-anchor="middle" class="t3">Std Dev</text><text x="416" y="83" text-anchor="middle" class="tB">1.67</text><rect x="176" y="102" width="526" height="22" rx="0" class="hd"/><text x="197.91666666666666" y="117" text-anchor="middle" class="t3">C</text><text x="241.75" y="117" text-anchor="middle" class="t3">M</text><line x1="219.83333333333334" y1="102" x2="219.83333333333334" y2="124" class="div"/><text x="285.58333333333337" y="117" text-anchor="middle" class="t3">Y</text><line x1="263.6666666666667" y1="102" x2="263.6666666666667" y2="124" class="div"/><text x="329.4166666666667" y="117" text-anchor="middle" class="t3">K</text><line x1="307.5" y1="102" x2="307.5" y2="124" class="div"/><text x="373.25000000000006" y="117" text-anchor="middle" class="t3">L*(A)</text><line x1="351.33333333333337" y1="102" x2="351.33333333333337" y2="124" class="div"/><text x="417.08333333333337" y="117" text-anchor="middle" class="t3">a*(A)</text><line x1="395.1666666666667" y1="102" x2="395.1666666666667" y2="124" class="div"/><text x="460.9166666666667" y="117" text-anchor="middle" class="t3">b*(A)</text><line x1="439" y1="102" x2="439" y2="124" class="div"/><text x="504.75000000000006" y="117" text-anchor="middle" class="t3">L*(B)</text><line x1="482.83333333333337" y1="102" x2="482.83333333333337" y2="124" class="div"/><text x="548.5833333333334" y="117" text-anchor="middle" class="t3">a*(B)</text><line x1="526.6666666666667" y1="102" x2="526.6666666666667" y2="124" class="div"/><text x="592.4166666666666" y="117" text-anchor="middle" class="t3">b*(B)</text><line x1="570.5" y1="102" x2="570.5" y2="124" class="div"/><text x="636.25" y="117" text-anchor="middle" class="t3">ΔE</text><line x1="614.3333333333334" y1="102" x2="614.3333333333334" y2="124" class="div"/><text x="680.0833333333334" y="117" text-anchor="middle" class="t3">ΔH</text><line x1="658.1666666666667" y1="102" x2="658.1666666666667" y2="124" class="div"/><rect x="176" y="124" width="526" height="22" rx="0" class="sec"/><text x="197.91666666666666" y="139" text-anchor="middle" class="t3">100</text><text x="241.75" y="139" text-anchor="middle" class="t3">0</text><text x="285.58333333333337" y="139" text-anchor="middle" class="t3">0</text><text x="329.4166666666667" y="139" text-anchor="middle" class="t3">0</text><text x="373.25000000000006" y="139" text-anchor="middle" class="t3">28</text><text x="417.08333333333337" y="139" text-anchor="middle" class="t3">48</text><text x="460.9166666666667" y="139" text-anchor="middle" class="t3">-3</text><text x="504.75000000000006" y="139" text-anchor="middle" class="t3">27</text><text x="548.5833333333334" y="139" text-anchor="middle" class="t3">47</text><text x="592.4166666666666" y="139" text-anchor="middle" class="t3">-2</text><text x="636.25" y="139" text-anchor="middle" class="t3">0.9</text><text x="680.0833333333334" y="139" text-anchor="middle" class="t3">0.5</text><rect x="176" y="146" width="526" height="22" rx="0" class="pnl"/><text x="197.91666666666666" y="161" text-anchor="middle" class="t3">…</text><text x="241.75" y="161" text-anchor="middle" class="t3">…</text><text x="285.58333333333337" y="161" text-anchor="middle" class="t3">…</text><text x="329.4166666666667" y="161" text-anchor="middle" class="t3">…</text><text x="373.25000000000006" y="161" text-anchor="middle" class="t3">…</text><text x="417.08333333333337" y="161" text-anchor="middle" class="t3">…</text><text x="460.9166666666667" y="161" text-anchor="middle" class="t3">…</text><text x="504.75000000000006" y="161" text-anchor="middle" class="t3">…</text><text x="548.5833333333334" y="161" text-anchor="middle" class="t3">…</text><text x="592.4166666666666" y="161" text-anchor="middle" class="t3">…</text><text x="636.25" y="161" text-anchor="middle" class="t3">…</text><text x="680.0833333333334" y="161" text-anchor="middle" class="t3">…</text><rect x="176" y="168" width="526" height="22" rx="0" class="sec"/><text x="197.91666666666666" y="183" text-anchor="middle" class="t3">…</text><text x="241.75" y="183" text-anchor="middle" class="t3">…</text><text x="285.58333333333337" y="183" text-anchor="middle" class="t3">…</text><text x="329.4166666666667" y="183" text-anchor="middle" class="t3">…</text><text x="373.25000000000006" y="183" text-anchor="middle" class="t3">…</text><text x="417.08333333333337" y="183" text-anchor="middle" class="t3">…</text><text x="460.9166666666667" y="183" text-anchor="middle" class="t3">…</text><text x="504.75000000000006" y="183" text-anchor="middle" class="t3">…</text><text x="548.5833333333334" y="183" text-anchor="middle" class="t3">…</text><text x="592.4166666666666" y="183" text-anchor="middle" class="t3">…</text><text x="636.25" y="183" text-anchor="middle" class="t3">…</text><text x="680.0833333333334" y="183" text-anchor="middle" class="t3">…</text><rect x="176" y="190" width="526" height="22" rx="0" class="pnl"/><text x="197.91666666666666" y="205" text-anchor="middle" class="t3">…</text><text x="241.75" y="205" text-anchor="middle" class="t3">…</text><text x="285.58333333333337" y="205" text-anchor="middle" class="t3">…</text><text x="329.4166666666667" y="205" text-anchor="middle" class="t3">…</text><text x="373.25000000000006" y="205" text-anchor="middle" class="t3">…</text><text x="417.08333333333337" y="205" text-anchor="middle" class="t3">…</text><text x="460.9166666666667" y="205" text-anchor="middle" class="t3">…</text><text x="504.75000000000006" y="205" text-anchor="middle" class="t3">…</text><text x="548.5833333333334" y="205" text-anchor="middle" class="t3">…</text><text x="592.4166666666666" y="205" text-anchor="middle" class="t3">…</text><text x="636.25" y="205" text-anchor="middle" class="t3">…</text><text x="680.0833333333334" y="205" text-anchor="middle" class="t3">…</text><rect x="176" y="212" width="526" height="22" rx="0" class="sec"/><text x="197.91666666666666" y="227" text-anchor="middle" class="t3">…</text><text x="241.75" y="227" text-anchor="middle" class="t3">…</text><text x="285.58333333333337" y="227" text-anchor="middle" class="t3">…</text><text x="329.4166666666667" y="227" text-anchor="middle" class="t3">…</text><text x="373.25000000000006" y="227" text-anchor="middle" class="t3">…</text><text x="417.08333333333337" y="227" text-anchor="middle" class="t3">…</text><text x="460.9166666666667" y="227" text-anchor="middle" class="t3">…</text><text x="504.75000000000006" y="227" text-anchor="middle" class="t3">…</text><text x="548.5833333333334" y="227" text-anchor="middle" class="t3">…</text><text x="592.4166666666666" y="227" text-anchor="middle" class="t3">…</text><text x="636.25" y="227" text-anchor="middle" class="t3">…</text><text x="680.0833333333334" y="227" text-anchor="middle" class="t3">…</text><line x1="296" y1="65" x2="296" y2="46" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="296" y="43" text-anchor="end" class="t3">Summary statistics</text><line x1="439" y1="117" x2="715" y2="107" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="715" y="104" text-anchor="start" class="t3">Sortable columns</text>
-</svg><p>
-Compare mode loads two datasets (A and B) and shows a row-by-row colour difference table. Select it with the <strong>Compare</strong> button at the top.
-</p>
-<p>
-Rows are matched by <strong>device colorant values</strong>. Rows where all colorants are zero are excluded. If the two datasets have different colorant columns, the union of both sets is used.
-</p>
+</svg><p>Compare mode loads two datasets (A and B) and shows a row-by-row colour difference table. Select it with the <strong>Compare</strong> button at the top.</p>
+<p>Rows are matched by <strong>device colorant values</strong>. Rows where all colorants are zero are excluded. If the two datasets have different colorant columns, the union of both sets is used.</p>
 <h3 id="5-1-compare-table">5.1 Compare table</h3>
-<p>
-The table shows, for each matched patch:
-</p>
+<p>The table shows, for each matched patch:</p>
 <ul>
 <li>Device colorant values</li>
-<li>L\<em>, a\</em>, b* for Dataset A</li>
-<li>L\<em>, a\</em>, b* for Dataset B</li>
+<li>L*, a*, b* for Dataset A</li>
+<li>L*, a*, b* for Dataset B</li>
 <li>ΔE (using the selected method)</li>
 <li>ΔH (hue difference)</li>
 </ul>
-<p>
-Columns are sortable by clicking the header.
-</p>
+<p>Columns are sortable by clicking the header.</p>
 <h4>Summary statistics</h4>
-<p>
-Above the table, a statistics box shows:
-</p>
+<p>Above the table, a statistics box shows:</p>
 <table><thead>
 <tr><th>Statistic</th><th>Description</th></tr></thead><tbody>
 <tr><td>Mean ΔE</td><td>Average colour difference across all matched patches</td></tr>
@@ -736,31 +559,19 @@ Above the table, a statistics box shows:
 <tr><td>Std Dev</td><td>Spread of colour differences</td></tr>
 </tbody></table>
 <h4>Filters</h4>
-<p>
-The compare table includes filter controls to narrow down the rows shown:
-</p>
+<p>The compare table includes filter controls to narrow down the rows shown:</p>
 <ul>
 <li><strong>Solids Only</strong> — show only patches where all non-zero colorants are at 100%.</li>
 </ul>
 <h3 id="5-2-3d-gamut-plot-compare">5.2 3D Gamut plot (Compare)</h3>
-<p>
-The 3D plot in Compare mode shows both datasets overlaid in L\<em>a\</em>b* space. Dataset A is shown in blue, Dataset B in red. All the same controls as Explore mode apply, with per-slot gear panels for independent control of each dataset's shell/points/colour mode.
-</p>
+<p>The 3D plot in Compare mode shows both datasets overlaid in L*a*b* space. Dataset A is shown in blue, Dataset B in red. All the same controls as Explore mode apply, with per-slot gear panels for independent control of each dataset's shell/points/colour mode.</p>
 <h3 id="5-3-tone-value-compare">5.3 Tone Value (Compare)</h3>
-<p>
-The Tone Value section also appears in Compare mode, below the Comparison Table. Both datasets are plotted on the same chart: Dataset A uses solid lines, Dataset B uses dashed lines in a slightly darker shade of the same colour.
-</p>
-<p>
-The controls bar includes two additional checkboxes — <strong>Show Dataset A</strong> and <strong>Show Dataset B</strong> — to toggle all curves from either dataset at once.
-</p>
-<p>
-All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work identically to <a href="#4-6-tone-value">Explore mode</a>.
-</p>
+<p>The Tone Value section also appears in Compare mode, below the Comparison Table. Both datasets are plotted on the same chart: Dataset A uses solid lines, Dataset B uses dashed lines in a slightly darker shade of the same colour.</p>
+<p>The controls bar includes two additional checkboxes — <strong>Show Dataset A</strong> and <strong>Show Dataset B</strong> — to toggle all curves from either dataset at once.</p>
+<p>All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work identically to <a href="#4-6-tone-value">Explore mode</a>.</p>
 <hr>
 <h2 id="6-mobile">6. Mobile</h2>
-<p>
-On screens narrower than 700 px:
-</p>
+<p>On screens narrower than 700 px:</p>
 <ul>
 <li>The left File Select pane and right Settings pane collapse into drawers.</li>
 <li>Tap the <strong>folder icon</strong> (bottom-right) to open/close File Select.</li>
@@ -768,9 +579,7 @@ On screens narrower than 700 px:
 <li>Tap the backdrop to close any open drawer.</li>
 <li>The Ko-fi / info buttons scale down automatically.</li>
 </ul>
-<p>
-All features are available on mobile; the layout adapts to the smaller screen.
-</p>
+<p>All features are available on mobile; the layout adapts to the smaller screen.</p>
 
 </div>
 </body>
