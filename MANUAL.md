@@ -109,11 +109,12 @@ Files (datasets and profiles) load through the **File Select** panel on the left
 - On **desktop**, click the narrow tab on the left edge of the screen to open/close the File Select panel. The panel slides over the content without resizing it. Drag the **right edge of the panel** (vertical grip dots) to widen or narrow it; the width is remembered across sessions.
 - On **mobile**, tap the folder icon (bottom-right) to open/close File Select.
 
-The panel is split into two collapsible sections:
+The panel is split into three collapsible sections:
 
 | Section | Contains |
 |---|---|
-| **Characterization data** | CSV and CGATS/IT8 files |
+| **Standard datasets** | Built-in industry reference datasets (FOGRA, IFRA, APTEC, ISO 15339 / CRPC, EUROSB, JapanColor) shipped with the app. Click any entry to load it as if it were a local file — once loaded it appears in the Characterization data section below. Defaults to collapsed. |
+| **Characterization data** | CSV and CGATS/IT8 files (your own or loaded from Standard datasets) |
 | **ICC Profiles** | `.icc` / `.icm` binary profiles |
 
 Click a section header (▾) to collapse or expand that section; the state persists between sessions. The button at the top loads files of either kind — CharData detects each file's type and routes it into the correct section automatically.
