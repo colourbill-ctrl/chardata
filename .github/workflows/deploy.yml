@@ -9,6 +9,13 @@ on:
     tags:
       - '*'
 
+# When main and a version tag are pushed within seconds of each other
+# (the usual release flow), the two workflow runs would both SSH to
+# Lightsail concurrently and the second one fails. Serialize them.
+concurrency:
+  group: deploy-lightsail
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
