@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    # Also redeploy when a version tag is pushed, so version.txt picks
+    # up the new tag without needing a separate trigger commit.
+    tags:
+      - '*'
 
 jobs:
   deploy:
