@@ -28,23 +28,25 @@
       background: #fff;
       box-shadow: -3px 0 8px rgba(0,0,0,0.18), -1px 0 3px rgba(0,0,0,0.12);
       transition: width 0.2s, min-width 0.2s;
-      overflow: hidden;
+      overflow: visible;             /* tab buttons float past the bar's inner edge */
       display: flex;
       z-index: 200;
     }
-    #blade.collapsed {
-      width: 6px; min-width: 6px;
-      overflow: visible;            /* let blade-tab buttons overhang inward */
-      justify-content: flex-end;    /* anchor tab to inner (left-facing) bar edge */
-    }
+    #blade.collapsed { width: 6px; min-width: 6px; }
     #blade-content {
-      flex: 1; padding: 24px 16px; overflow-y: auto;
+      flex: 1;
+      /* Right padding leaves space for the floating tab buttons (38px wide + 12px gap). */
+      padding: 24px 50px 24px 16px;
+      overflow-y: auto;
       display: flex; flex-direction: column; gap: 20px;
     }
     #blade.collapsed #blade-content { display: none; }
+    /* Tab buttons float at screen-right in both states, anchored to the bar's inner edge. */
     #blade-tab {
+      position: absolute; right: 0; top: 20px;
       display: flex; flex-direction: column; align-items: center;
-      margin-top: 20px; gap: 6px; flex-shrink: 0;
+      gap: 6px;
+      z-index: 5;
     }
     #blade-toggle {
       width: 38px; height: 34px; flex-shrink: 0;
@@ -154,8 +156,10 @@
     .blade-radio label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
 
     /* ── Main content ── */
-    /* Side margins match the collapsed blade bar width so content has room to breathe. */
-    #main-content { margin-left: 6px; margin-right: 6px; padding: 32px 16px; height: 100vh; overflow-y: auto; }
+    /* Left margin matches the thin bar (6px). Right margin matches the floating
+       blade-tab buttons (38px) so #main-content's vertical scrollbar lives just
+       to the left of them and isn't covered when the right blade is collapsed. */
+    #main-content { margin-left: 6px; margin-right: 38px; padding: 32px 16px; height: 100vh; overflow-y: auto; }
 
     .panels {
       display: flex;
@@ -405,18 +409,18 @@
       box-shadow: 3px 0 8px rgba(0,0,0,0.18), 1px 0 3px rgba(0,0,0,0.12);
       display: flex;
       flex-direction: row;
-      overflow: hidden;
+      overflow: visible;            /* fs-blade-toggle floats past the bar's inner edge */
       transition: width 0.2s, min-width 0.2s;
       z-index: 200;
     }
-    #file-select-blade.collapsed {
-      width: 6px; min-width: 6px;
-      overflow: visible;            /* let fs-blade-toggle overhang inward */
-    }
+    #file-select-blade.collapsed { width: 6px; min-width: 6px; }
     #file-select-blade-content {
       flex: 1; display: flex; flex-direction: column; overflow: hidden;
+      /* Left padding leaves space for the floating toggle button. */
+      padding-left: 38px;
     }
     #file-select-blade.collapsed #file-select-blade-content { display: none; }
+    /* Toggle button floats at screen-left in both states, anchored to the bar. */
     #fs-blade-toggle {
       width: 38px; height: 34px; flex-shrink: 0;
       background: linear-gradient(to bottom, #f5f5f5, #e0e0e0);
@@ -424,7 +428,8 @@
       border-radius: 5px; cursor: pointer;
       font-size: 16px; color: #666; padding: 0;
       display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 3px;
-      align-self: flex-start; margin-top: 20px;
+      position: absolute; left: 0; top: 20px;
+      z-index: 5;
       box-shadow: 0 2px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
       transition: all 0.08s ease;
     }
@@ -468,25 +473,23 @@
       padding: 10px 6px; line-height: 1.4;
       border: 1px dashed #d0d4d9; border-radius: 4px;
     }
-    /* Resize handle on right edge of blade (desktop only).
-       Persistent vertical grip dots; brighter on hover/drag. */
+    /* Resize handle on the right edge of the blade. Always visible — when the
+       blade is collapsed it doubles as the bar (cursor: pointer to indicate the
+       click-to-open behaviour); when expanded it grabs the panel edge. */
     #fs-resize-handle {
-      width: 7px; flex-shrink: 0; align-self: stretch;
+      width: 6px; flex-shrink: 0; align-self: stretch;
       cursor: ew-resize;
       background-color: transparent;
       background-repeat: no-repeat;
       background-position: center;
       background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='3' height='22' viewBox='0 0 3 22'><circle cx='1.5' cy='2' r='1' fill='%23999'/><circle cx='1.5' cy='8' r='1' fill='%23999'/><circle cx='1.5' cy='14' r='1' fill='%23999'/><circle cx='1.5' cy='20' r='1' fill='%23999'/></svg>");
-      border-left: 1px solid #e3e6ea;
       transition: background-color 0.15s;
     }
     #fs-resize-handle:hover, #fs-resize-handle.dragging {
       background-color: #4a90e2;
       background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='3' height='22' viewBox='0 0 3 22'><circle cx='1.5' cy='2' r='1' fill='white'/><circle cx='1.5' cy='8' r='1' fill='white'/><circle cx='1.5' cy='14' r='1' fill='white'/><circle cx='1.5' cy='20' r='1' fill='white'/></svg>");
-      border-left-color: #4a90e2;
     }
-    body.dark #fs-resize-handle { border-left-color: #3a3b40; }
-    #file-select-blade.collapsed #fs-resize-handle { display: none; }
+    #file-select-blade.collapsed #fs-resize-handle { cursor: pointer; }
     body.fs-resizing { cursor: ew-resize !important; user-select: none !important; }
     .file-card {
       background: #fafafa;
@@ -3463,6 +3466,14 @@ characterization data or ICC profiles</span>
           fsBlade.style.minWidth = saved + 'px';
         }
       }
+    });
+    // When the blade is collapsed, clicks anywhere on the bar (including the
+    // resize handle, which is the visible bar in that state) open the panel \u2014
+    // mirroring the toggle button. When expanded, only the toggle button closes.
+    fsBlade.addEventListener('click', e => {
+      if (!fsBlade.classList.contains('collapsed')) return;
+      if (e.target.closest('#fs-blade-toggle')) return; // its own handler covers this
+      fsToggle.click();
     });
 
     // Section collapse/expand inside the File Select blade
