@@ -419,8 +419,12 @@
       flex: 1; display: flex; flex-direction: column; overflow: hidden;
     }
     #file-select-blade.collapsed #file-select-blade-content { display: none; }
-    /* Toggle button sits on the panel's inner (right) edge in flex flow when
-       expanded. When collapsed, it floats anchored to the bar at screen-left. */
+    /* Toggle button is always position:absolute. When the panel is expanded it
+       floats over the rightmost portion of content, just left of the resize
+       handle (which is now at the panel's right edge — the toggle no longer
+       reserves its own 38px flex column). When collapsed, the same `right`
+       offset (negative) puts it at viewport 0..38 against the 6px bar. The
+       `right` property animates in lockstep with the blade width transition. */
     #fs-blade-toggle {
       width: 38px; height: 34px; flex-shrink: 0;
       background: linear-gradient(to bottom, #f5f5f5, #e0e0e0);
@@ -428,16 +432,15 @@
       border-radius: 5px; cursor: pointer;
       font-size: 16px; color: #666; padding: 0;
       display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 3px;
-      align-self: flex-start; margin-top: 20px;
-      box-shadow: 0 2px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
-      transition: all 0.08s ease;
-    }
-    #file-select-blade.collapsed #fs-blade-toggle {
-      position: absolute; left: 0; top: 20px;
-      margin-top: 0;
-      align-self: auto;
+      position: absolute;
+      right: 7px; top: 20px;       /* expanded: just left of the 6px+1px-border resize handle */
       z-index: 5;
+      box-shadow: 0 2px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+      transition: all 0.08s ease, right 0.2s;
     }
+    /* Collapsed: blade is 6px wide. right:-32 puts toggle's right edge at
+       viewport 6-(-32)=38, so toggle sits at viewport 0..38. */
+    #file-select-blade.collapsed #fs-blade-toggle { right: -32px; }
     #fs-blade-toggle:hover { background: linear-gradient(to bottom, #fff, #e8e8e8); color: #4a90e2; }
     #fs-blade-toggle:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); transform: translateY(1px); }
     #fs-blade-toggle .fs-icon { line-height: 1; display: flex; align-items: center; }
