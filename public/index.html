@@ -32,7 +32,11 @@
       display: flex;
       z-index: 200;
     }
-    #blade.collapsed { width: 38px; min-width: 38px; }
+    #blade.collapsed {
+      width: 6px; min-width: 6px;
+      overflow: visible;            /* let blade-tab buttons overhang inward */
+      justify-content: flex-end;    /* anchor tab to inner (left-facing) bar edge */
+    }
     #blade-content {
       flex: 1; padding: 24px 16px; overflow-y: auto;
       display: flex; flex-direction: column; gap: 20px;
@@ -143,12 +147,15 @@
     }
     .blade-select:hover { background: linear-gradient(to bottom, #fff, #eef0f4); }
     .blade-select:focus { outline: none; border-color: #4a90e2; border-bottom-color: #2a6ab5; box-shadow: 0 0 0 2px rgba(74,144,226,0.2), inset 0 1px 0 rgba(255,255,255,0.8); }
-    .blade-select:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.12); transform: translateY(1px); }
+    /* No transform on :active — Chromium's native <select> dropdown breaks
+       (requires click-and-hold) when a transform is applied during mousedown. */
+    .blade-select:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.12); }
     .blade-radio { display: flex; gap: 12px; font-size: 13px; color: #333; }
     .blade-radio label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
 
     /* ── Main content ── */
-    #main-content { margin-left: 38px; margin-right: 38px; padding: 32px 16px; height: 100vh; overflow-y: auto; }
+    /* Side margins match the collapsed blade bar width so content has room to breathe. */
+    #main-content { margin-left: 6px; margin-right: 6px; padding: 32px 16px; height: 100vh; overflow-y: auto; }
 
     .panels {
       display: flex;
@@ -402,7 +409,10 @@
       transition: width 0.2s, min-width 0.2s;
       z-index: 200;
     }
-    #file-select-blade.collapsed { width: 38px; min-width: 38px; }
+    #file-select-blade.collapsed {
+      width: 6px; min-width: 6px;
+      overflow: visible;            /* let fs-blade-toggle overhang inward */
+    }
     #file-select-blade-content {
       flex: 1; display: flex; flex-direction: column; overflow: hidden;
     }
@@ -545,6 +555,17 @@
     }
     .file-card:hover .file-card-delete { display: flex; }
     .file-card-delete:hover { color: #e74c3c; background: #fdecea; }
+    /* Standard datasets list rows (compact, no metadata) */
+    .std-row {
+      font-size: 12px; color: #444;
+      padding: 4px 8px;
+      margin-bottom: 1px;
+      cursor: pointer; user-select: none;
+      border-radius: 3px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .std-row:hover { background: #f0f4ff; color: #1a3a6a; }
+    .std-row.loading { opacity: 0.55; cursor: wait; }
 
     /* ── Gamut shell legend & panel ── */
     .legend-item-row { display:flex; align-items:stretch; background:rgba(255,255,255,0.85); border:1px solid #ddd; border-radius:4px; font-size:12px; user-select:none; overflow:hidden; }
@@ -598,8 +619,11 @@
     body.dark .fs-section-caret { color: #888; }
     body.dark .fs-section-empty { color: #777; border-color: #3a3b40 !important; }
     body.dark .blade-label { color: #666; }
-    body.dark .blade-select { background: linear-gradient(to bottom,#2c2d31,#232427); color: #ddd; border-color: #444; border-bottom-color: #555; }
+    body.dark .blade-select { background: linear-gradient(to bottom,#2c2d31,#232427); color: #f0f0f0; border-color: #444; border-bottom-color: #555; }
     body.dark .blade-select:hover { background: linear-gradient(to bottom,#33343a,#2a2b2e); }
+    /* Style <option> elements explicitly — Chromium uses the inherited select
+       color/background but can render dim against the dark gradient. */
+    body.dark .blade-select option { background: #232427; color: #f0f0f0; }
     body.dark .blade-radio { color: #ccc; }
     body.dark .seg-btn-inactive { background: linear-gradient(to bottom,#2e2f33,#262729); color: #777; border-color: #444; border-bottom-color: #555; box-shadow: 0 2px 3px rgba(0,0,0,0.3); }
     body.dark .seg-btn-inactive:hover { background: linear-gradient(to bottom,#363739,#2e2f32); }
@@ -649,6 +673,8 @@
     body.dark #result > div[style*="inline-flex"] div > div:last-child { color: #e0e0e0 !important; }
     /* File card items in file select */
     body.dark .file-card { background: #2a2b2e !important; border-color: #38393e !important; color: #ccc !important; }
+    body.dark .std-row { color: #ccc; }
+    body.dark .std-row:hover { background: #1e2a40; color: #6aacf0; }
     /* Extract tab checkbox labels */
     body.dark #extract-wrap label { color: #ccc !important; }
     /* G7 report */
@@ -678,6 +704,16 @@ characterization data or ICC profiles</span>
                 style="padding:5px 7px;font-size:13px;line-height:1;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;cursor:pointer;color:#555;box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);transition:all 0.08s ease;flex-shrink:0;">&#8597;</button>
       </div>
       <div id="file-select-dropzone">
+        <div class="fs-section collapsed" id="fs-section-std">
+          <div class="fs-section-header" onclick="toggleFsSection('std')">
+            <span class="fs-section-caret">&#9662;</span>
+            <span class="fs-section-title" data-i18n="fs_section_std">Standard datasets</span>
+            <span class="fs-section-count" id="fs-count-std"></span>
+          </div>
+          <div class="fs-section-body" id="fs-body-std">
+            <div class="fs-section-empty" id="fs-empty-std" data-i18n="fs_loading_std">Loading…</div>
+          </div>
+        </div>
         <div class="fs-section" id="fs-section-data">
           <div class="fs-section-header" onclick="toggleFsSection('data')">
             <span class="fs-section-caret">&#9662;</span>
@@ -968,8 +1004,10 @@ characterization data or ICC profiles</span>
         drop_line1:'Drop files here', drop_line2:'or use button above',
         sort_alpha:'Sort files alphabetically',
         fs_section_data:'Characterization data', fs_section_icc:'ICC Profiles',
+        fs_section_std:'Standard datasets',
         fs_empty_data:'No characterization datasets loaded',
         fs_empty_icc:'No ICC profiles loaded',
+        fs_loading_std:'Loading…', fs_load_std_failed:'Failed to load list',
         type_char_dataset:'Characterization dataset', type_icc_profile:'ICC Profile',
         icc_invalid:'Not a valid ICC profile (header magic missing).',
         explore:'Explore', compare:'Compare',
@@ -3416,9 +3454,57 @@ characterization data or ICC profiles</span>
     }
     (function restoreFsSections() {
       const state = JSON.parse(localStorage.getItem('fsSectionCollapsed') || '{}');
-      ['data', 'icc'].forEach(k => {
-        if (state[k]) document.getElementById('fs-section-' + k).classList.add('collapsed');
+      // 'std' defaults to collapsed; the others default to expanded.
+      const defaults = { data: false, icc: false, std: true };
+      Object.keys(defaults).forEach(k => {
+        const sec = document.getElementById('fs-section-' + k);
+        if (!sec) return;
+        const collapsed = state[k] === undefined ? defaults[k] : !!state[k];
+        sec.classList.toggle('collapsed', collapsed);
       });
+    })();
+
+    // Standard datasets — fetch manifest at boot, lazily load on click
+    async function loadStandardDataset(fname, row) {
+      if (row.classList.contains('loading')) return;
+      row.classList.add('loading');
+      try {
+        const resp = await fetch('/standard-data/' + encodeURIComponent(fname));
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const text = await resp.text();
+        const file = new File([text], fname, { type: 'text/plain', lastModified: 0 });
+        const slot = (_mode === 'explore' || _cardAssignments.a === null) ? 'a'
+                   : (_cardAssignments.b === null ? 'b' : 'a');
+        addFileToList(file, slot);
+      } catch (err) {
+        alert('Failed to load ' + fname + ': ' + err.message);
+      } finally {
+        row.classList.remove('loading');
+      }
+    }
+    (async function initStandardDatasets() {
+      const body  = document.getElementById('fs-body-std');
+      const empty = document.getElementById('fs-empty-std');
+      const count = document.getElementById('fs-count-std');
+      try {
+        const resp = await fetch('/standard-data/manifest.json');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        const files = (data && Array.isArray(data.files)) ? data.files : [];
+        if (!files.length) { empty.textContent = t('fs_load_std_failed'); return; }
+        empty.style.display = 'none';
+        count.textContent = '(' + files.length + ')';
+        for (const fname of files) {
+          const row = document.createElement('div');
+          row.className = 'std-row';
+          row.textContent = fname.replace(/\.txt$/i, '');
+          row.title = fname;
+          row.addEventListener('click', () => loadStandardDataset(fname, row));
+          body.appendChild(row);
+        }
+      } catch (err) {
+        empty.textContent = t('fs_load_std_failed');
+      }
     })();
 
     // Resize handle for the File Select blade (desktop only)
