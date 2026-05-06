@@ -6,7 +6,22 @@ const app = express();
 const PORT = 3001;
 
 app.use(helmet({
-  contentSecurityPolicy: false,   // app uses inline scripts + CDN; CSP needs per-project tuning
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc:      ["'self'"],
+      scriptSrc:       ["'self'", "'unsafe-inline'", "'wasm-unsafe-eval'",
+                        "https://www.googletagmanager.com", "blob:"],
+      styleSrc:        ["'self'", "'unsafe-inline'"],
+      imgSrc:          ["'self'", "data:"],
+      connectSrc:      ["'self'", "blob:",
+                        "https://www.google-analytics.com",
+                        "https://region1.google-analytics.com"],
+      workerSrc:       ["'self'", "blob:"],
+      scriptSrcAttr:   ["'unsafe-inline'"],
+      objectSrc:       ["'none'"],
+      frameAncestors:  ["'none'"],
+    },
+  },
   crossOriginEmbedderPolicy: false // WASM blob-URL loading requires relaxed COEP
 }));
 

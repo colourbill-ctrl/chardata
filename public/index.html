@@ -3338,7 +3338,13 @@ or ICC profiles</span>
              v.getUint8(38) === 0x73 && v.getUint8(39) === 0x70;
     }
 
+    const MAX_FILE_BYTES = 200 * 1024 * 1024; // 200 MB
+
     function addFileToList(file, thenAssignSlot) {
+      if (file.size > MAX_FILE_BYTES) {
+        alert(`"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(0)} MB). Maximum file size is 200 MB.`);
+        return;
+      }
       const fileKey = file.name + '|' + file.size + '|' + file.lastModified;
       if (_fileList.some(f => f.key === fileKey)) {
         const existing = _fileList.find(f => f.key === fileKey);
@@ -3961,12 +3967,12 @@ or ICC profiles</span>
     function buildSpectralLabel(fileName, headers, row, colorants) {
       const SHORT = { CYAN: 'C', MAGENTA: 'M', YELLOW: 'Y', BLACK: 'K' };
       const fmtVal = v => isNaN(v) ? '?' : (Number.isInteger(v) ? String(v) : v.toFixed(1));
-      const parts = [fileName];
+      const parts = [escapeHtml(fileName)];
       if (colorants && colorants.length > 0) {
         parts.push(colorants.map(c => {
           const idx = headers.indexOf(c);
           const v = idx !== -1 ? parseFloat(row[idx]) : NaN;
-          return (SHORT[c.toUpperCase()] || c) + '=' + fmtVal(v);
+          return escapeHtml(SHORT[c.toUpperCase()] || c) + '=' + fmtVal(v);
         }).join(' '));
       }
       const lIdx = headers.indexOf('LAB_L'), aIdx = headers.indexOf('LAB_A'), bIdx = headers.indexOf('LAB_B');
@@ -4708,7 +4714,7 @@ or ICC profiles</span>
         if (!ds) return;
         if (both) {
           const mt = slot === 'b' ? '6px' : '0';
-          parts.push(`<div style="font-size:11px;color:#888;margin-bottom:2px;margin-top:${mt};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:166px;" title="${ds.name}">${ds.name}</div>`);
+          parts.push(`<div style="font-size:11px;color:#888;margin-bottom:2px;margin-top:${mt};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:166px;" title="${escapeHtml(ds.name)}">${escapeHtml(ds.name)}</div>`);
         }
         ds.colorants.forEach(colorant => {
           const cbId = `tv-cb-${slot}-${colorant}`;
@@ -4720,7 +4726,7 @@ or ICC profiles</span>
           parts.push(`<label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">` +
             `<input type="checkbox" id="${cbId}" ${checked?'checked':''} onchange="renderTvChart()">` +
             `<span style="display:inline-block;width:22px;height:3px;${swatch}border-radius:1px;flex-shrink:0;"></span>` +
-            `<span style="white-space:nowrap;">${colorant}</span></label>`);
+            `<span style="white-space:nowrap;">${escapeHtml(colorant)}</span></label>`);
         });
       });
       container.innerHTML = parts.join('');
@@ -4926,7 +4932,7 @@ or ICC profiles</span>
             : `background:${t._color};`;
           return `<span style="display:flex;align-items:center;gap:5px;white-space:nowrap;color:${txtColor};">` +
             `<span style="display:inline-block;width:22px;height:3px;${sw}border-radius:1px;flex-shrink:0;"></span>` +
-            `<span>${t._label}</span></span>`;
+            `<span>${escapeHtml(t._label)}</span></span>`;
         }).join('');
         if (graphType === 'transfer') {
           html += `<span style="display:flex;align-items:center;gap:5px;white-space:nowrap;color:${txtColor};">` +
@@ -5017,7 +5023,7 @@ or ICC profiles</span>
           </div>
         </div>
         <div onclick="toggleCmpTable()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
-          <span><span data-i18n="data_table">Data Table</span>: ${a.name}</span><span id="cmp-table-arrow">▶</span>
+          <span><span data-i18n="data_table">Data Table</span>: ${escapeHtml(a.name)}</span><span id="cmp-table-arrow">▶</span>
         </div>
         <div id="cmp-table-wrap" style="display:none;overflow-x:auto;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:8px 0 8px 8px;">
           ${a.hasSpectral ? `<div style="padding:4px 8px 8px;font-size:11px;color:#4a90e2;" data-i18n="spectral_click_hint">Click on L*a*b* color to display spectral graph.</div>` : ''}
@@ -6170,7 +6176,7 @@ or ICC profiles</span>
             <button class="legend-gear-btn" data-i18n-title="dataset_settings" title="Dataset Settings" onclick="event.stopPropagation();toggleGamutPanel('${spec.slot}')">&#9881;&#xFE0E;</button>
             <div class="legend-item-left" ${toggleable ? `onclick="togglePlotTrace(${i})" title="${t('click_toggle')}"` : ''}>
               <span class="legend-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
-              <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
+              <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${escapeHtml(spec.name)}</span>
             </div>
           </div>
           ${gamutPanelHTML(spec)}
@@ -7031,7 +7037,7 @@ or ICC profiles</span>
           return `<div class="legend-item legend-item-row" style="${on ? '' : 'opacity:0.45;'}" title="${t('click_toggle')}" onclick="toggleSliceTrace('${spec.slot}')">
             <div class="legend-item-left">
               <span class="legend-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
-              <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${spec.name}</span>
+              <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${escapeHtml(spec.name)}</span>
             </div>
           </div>`;
         };
