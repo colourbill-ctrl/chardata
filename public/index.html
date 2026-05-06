@@ -286,6 +286,8 @@
     }
     .file-label:hover { background: linear-gradient(to bottom, #7ab5f5, #4a8fe5); }
     .file-label:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); transform: translateY(1px); }
+    .file-label-title { display: block; font-size: 15px; font-weight: bold; line-height: 1.2; margin-bottom: 4px; pointer-events: none; text-align: left; }
+    .file-label-sub { display: block; font-size: 12px; font-weight: normal; line-height: 1.3; white-space: pre-line; pointer-events: none; }
     #file-select-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.001; cursor: pointer; }
 
     .file-info {
@@ -445,13 +447,10 @@
     #fs-blade-toggle:active { border-bottom-width: 1px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.15); transform: translateY(1px); }
     #fs-blade-toggle .fs-icon { line-height: 1; display: flex; align-items: center; }
     #fs-blade-toggle .fs-arrow { font-size: 14px; line-height: 1; }
-    #file-select-blade-header {
-      padding: 24px 8px 8px;
-      font-size: 15px; font-weight: bold; color: #333;
-      flex-shrink: 0;
-    }
     #file-select-add-btn-wrap {
-      padding: 0 8px 10px; flex-shrink: 0;
+      /* Right padding clears the 38px-wide floating toggle (top:20, right:7),
+         so the multi-line label doesn't slip under it. */
+      padding: 16px 50px 10px 8px; flex-shrink: 0;
     }
     #file-select-dropzone {
       flex: 1; display: flex; flex-direction: column;
@@ -627,7 +626,6 @@
     body.dark #panel-a-empty, body.dark #panel-b-empty { color: #666 !important; }
     body.dark #blade, body.dark #file-select-blade { background: #1e1f22; }
     body.dark #blade-content, body.dark #file-select-blade-content { color: #ccc; }
-    body.dark #file-select-blade-header { color: #bbb; border-color: #3a3b40; }
     body.dark #file-select-empty { color: #777; border-color: #3a3b40 !important; }
     body.dark .fs-section-header { color: #bbb; border-color: #3a3b40; }
     body.dark .fs-section-header:hover { color: #4a90e2; }
@@ -707,12 +705,12 @@
   <div id="file-select-blade">
     <button id="fs-sheet-handle" aria-label="Close file select"></button>
     <div id="file-select-blade-content">
-      <div id="file-select-blade-header" data-i18n="file_select">File Select</div>
       <div id="file-select-add-btn-wrap" style="display:flex;align-items:flex-start;gap:6px;">
         <label class="file-label"
-               style="display:block;text-align:center;font-size:12px;padding:6px 10px;flex:1;position:relative;overflow:visible;cursor:pointer;">
-          <span style="white-space:pre-line;pointer-events:none;" data-i18n="choose_file">Select files:
-characterization data or ICC profiles</span>
+               style="display:block;text-align:center;padding:8px 10px;flex:1;position:relative;overflow:visible;cursor:pointer;">
+          <span class="file-label-title" data-i18n="file_select">File Select</span>
+          <span class="file-label-sub" data-i18n="choose_file">characterization data
+or ICC profiles</span>
           <input type="file" id="file-select-input" multiple>
         </label>
       </div>
@@ -1019,7 +1017,7 @@ characterization data or ICC profiles</span>
         weighted:'Weighted', on:'On', off:'Off',
         yes:'Yes', no:'No', median:'Median', mean:'Mean',
         system:'System', light:'Light', dark:'Dark',
-        file_select:'File Select', choose_file:'Select files:\ncharacterization data or ICC profiles',
+        file_select:'File Select', choose_file:'characterization data\nor ICC profiles',
         drop_line1:'Drop files here', drop_line2:'or use button above',
         sort_alpha:'Sort files alphabetically',
         fs_section_data:'Characterization data', fs_section_icc:'ICC Profiles',
@@ -1121,7 +1119,7 @@ characterization data or ICC profiles</span>
         weighted:'Pondéré', on:'Activé', off:'Désactivé',
         yes:'Oui', no:'Non', median:'Médiane', mean:'Moyenne',
         system:'Système', light:'Clair', dark:'Sombre',
-        file_select:'Sélection de fichier', choose_file:'Sélectionner des fichiers :\ndonnées de caractérisation ou profils ICC',
+        file_select:'Sélection de fichier', choose_file:'données de caractérisation\nou profils ICC',
         fs_section_data:'Données de caractérisation', fs_section_icc:'Profils ICC',
         fs_section_std:'Jeux de données standard',
         fs_empty_data:'Aucun jeu de données de caractérisation chargé',
@@ -1218,7 +1216,7 @@ characterization data or ICC profiles</span>
         weighted:'Gewichtet', on:'Ein', off:'Aus',
         yes:'Ja', no:'Nein', median:'Median', mean:'Mittelwert',
         system:'System', light:'Hell', dark:'Dunkel',
-        file_select:'Dateiauswahl', choose_file:'Dateien auswählen:\nCharakterisierungsdaten oder ICC-Profile',
+        file_select:'Dateiauswahl', choose_file:'Charakterisierungsdaten\noder ICC-Profile',
         fs_section_data:'Charakterisierungsdaten', fs_section_icc:'ICC-Profile',
         fs_section_std:'Standarddatensätze',
         fs_empty_data:'Keine Charakterisierungsdaten geladen',
@@ -1315,7 +1313,7 @@ characterization data or ICC profiles</span>
         weighted:'Ponderato', on:'Attivo', off:'Disattivo',
         yes:'Sì', no:'No', median:'Mediana', mean:'Media',
         system:'Sistema', light:'Chiaro', dark:'Scuro',
-        file_select:'Selezione file', choose_file:'Seleziona file:\ndati di caratterizzazione o profili ICC',
+        file_select:'Selezione file', choose_file:'dati di caratterizzazione\no profili ICC',
         fs_section_data:'Dati di caratterizzazione', fs_section_icc:'Profili ICC',
         fs_section_std:'Set di dati standard',
         fs_empty_data:'Nessun dataset di caratterizzazione caricato',
@@ -1412,7 +1410,7 @@ characterization data or ICC profiles</span>
         weighted:'Ponderado', on:'Activado', off:'Desactivado',
         yes:'Sí', no:'No', median:'Mediana', mean:'Media',
         system:'Sistema', light:'Claro', dark:'Oscuro',
-        file_select:'Selección de archivo', choose_file:'Seleccionar archivos:\ndatos de caracterización o perfiles ICC',
+        file_select:'Selección de archivo', choose_file:'datos de caracterización\no perfiles ICC',
         fs_section_data:'Datos de caracterización', fs_section_icc:'Perfiles ICC',
         fs_section_std:'Conjuntos de datos estándar',
         fs_empty_data:'Ningún conjunto de datos de caracterización cargado',
@@ -1509,7 +1507,7 @@ characterization data or ICC profiles</span>
         weighted:'Ponderado', on:'Ativo', off:'Inativo',
         yes:'Sim', no:'Não', median:'Mediana', mean:'Média',
         system:'Sistema', light:'Claro', dark:'Escuro',
-        file_select:'Selecionar ficheiro', choose_file:'Selecionar ficheiros:\ndados de caracterização ou perfis ICC',
+        file_select:'Selecionar ficheiro', choose_file:'dados de caracterização\nou perfis ICC',
         fs_section_data:'Dados de caracterização', fs_section_icc:'Perfis ICC',
         fs_section_std:'Conjuntos de dados padrão',
         fs_empty_data:'Nenhum conjunto de dados de caracterização carregado',
@@ -1606,7 +1604,7 @@ characterization data or ICC profiles</span>
         weighted:'Ponderado', on:'Ligado', off:'Desligado',
         yes:'Sim', no:'Não', median:'Mediana', mean:'Média',
         system:'Sistema', light:'Claro', dark:'Escuro',
-        file_select:'Selecionar arquivo', choose_file:'Selecionar arquivos:\ndados de caracterização ou perfis ICC',
+        file_select:'Selecionar arquivo', choose_file:'dados de caracterização\nou perfis ICC',
         fs_section_data:'Dados de caracterização', fs_section_icc:'Perfis ICC',
         fs_section_std:'Conjuntos de dados padrão',
         fs_empty_data:'Nenhum conjunto de dados de caracterização carregado',
@@ -1703,7 +1701,7 @@ characterization data or ICC profiles</span>
         weighted:'加权', on:'开', off:'关',
         yes:'是', no:'否', median:'中位数', mean:'平均值',
         system:'系统', light:'浅色', dark:'深色',
-        file_select:'文件选择', choose_file:'选择文件：\n色彩特性化数据或 ICC 描述文件',
+        file_select:'文件选择', choose_file:'色彩特性化数据\n或 ICC 描述文件',
         fs_section_data:'色彩特性化数据', fs_section_icc:'ICC 描述文件',
         fs_section_std:'标准数据集',
         fs_empty_data:'未加载色彩特性化数据',
@@ -1800,7 +1798,7 @@ characterization data or ICC profiles</span>
         weighted:'加權', on:'開', off:'關',
         yes:'是', no:'否', median:'中位數', mean:'平均值',
         system:'系統', light:'淺色', dark:'深色',
-        file_select:'檔案選擇', choose_file:'選擇檔案：\n色彩特性化資料或 ICC 描述檔',
+        file_select:'檔案選擇', choose_file:'色彩特性化資料\n或 ICC 描述檔',
         fs_section_data:'色彩特性化資料', fs_section_icc:'ICC 描述檔',
         fs_section_std:'標準資料集',
         fs_empty_data:'未載入色彩特性化資料',
@@ -1897,7 +1895,7 @@ characterization data or ICC profiles</span>
         weighted:'重み付き', on:'オン', off:'オフ',
         yes:'はい', no:'いいえ', median:'中央値', mean:'平均値',
         system:'システム', light:'ライト', dark:'ダーク',
-        file_select:'ファイル選択', choose_file:'ファイルを選択:\nキャラクタリゼーションデータまたは ICC プロファイル',
+        file_select:'ファイル選択', choose_file:'キャラクタリゼーションデータ\nまたは ICC プロファイル',
         fs_section_data:'キャラクタリゼーションデータ', fs_section_icc:'ICC プロファイル',
         fs_section_std:'標準データセット',
         fs_empty_data:'キャラクタリゼーションデータが読み込まれていません',
@@ -1994,7 +1992,7 @@ characterization data or ICC profiles</span>
         weighted:'가중', on:'켜기', off:'끄기',
         yes:'예', no:'아니요', median:'중앙값', mean:'평균',
         system:'시스템', light:'밝음', dark:'어두움',
-        file_select:'파일 선택', choose_file:'파일 선택:\n특성화 데이터 또는 ICC 프로파일',
+        file_select:'파일 선택', choose_file:'특성화 데이터\n또는 ICC 프로파일',
         fs_section_data:'특성화 데이터', fs_section_icc:'ICC 프로파일',
         fs_section_std:'표준 데이터셋',
         fs_empty_data:'로드된 특성화 데이터셋 없음',
@@ -2091,7 +2089,7 @@ characterization data or ICC profiles</span>
         weighted:'Viktad', on:'På', off:'Av',
         yes:'Ja', no:'Nej', median:'Median', mean:'Medelvärde',
         system:'System', light:'Ljust', dark:'Mörkt',
-        file_select:'Filval', choose_file:'Välj filer:\nkarakteriseringsdata eller ICC-profiler',
+        file_select:'Filval', choose_file:'karakteriseringsdata\neller ICC-profiler',
         fs_section_data:'Karakteriseringsdata', fs_section_icc:'ICC-profiler',
         fs_section_std:'Standarddatauppsättningar',
         fs_empty_data:'Inga karakteriseringsdataset inlästa',
@@ -3444,6 +3442,17 @@ characterization data or ICC profiles</span>
         panel.classList.remove('dragover');
         const cardId = e.dataTransfer.getData('filecard-id');
         if (cardId !== '') { assignFile(parseInt(cardId, 10), slot); return; }
+        const stdFname = e.dataTransfer.getData('std-dataset-fname');
+        if (stdFname) {
+          fetch('/standard-data/' + encodeURIComponent(stdFname))
+            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+            .then(text => {
+              const file = new File([text], stdFname, { type: 'text/plain', lastModified: 0 });
+              addFileToList(file, slot);
+            })
+            .catch(err => alert('Failed to load ' + stdFname + ': ' + err.message));
+          return;
+        }
         // OS file dropped directly on panel — add to list and assign
         const file = e.dataTransfer.files[0];
         if (file) addFileToList(file, slot);
@@ -3549,6 +3558,11 @@ characterization data or ICC profiles</span>
           row.textContent = fname.replace(/\.txt$/i, '');
           row.title = fname;
           row.addEventListener('click', () => loadStandardDataset(fname, row));
+          row.setAttribute('draggable', 'true');
+          row.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('std-dataset-fname', fname);
+            e.dataTransfer.effectAllowed = 'copy';
+          });
           body.appendChild(row);
         }
       } catch (err) {

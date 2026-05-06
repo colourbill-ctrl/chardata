@@ -113,7 +113,7 @@ The panel is split into three collapsible sections:
 
 | Section | Contains |
 |---|---|
-| **Standard datasets** | Built-in industry reference datasets (FOGRA, IFRA, APTEC, ISO 15339 / CRPC, EUROSB, JapanColor) shipped with the app. Click any entry to load it as if it were a local file — once loaded it appears in the Characterization data section below. Defaults to collapsed. |
+| **Standard datasets** | Built-in industry reference datasets (FOGRA, IFRA, APTEC, ISO 15339 / CRPC, EUROSB, JapanColor) shipped with the app. Click any entry to load it as if it were a local file, or drag an entry directly onto Dataset A or Dataset B. Once loaded it also appears in the Characterization data section below. Defaults to collapsed. |
 | **Characterization data** | CSV and CGATS/IT8 files (your own or loaded from Standard datasets) |
 | **ICC Profiles** | `.icc` / `.icm` binary profiles |
 
