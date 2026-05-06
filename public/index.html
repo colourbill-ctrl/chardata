@@ -3921,7 +3921,7 @@ or ICC profiles</span>
 
       const arrow = i => `<span style="display:inline-block;width:1em;text-align:right;opacity:0.6;">${_expSortCol === i ? (_expSortDir === 'asc' ? '↑' : '↓') : ''}</span>`;
       const colHeaderCells = [
-        ...a.colorants.map((c, i) => `<th title="${t('click_to_sort')}" onclick="sortExpTable(${i})" style="${PR}${TH}cursor:pointer;">${c}${arrow(i)}</th>`),
+        ...a.colorants.map((c, i) => `<th title="${t('click_to_sort')}" onclick="sortExpTable(${i})" style="${PR}${TH}cursor:pointer;">${escapeHtml(c)}${arrow(i)}</th>`),
         ...LAB_LABELS.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortExpTable(${colorantCount + i})" style="${PR}${TH}${i === 0 ? VL : ''}cursor:pointer;">${l}${arrow(colorantCount + i)}</th>`),
         ...CH_LABELS.map((l, i) => `<th title="${t('click_to_sort')}" onclick="sortExpTable(${colorantCount + 3 + i})" style="${PR}${TH}cursor:pointer;">${l}${arrow(colorantCount + 3 + i)}</th>`)
       ].join('');
@@ -3942,7 +3942,7 @@ or ICC profiles</span>
       });
 
       document.getElementById('exp-table-body').innerHTML = _expSortedIdx.map((_, ri) => {
-        const colorantCells = colorantCols.map(col => `<td style="${PR}">${col[ri]}</td>`).join('');
+        const colorantCells = colorantCols.map(col => `<td style="${PR}">${escapeHtml(col[ri])}</td>`).join('');
         const labCells = labCols.map((col, i) =>
           `<td onclick="showSpectral(event,${ri})" style="${PR}${i === 0 ? VL : ''}cursor:pointer;" title="${t('click_spectral')}">${col[ri]}</td>`
         ).join('');
@@ -6574,12 +6574,12 @@ or ICC profiles</span>
 
       if (isIcc) {
         // ICC: sliders only — no polynomial stats, no nearest-in-file column
-        const colorantRows = _estimateModel.colorants.map(c => {
+        const colorantRows = _estimateModel.colorants.map((c, i) => {
           const val = _estimateInputs[c] ?? 50;
           return `<tr>
-            <td style="padding:3px 8px 3px 0;font-size:12px;font-weight:bold;color:#555;white-space:nowrap;">${c}</td>
-            <td style="padding:3px 8px 3px 0;"><input type="range" id="est-r-${c}" min="0" max="100" value="${val}" style="width:110px;" oninput="onEstimateInput('${c}',+this.value)"></td>
-            <td style="text-align:right;padding-right:2px;"><input type="number" id="est-n-${c}" min="0" max="100" value="${val}" style="${INP_NUM}" onchange="onEstimateInput('${c}',+this.value)"></td>
+            <td style="padding:3px 8px 3px 0;font-size:12px;font-weight:bold;color:#555;white-space:nowrap;">${escapeHtml(c)}</td>
+            <td style="padding:3px 8px 3px 0;"><input type="range" id="est-r-${i}" min="0" max="100" value="${val}" style="width:110px;" oninput="onEstimateInput(${i},+this.value)"></td>
+            <td style="text-align:right;padding-right:2px;"><input type="number" id="est-n-${i}" min="0" max="100" value="${val}" style="${INP_NUM}" onchange="onEstimateInput(${i},+this.value)"></td>
           </tr>`;
         }).join('');
 
@@ -6616,13 +6616,13 @@ or ICC profiles</span>
           <div><div style="color:#888;margin-bottom:2px;">${t('points_fitted')}</div><div style="font-family:monospace;font-size:15px;font-weight:bold;">${_estimateModel.nPts}</div></div>
         </div>`;
 
-      const colorantRows = _estimateModel.colorants.map(c => {
+      const colorantRows = _estimateModel.colorants.map((c, i) => {
         const val = _estimateInputs[c] ?? 50;
         return `<tr>
-          <td style="padding:3px 8px 3px 0;font-size:12px;font-weight:bold;color:#555;white-space:nowrap;">${c}</td>
-          <td style="padding:3px 8px 3px 0;"><input type="range" id="est-r-${c}" min="0" max="100" value="${val}" style="width:110px;" oninput="onEstimateInput('${c}',+this.value)"></td>
-          <td style="text-align:right;padding-right:2px;"><input type="number" id="est-n-${c}" min="0" max="100" value="${val}" style="${INP_NUM}" onchange="onEstimateInput('${c}',+this.value)"></td>
-          <td style="${NIF}"><span id="est-nearest-${c}">—</span></td>
+          <td style="padding:3px 8px 3px 0;font-size:12px;font-weight:bold;color:#555;white-space:nowrap;">${escapeHtml(c)}</td>
+          <td style="padding:3px 8px 3px 0;"><input type="range" id="est-r-${i}" min="0" max="100" value="${val}" style="width:110px;" oninput="onEstimateInput(${i},+this.value)"></td>
+          <td style="text-align:right;padding-right:2px;"><input type="number" id="est-n-${i}" min="0" max="100" value="${val}" style="${INP_NUM}" onchange="onEstimateInput(${i},+this.value)"></td>
+          <td style="${NIF}"><span id="est-nearest-${i}">—</span></td>
         </tr>`;
       }).join('');
 
@@ -6747,7 +6747,7 @@ or ICC profiles</span>
       const pred = evalPolynomialModel(_estimateModel, vals);
       const near = findNearestInFile(vals, state.a.headers, state.a.rows, _estimateModel.colorants);
       _estimateModel.colorants.forEach((c, i) => {
-        const el = document.getElementById('est-nearest-' + c);
+        const el = document.getElementById('est-nearest-' + i);
         if (el) el.textContent = near ? near.colorants[i].toFixed(1) : '—';
       });
       const channels = [['L','L'],['a','a'],['b','b']];
@@ -6759,11 +6759,16 @@ or ICC profiles</span>
       });
     }
 
-    // Handle colorant slider/number input change.
-    function onEstimateInput(colorant, val) {
+    // Handle colorant slider/number input change. Takes a numeric index into
+    // _estimateModel.colorants — keeps untrusted colorant names (CSV header /
+    // ICC ink name) out of HTML attributes and JS string handlers.
+    function onEstimateInput(idx, val) {
+      if (!_estimateModel) return;
+      const colorant = _estimateModel.colorants[idx];
+      if (colorant === undefined) return;
       _estimateInputs[colorant] = val;
-      const slider = document.getElementById('est-r-' + colorant);
-      const number = document.getElementById('est-n-' + colorant);
+      const slider = document.getElementById('est-r-' + idx);
+      const number = document.getElementById('est-n-' + idx);
       if (slider && +slider.value !== val) slider.value = val;
       if (number && +number.value !== val) number.value = val;
       updateEstimate();

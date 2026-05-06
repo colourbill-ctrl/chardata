@@ -34,5 +34,5 @@ jobs:
             git reset --hard origin/main
             git fetch --tags
             git describe --tags --abbrev=0 2>/dev/null > public/version.txt || echo "dev" > public/version.txt
-            npm install --omit=dev
+            npm ci --omit=dev
             pm2 restart CharDataApp
