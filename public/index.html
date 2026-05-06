@@ -867,7 +867,13 @@ or ICC profiles</span>
         <span style="margin-left:8px;font-weight:bold;" data-i18n="val">Value:</span>
         <input type="range" id="slice-value-r" min="0" max="100" value="50" oninput="setSliceValue(+this.value)">
         <input type="number" id="slice-value-n" min="0" max="100" value="50" onchange="setSliceValue(+this.value)">
-
+        <span style="margin-left:8px;font-weight:bold;" data-i18n="thickness">Thickness:</span>
+        <input type="range" id="slice-thick-r" min="0" max="128" value="0" oninput="setSliceThickness(+this.value)">
+        <input type="number" id="slice-thick-n" min="0" max="128" value="0" onchange="setSliceThickness(+this.value)">
+        <span style="margin-left:8px;font-weight:bold;" data-i18n="fall_off">Fall-off:</span>
+        <label><input type="radio" name="slice-falloff" value="hard" checked onchange="setSliceFalloff('hard')"> <span data-i18n="hard">Hard</span></label>
+        <label><input type="radio" name="slice-falloff" value="soft" onchange="setSliceFalloff('soft')"> <span data-i18n="soft">Soft</span></label>
+        <label style="margin-left:8px;"><input type="checkbox" id="slice-show-pts" onchange="setSliceShowPoints(this.checked)"> <span data-i18n="show_data_points">Show data points</span></label>
       </div>
       <div id="slice-plot" style="width:100%;height:420px;"></div>
     </div>
@@ -1036,6 +1042,7 @@ or ICC profiles</span>
         show_spectral:'Show spectral data when point selected',
         computing:'Computing\u2026',
         gamut_slice:'Gamut Slice (2D)', axis:'Axis:', val:'Value:',
+        thickness:'Thickness:', fall_off:'Fall-off:', hard:'Hard', soft:'Soft', show_data_points:'Show data points',
         no_file:'No file loaded',
         tone_value:'Tone Value', tone_method:'Tone Method',
         spectral_md:'Spectral Murray-Davies', ctv:'Colour Tone Value (CTV)',
@@ -2398,7 +2405,7 @@ or ICC profiles</span>
     let _plotVisible = [];       // per-trace visibility for scatter traces, preserved across re-renders
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
     let _nSpecs = 0;             // number of datasets; shell traces at 0.._nSpecs-1, scatter at _nSpecs..2*_nSpecs-1
-    const _sliceState = { axis: 'L', value: 50 };
+    const _sliceState = { axis: 'L', value: 50, thickness: 0, falloff: 'hard', showPoints: false };
     const _sliceVisible = { a: true, b: true };
     const _gamutState = {
       a: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null, panelOpen: false,
@@ -6881,6 +6888,26 @@ or ICC profiles</span>
       renderSlicePlot();
     }
 
+    function setSliceThickness(val) {
+      const v = Math.max(0, Math.min(128, Math.round(+val || 0)));
+      _sliceState.thickness = v;
+      const r = document.getElementById('slice-thick-r');
+      const n = document.getElementById('slice-thick-n');
+      if (r) r.value = v;
+      if (n) n.value = v;
+      renderSlicePlot();
+    }
+
+    function setSliceFalloff(mode) {
+      _sliceState.falloff = (mode === 'soft') ? 'soft' : 'hard';
+      renderSlicePlot();
+    }
+
+    function setSliceShowPoints(on) {
+      _sliceState.showPoints = !!on;
+      renderSlicePlot();
+    }
+
 
     function toggleSlice() {
       const wrap = document.getElementById('slice-wrap');
@@ -6956,6 +6983,45 @@ or ICC profiles</span>
       // Filter to visible specs for Plotly traces
       const specs = allSpecs.filter(s => _sliceVisible[s.slot]);
 
+      // Build per-dataset projected-point scatter traces (orthogonal projection
+      // of points within ±thickness of `value` along the chosen axis).
+      // Polygon (and thus plot) coord mapping (matches WASM buildSlice):
+      //   L-slice: filter on z (L*); plot (x=a*, y=b*)   → src.x, src.y
+      //   a-slice: filter on x (a*); plot (x=L*, y=b*)   → src.z, src.y
+      //   b-slice: filter on y (b*); plot (x=L*, y=a*)   → src.z, src.x
+      const { thickness, falloff, showPoints } = _sliceState;
+      const _hexToRgb = h => {
+        const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h || '');
+        return m ? [parseInt(m[1],16), parseInt(m[2],16), parseInt(m[3],16)] : [128,128,128];
+      };
+      const pointTraces = !showPoints ? [] : specs.map(spec => {
+        const c = _gamutState[spec.slot].cachedXYZ;
+        if (!c || !c.x || !c.x.length) return null;
+        const filterArr = axis === 'L' ? c.z : axis === 'a' ? c.x : c.y;
+        const xArr      = axis === 'L' ? c.x : c.z;
+        const yArr      = (axis === 'b') ? c.x : c.y;
+        const px = [], py = [], pcolors = [], psizes = [];
+        const [r, g, bl] = _hexToRgb(spec.color);
+        for (let i = 0; i < filterArr.length; i++) {
+          const dist = Math.abs(filterArr[i] - value);
+          if (dist > thickness) continue;
+          let alpha;
+          if (dist <= 0.5) alpha = 1;
+          else if (falloff === 'hard') alpha = 1;
+          else alpha = thickness > 0 ? Math.max(0, 1 - dist / thickness) : 1;
+          px.push(xArr[i]);
+          py.push(yArr[i]);
+          pcolors.push(`rgba(${r},${g},${bl},${alpha.toFixed(3)})`);
+          psizes.push(dist <= 0.5 ? 5 : 3);
+        }
+        if (!px.length) return null;
+        return {
+          type: 'scatter', mode: 'markers', x: px, y: py,
+          name: spec.name, showlegend: false, hoverinfo: 'skip',
+          marker: { color: pcolors, size: psizes, line: { width: 0 } }
+        };
+      }).filter(Boolean);
+
       const axisCode = axis === 'L' ? 0 : axis === 'a' ? 1 : 2;
       const traces = await Promise.all(specs.map(async spec => {
         const empty = { type: 'scatter', x: [], y: [], name: spec.name, mode: 'lines', line: { color: spec.color } };
@@ -7023,7 +7089,7 @@ or ICC profiles</span>
         layout.xaxis.scaleratio = 1;
       }
 
-      Plotly.react(sliceEl, traces, layout, { responsive: true });
+      Plotly.react(sliceEl, traces.concat(pointTraces), layout, { responsive: true });
     }
 
     // Initial render of slice section (shows "No file loaded" on fresh page load)
