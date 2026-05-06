@@ -426,7 +426,9 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <tr><th>Control</th><th>Description</th></tr></thead><tbody>
 <tr><td>Axis</td><td>Which axis to slice along: L*, a*, or b*</td></tr>
 <tr><td>Value</td><td>Position of the slice along the chosen axis (0–100)</td></tr>
-<tr><td>Bandwidth ±</td><td>Half-width of the slice band; wider = more points included</td></tr>
+<tr><td>Thickness</td><td>Half-width of the projection window along the chosen axis (0–128). Points whose axis value lies within ±Thickness of Value are orthogonally projected onto the slice plane</td></tr>
+<tr><td>Fall-off</td><td><strong>Hard</strong> — every projected point is drawn at full opacity. <strong>Soft</strong> — opacity falls linearly from 100 % at Value to 0 % at the window edge. Points within ±0.5 of Value are always at full opacity in either mode</td></tr>
+<tr><td>Show data points</td><td>When on, draws each visible dataset's patch cloud (CSV measurements or, for ICC profiles, the sampled patch lattice) projected onto the slice. Points within ±0.5 of Value render as 5 px dots; points farther out render as 3 px dots, in the dataset's solid colour</td></tr>
 </tbody></table>
 <p>The slice updates live as you adjust the controls.</p>
 <h3 id="4-5-estimate-section">4.5 Estimate section</h3>

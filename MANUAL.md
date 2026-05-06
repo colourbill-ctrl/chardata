@@ -266,7 +266,9 @@ Below the 3D plot, the **Gamut Slice (2D)** section shows a cross-section of the
 |---|---|
 | Axis | Which axis to slice along: L\*, a\*, or b\* |
 | Value | Position of the slice along the chosen axis (0–100) |
-| Bandwidth ± | Half-width of the slice band; wider = more points included |
+| Thickness | Half-width of the projection window along the chosen axis (0–128). Points whose axis value lies within ±Thickness of Value are orthogonally projected onto the slice plane |
+| Fall-off | **Hard** — every projected point is drawn at full opacity. **Soft** — opacity falls linearly from 100 % at Value to 0 % at the window edge. Points within ±0.5 of Value are always at full opacity in either mode |
+| Show data points | When on, draws each visible dataset's patch cloud (CSV measurements or, for ICC profiles, the sampled patch lattice) projected onto the slice. Points within ±0.5 of Value render as 5 px dots; points farther out render as 3 px dots, in the dataset's solid colour |
 
 The slice updates live as you adjust the controls.
 
