@@ -12,7 +12,7 @@ node server.js
 Serves the app at `http://localhost:3001`. There is no JS build step at runtime — `server.js` is a static file server (Express + helmet) that only sets the `application/wasm` MIME type.
 
 Two things *do* get generated, but only at commit time via the pre-commit hook:
-- `public/wasm/compwas-gamut.{mjs,wasm}` from `gamut-wasm/gamut-wrapper.cpp`
+- `public/wasm/chardata-gamut.{mjs,wasm}` from `gamut-wasm/gamut-wrapper.cpp`
 - `public/help.html` from `MANUAL.md`
 
 ## Architecture
@@ -25,7 +25,7 @@ Gamut math (polynomial model fitting, 3D mesh generation, 2D slice, ICC profile 
 
 - **Source**: `gamut-wasm/gamut-wrapper.cpp` — embind-exported functions
 - **Build**: from WSL: `scripts/build-wasm.sh` (requires Emscripten + nlohmann-json3-dev; lcms2 is a vendored submodule under `gamut-wasm/third-party/lcms2`)
-- **Artifacts**: `public/wasm/compwas-gamut.mjs` + `public/wasm/compwas-gamut.wasm` (committed — Lightsail has no build toolchain)
+- **Artifacts**: `public/wasm/chardata-gamut.mjs` + `public/wasm/chardata-gamut.wasm` (committed — Lightsail has no build toolchain)
 - **JS wrapper**: `public/gamut.js` — loads WASM via blob-URL dynamic import, exposes `window.Gamut`
 
 ### WASM API (`window.Gamut`)

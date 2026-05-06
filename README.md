@@ -31,8 +31,8 @@ compiled to WebAssembly:
 |---|---|
 | `gamut-wasm/gamut-wrapper.cpp` | C++ source — three embind-exported functions |
 | `gamut-wasm/CMakeLists.txt` | CMake build config for Emscripten |
-| `public/wasm/compwas-gamut.mjs` | Emscripten JS glue (committed build artifact) |
-| `public/wasm/compwas-gamut.wasm` | WASM binary (committed build artifact) |
+| `public/wasm/chardata-gamut.mjs` | Emscripten JS glue (committed build artifact) |
+| `public/wasm/chardata-gamut.wasm` | WASM binary (committed build artifact) |
 | `public/gamut.js` | JS wrapper — loads WASM, exposes `window.Gamut` |
 
 ---

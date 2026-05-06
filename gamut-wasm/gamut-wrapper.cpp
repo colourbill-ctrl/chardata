@@ -1,5 +1,5 @@
 /**
- * compwas WASM module — polynomial model fitting + gamut mesh generation
+ * CharData WASM module — polynomial model fitting + gamut mesh generation
  * for characterisation data (CSV-sourced CMYK/RGB/N-colorant + Lab).
  *
  * Exported embind functions:
@@ -1015,7 +1015,7 @@ static void freeIccProfile(int handle) {
 }
 
 // ── embind ────────────────────────────────────────────────────────────────────
-EMSCRIPTEN_BINDINGS(compwas) {
+EMSCRIPTEN_BINDINGS(chardata) {
     emscripten::function("fitModel",          &fitModel);
     emscripten::function("buildGamutMesh",    &buildGamutMesh);
     emscripten::function("buildSlice",        &buildSlice);

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(compwas-gamut-wasm VERSION 0.1.0 LANGUAGES C CXX)
+project(chardata-gamut-wasm VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -34,18 +34,18 @@ if(NOT LCMS2_SOURCES)
   message(FATAL_ERROR "lcms2 sources not found — run: git submodule update --init --recursive")
 endif()
 
-# ── compwas-gamut target ─────────────────────────────────────────────────────
-add_executable(compwas-gamut gamut-wrapper.cpp ${LCMS2_SOURCES})
+# ── chardata-gamut target ─────────────────────────────────────────────────────
+add_executable(chardata-gamut gamut-wrapper.cpp ${LCMS2_SOURCES})
 
-target_include_directories(compwas-gamut PRIVATE
+target_include_directories(chardata-gamut PRIVATE
   "${CMAKE_CURRENT_BINARY_DIR}/third-party"
   "${CMAKE_CURRENT_SOURCE_DIR}/third-party/lcms2/include")
 
-target_compile_options(compwas-gamut PRIVATE
+target_compile_options(chardata-gamut PRIVATE
   -O3
   -fexceptions)
 
-target_link_options(compwas-gamut PRIVATE
+target_link_options(chardata-gamut PRIVATE
   -O3
   -fexceptions
   -lembind
@@ -62,4 +62,4 @@ target_link_options(compwas-gamut PRIVATE
   # Unwrap embind CppException → .what() on the JS side
   -sEXPORTED_RUNTIME_METHODS=getExceptionMessage,decrementExceptionRefcount)
 
-set_target_properties(compwas-gamut PROPERTIES SUFFIX ".mjs")
+set_target_properties(chardata-gamut PROPERTIES SUFFIX ".mjs")

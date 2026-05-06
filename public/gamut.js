@@ -1,5 +1,5 @@
 /**
- * gamut.js — WASM loader and JS wrapper for the compwas gamut module.
+ * gamut.js — WASM loader and JS wrapper for the CharData gamut module.
  *
  * Exposes window.Gamut = {
  *   preload()                                          → Promise<void>
@@ -17,13 +17,13 @@
  * }
  *
  * Uses blob-URL dynamic import to load the Emscripten ES6 module glue from
- * /wasm/compwas-gamut.mjs without a bundler (same pattern as iccgamut).
+ * /wasm/chardata-gamut.mjs without a bundler (same pattern as iccgamut).
  */
 (function () {
   'use strict';
 
-  const WASM_MJS_URL  = '/wasm/compwas-gamut.mjs';
-  const WASM_BIN_URL  = '/wasm/compwas-gamut.wasm';
+  const WASM_MJS_URL  = '/wasm/chardata-gamut.mjs';
+  const WASM_BIN_URL  = '/wasm/chardata-gamut.wasm';
 
   // Default grid density by colorant count (index = nColorants).
   // Mesh vertex count grows as C(N,2) * 2^(N-2) * (steps+1)^2, so steps must
@@ -51,7 +51,7 @@
 
       const absWasmUrl = new URL(WASM_BIN_URL, location.href).href;
       const patched = mjsText.replace(
-        /(['"`])compwas-gamut\.wasm\1/g,
+        /(['"`])chardata-gamut\.wasm\1/g,
         JSON.stringify(absWasmUrl)
       );
 

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CompWAS — Compare Char Data</title>
+  <title>CharData</title>
   <script src="gamut.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-V301BZ7TXD"></script>
   <script>
@@ -6803,7 +6803,7 @@ or ICC profiles</span>
             _gamutState[slot].cachedXYZ = { x, y, z };
           }
         } catch (e) {
-          console.error('compwas: ICC gamut build failed for slot', slot, e);
+          console.error('CharData: ICC gamut build failed for slot', slot, e);
           _gamutState[slot].cachedMesh = null;
         }
         return;
@@ -6862,7 +6862,7 @@ or ICC profiles</span>
         const mesh = await Gamut.buildGamutMesh(model, steps);
         _gamutState[slot].cachedMesh = mesh;
       } catch (e) {
-        console.error('compwas: WASM gamut build failed for slot', slot, e);
+        console.error('CharData: WASM gamut build failed for slot', slot, e);
         _gamutState[slot].cachedModel = null;
         _gamutState[slot].cachedMesh  = null;
       }

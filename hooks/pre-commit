@@ -22,7 +22,7 @@ if echo "$STAGED" | grep -qE '^gamut-wasm/'; then
         echo "Fix the build error and try again."
         exit 1
     fi
-    git add public/wasm/compwas-gamut.mjs public/wasm/compwas-gamut.wasm
+    git add public/wasm/chardata-gamut.mjs public/wasm/chardata-gamut.wasm
     echo "WASM artifacts staged."
 fi
 

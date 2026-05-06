@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# build-wasm.sh — compile the compwas gamut WASM module via Emscripten.
+# build-wasm.sh — compile the CharData gamut WASM module via Emscripten.
 #
 # Run from WSL:
 #   cd /mnt/c/Users/colou/code/compwas
@@ -17,7 +17,7 @@ GAMUT_WASM_DIR="$PROJECT_ROOT/gamut-wasm"
 BUILD_DIR="$GAMUT_WASM_DIR/build"
 OUT_DIR="$PROJECT_ROOT/public/wasm"
 
-echo "=== compwas WASM build ==="
+echo "=== CharData WASM build ==="
 echo "Project root : $PROJECT_ROOT"
 echo "Source dir   : $GAMUT_WASM_DIR"
 echo "Build dir    : $BUILD_DIR"
@@ -57,8 +57,8 @@ emcmake cmake "$GAMUT_WASM_DIR" \
 emmake make -j"$(nproc)"
 
 # ── Copy artifacts ───────────────────────────────────────────────────────────
-cp compwas-gamut.mjs compwas-gamut.wasm "$OUT_DIR/"
+cp chardata-gamut.mjs chardata-gamut.wasm "$OUT_DIR/"
 
 echo ""
 echo "=== Build complete ==="
-ls -lh "$OUT_DIR"/compwas-gamut.*
+ls -lh "$OUT_DIR"/chardata-gamut.*
