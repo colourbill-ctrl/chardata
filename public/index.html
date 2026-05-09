@@ -868,11 +868,11 @@ or ICC profiles</span>
         <input type="range" id="slice-value-r" min="0" max="100" value="50" oninput="setSliceValue(+this.value)">
         <input type="number" id="slice-value-n" min="0" max="100" value="50" onchange="setSliceValue(+this.value)">
         <span style="margin-left:8px;font-weight:bold;" data-i18n="thickness">Thickness:</span>
-        <input type="range" id="slice-thick-r" min="0" max="128" value="0" oninput="setSliceThickness(+this.value)">
-        <input type="number" id="slice-thick-n" min="0" max="128" value="0" onchange="setSliceThickness(+this.value)">
+        <input type="range" id="slice-thick-r" min="0" max="128" value="1" oninput="setSliceThickness(+this.value)">
+        <input type="number" id="slice-thick-n" min="0" max="128" value="1" onchange="setSliceThickness(+this.value)">
         <span style="margin-left:8px;font-weight:bold;" data-i18n="fall_off">Fall-off:</span>
-        <label><input type="radio" name="slice-falloff" value="hard" checked onchange="setSliceFalloff('hard')"> <span data-i18n="hard">Hard</span></label>
-        <label><input type="radio" name="slice-falloff" value="soft" onchange="setSliceFalloff('soft')"> <span data-i18n="soft">Soft</span></label>
+        <label><input type="radio" name="slice-falloff" value="hard" onchange="setSliceFalloff('hard')"> <span data-i18n="hard">Hard</span></label>
+        <label><input type="radio" name="slice-falloff" value="soft" checked onchange="setSliceFalloff('soft')"> <span data-i18n="soft">Soft</span></label>
         <label style="margin-left:8px;"><input type="checkbox" id="slice-show-pts" onchange="setSliceShowPoints(this.checked)"> <span data-i18n="show_data_points">Show data points</span></label>
       </div>
       <div id="slice-plot" style="width:100%;height:420px;"></div>
@@ -2469,7 +2469,7 @@ or ICC profiles</span>
     let _plotVisible = [];       // per-trace visibility for scatter traces, preserved across re-renders
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
     let _nSpecs = 0;             // number of datasets; shell traces at 0.._nSpecs-1, scatter at _nSpecs..2*_nSpecs-1
-    const _sliceState = { axis: 'L', value: 50, thickness: 0, falloff: 'hard', showPoints: false };
+    const _sliceState = { axis: 'L', value: 50, thickness: 1, falloff: 'soft', showPoints: false };
     const _sliceVisible = { a: true, b: true };
     const _gamutState = {
       a: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null, panelOpen: false,
@@ -7077,6 +7077,8 @@ or ICC profiles</span>
         const yArr      = (axis === 'b') ? c.x : c.y;
         const px = [], py = [], pcolors = [], psizes = [];
         const [r, g, bl] = _hexToRgb(spec.color);
+        const _bright = c => Math.round(c + (255 - c) * 0.3);
+        const br = _bright(r), bg = _bright(g), bbl = _bright(bl);
         for (let i = 0; i < filterArr.length; i++) {
           const dist = Math.abs(filterArr[i] - value);
           if (dist > thickness) continue;
@@ -7086,8 +7088,10 @@ or ICC profiles</span>
           else alpha = thickness > 0 ? Math.max(0, 1 - dist / thickness) : 1;
           px.push(xArr[i]);
           py.push(yArr[i]);
-          pcolors.push(`rgba(${r},${g},${bl},${alpha.toFixed(3)})`);
-          psizes.push(dist <= 0.5 ? 5 : 3);
+          const inPlane = dist <= 0.5;
+          const cr = inPlane ? br : r, cg = inPlane ? bg : g, cb = inPlane ? bbl : bl;
+          pcolors.push(`rgba(${cr},${cg},${cb},${alpha.toFixed(3)})`);
+          psizes.push(inPlane ? 7 : 3);
         }
         if (!px.length) return null;
         return {
