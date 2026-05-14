@@ -1,4 +1,5 @@
 node_modules/
 gamut-wasm/build/
+icc-viewer-wasm/build/
 .claude/
 public/version.txt

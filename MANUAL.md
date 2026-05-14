@@ -122,7 +122,7 @@ Click a section header (▾) to collapse or expand that section; the state persi
 - **Drag and drop** files from your file system directly onto a Dataset panel or anywhere inside the File Select panel.
 - **Drag a card** from the File Select panel onto Dataset A or Dataset B to assign it.
 - **Click a card** to assign it to the next available slot (Explore mode → A; Compare mode → first empty of A / B).
-- Click **Display File** (after a dataset loads) to view its data table. Display File is disabled for ICC profiles, which are binary.
+- Click **Display File** (after a file loads) to view its contents. For CSV / CGATS, this shows the raw text. For ICC profiles, it opens an in-page viewer with **Header** and **Tags** tabs, where each tag row expands inline to show its full type-specific description (loaded on demand).
 
 Once a file loads, the slot panel shows:
 

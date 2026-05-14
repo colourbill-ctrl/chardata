@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CharData</title>
   <script src="gamut.js"></script>
+  <script src="icc-viewer.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-V301BZ7TXD"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -696,6 +697,138 @@
     body.dark #validate-result summary { color: #aaa !important; }
     body.dark #validate-result span[style*="color:#777"] { color: #999 !important; }
     body.dark #copyright-bar { color: rgba(255,255,255,0.35) !important; }
+
+    /* ── ICC viewer overlay ─────────────────────────────────────────────── */
+    .icc-tab-bar { display: flex; gap: 4px; padding: 0 16px; border-bottom: 1px solid #ddd;
+                   background: #f0f4fa; flex-shrink: 0; }
+    .icc-tab     { padding: 8px 16px; font-size: 13px; font-weight: 600; color: #555;
+                   background: transparent; border: none; border-bottom: 3px solid transparent;
+                   cursor: pointer; transition: color 0.15s, border-color 0.15s; font-family: inherit; }
+    .icc-tab:hover     { color: #4a90e2; }
+    .icc-tab.active    { color: #4a90e2; border-bottom-color: #4a90e2; }
+    .icc-tab-count     { display: inline-block; margin-left: 6px; padding: 1px 7px;
+                         font-size: 11px; font-weight: 600; color: #fff;
+                         background: #a0b8d0; border-radius: 10px; }
+    .icc-tab.active .icc-tab-count { background: #4a90e2; }
+    #icc-viewer-body   { flex: 1; overflow: auto; padding: 12px 16px; background: #fff; }
+    .icc-section-title { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase;
+                         letter-spacing: 0.05em; margin: 4px 0 10px 0; }
+    .icc-profile-id    { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+                         margin-bottom: 12px; background: #f5f7fa; border: 1px solid #e0e6ee;
+                         border-radius: 6px; font-size: 12px; }
+    .icc-profile-id .lbl { color: #666; font-weight: 600; }
+    .icc-profile-id .val { font-family: ui-monospace, Menlo, Consolas, monospace; color: #333;
+                           word-break: break-all; flex: 1; }
+    .icc-header-table  { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .icc-header-table tr   { border-bottom: 1px solid #eef0f4; }
+    .icc-header-table tr:hover { background: #f8fafd; }
+    .icc-header-table .key { padding: 8px 12px 8px 0; color: #555; font-weight: 600;
+                             width: 38%; vertical-align: top; }
+    .icc-header-table .val { padding: 8px 0; color: #222; word-break: break-word;
+                             vertical-align: top; }
+    .icc-header-table .val.empty { color: #aaa; font-style: italic; }
+
+    .icc-tags-list   { display: flex; flex-direction: column; font-size: 13px; }
+    .icc-tags-head, .icc-tag-row {
+      display: grid;
+      grid-template-columns: 36px 1fr 70px 150px 80px 70px 60px;
+      column-gap: 10px;
+      align-items: center;
+      padding: 7px 8px;
+      border-bottom: 1px solid #eef0f4;
+    }
+    .icc-tags-head   { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+                       color: #888; font-weight: 600; background: #f8fafd; border-bottom: 2px solid #ddd;
+                       position: sticky; top: 0; z-index: 1; }
+    .icc-tag-row     { cursor: pointer; }
+    .icc-tag-row:hover  { background: #f0f6fd; }
+    .icc-tag-row.open   { background: #e8f1fc; }
+    .icc-tag-row .num   { text-align: right; color: #999; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+    .icc-tag-row .name  { color: #222; font-weight: 500; word-break: break-word; }
+    .icc-tag-row .id    { font-family: ui-monospace, Menlo, Consolas, monospace; color: #4a90e2;
+                          font-size: 12px; }
+    .icc-tag-row .type  { font-family: ui-monospace, Menlo, Consolas, monospace; color: #666;
+                          font-size: 12px; word-break: break-all; }
+    .icc-tag-row .off,
+    .icc-tag-row .size,
+    .icc-tag-row .pad   { text-align: right; font-family: ui-monospace, Menlo, Consolas, monospace;
+                          font-size: 12px; color: #555; }
+    .icc-tag-row .pad.warn  { color: #b87800; font-weight: 600; }
+    .icc-tag-row .pad.err   { color: #b91c1c; font-weight: 700; }
+    .icc-tag-row .caret { display: inline-block; width: 10px; color: #aaa; transition: transform 0.15s; }
+    .icc-tag-row.open .caret { transform: rotate(90deg); color: #4a90e2; }
+    .icc-tag-row .meta  { display: none; }  /* mobile-only line, hidden on desktop */
+    .icc-tag-detail     { padding: 10px 12px 14px 50px; background: #f8fafd;
+                          border-bottom: 1px solid #eef0f4; }
+    .icc-tag-detail pre { margin: 0; font-family: ui-monospace, Menlo, Consolas, monospace;
+                          font-size: 11.5px; line-height: 1.4; color: #333;
+                          white-space: pre-wrap; word-break: break-word; overflow-x: auto; }
+    .icc-tag-detail .loading { color: #888; font-style: italic; font-size: 12px; padding: 4px 0; }
+    .icc-tag-detail .err     { color: #b91c1c; font-size: 12px; padding: 4px 0; }
+
+    /* Narrow viewports — drop offset/size/pad columns into a single meta line,
+       expand the modal to fill the screen, and stack tag rows. */
+    @media (max-width: 720px) {
+      #icc-viewer-dialog { top: 0 !important; left: 0 !important; transform: none !important;
+                           width: 100vw !important; max-width: 100vw !important;
+                           height: 100vh !important; border-radius: 0 !important; }
+      .icc-tags-head    { display: none; }
+      .icc-tag-row {
+        grid-template-columns: 28px 1fr auto;
+        grid-template-areas:
+          "num name  caret"
+          "num meta  meta"
+          "num type  type";
+        column-gap: 8px;
+        row-gap: 1px;
+        padding: 9px 10px;
+      }
+      .icc-tag-row .num   { grid-area: num; }
+      .icc-tag-row .name  { grid-area: name; font-weight: 600; }
+      .icc-tag-row .caret { grid-area: caret; justify-self: end; }
+      .icc-tag-row .id    { display: none; }      /* shown inside .meta on mobile */
+      .icc-tag-row .type  { grid-area: type; font-size: 11px; color: #777; }
+      .icc-tag-row .off,
+      .icc-tag-row .size,
+      .icc-tag-row .pad   { display: none; }
+      .icc-tag-row .meta  { display: block; grid-area: meta; font-size: 11px; color: #888;
+                            font-family: ui-monospace, Menlo, Consolas, monospace; }
+      .icc-tag-row .meta .id-inline   { color: #4a90e2; }
+      .icc-tag-row .meta .pad-warn    { color: #b87800; font-weight: 600; }
+      .icc-tag-row .meta .pad-err     { color: #b91c1c; font-weight: 700; }
+      .icc-tag-detail   { padding: 8px 10px 12px 40px; }
+      .icc-header-table .key { width: 45%; padding-right: 8px; font-size: 12px; }
+      .icc-header-table .val { font-size: 12px; }
+    }
+
+    body.dark .icc-tab-bar       { background: #1a1c20; border-bottom-color: #2e3036; }
+    body.dark .icc-tab           { color: #aaa; }
+    body.dark .icc-tab:hover     { color: #6aacf0; }
+    body.dark .icc-tab.active    { color: #6aacf0; border-bottom-color: #6aacf0; }
+    body.dark .icc-tab-count     { background: #555; }
+    body.dark .icc-tab.active .icc-tab-count { background: #6aacf0; color: #0a0c10; }
+    body.dark #icc-viewer-body   { background: #0e1014; }
+    body.dark .icc-section-title { color: #777; }
+    body.dark .icc-profile-id    { background: #1a1c20; border-color: #2e3036; }
+    body.dark .icc-profile-id .lbl { color: #888; }
+    body.dark .icc-profile-id .val { color: #ddd; }
+    body.dark .icc-header-table tr { border-bottom-color: #1f2127; }
+    body.dark .icc-header-table tr:hover { background: #15171c; }
+    body.dark .icc-header-table .key { color: #888; }
+    body.dark .icc-header-table .val { color: #ddd; }
+    body.dark .icc-tags-head     { background: #15171c; color: #888; border-bottom-color: #2e3036; }
+    body.dark .icc-tag-row       { border-bottom-color: #1f2127; }
+    body.dark .icc-tag-row:hover { background: #1a2230; }
+    body.dark .icc-tag-row.open  { background: #1c2738; }
+    body.dark .icc-tag-row .name { color: #ddd; }
+    body.dark .icc-tag-row .id,
+    body.dark .icc-tag-row.open .caret { color: #6aacf0; }
+    body.dark .icc-tag-row .type,
+    body.dark .icc-tag-row .off,
+    body.dark .icc-tag-row .size,
+    body.dark .icc-tag-row .pad  { color: #aaa; }
+    body.dark .icc-tag-detail    { background: #14161c; border-bottom-color: #1f2127; }
+    body.dark .icc-tag-detail pre { color: #ccc; }
   </style>
 </head>
 <body>
@@ -1091,6 +1224,7 @@ or ICC profiles</span>
         dataset_settings:'Dataset Settings',
         select_toggle:'Select to toggle file visibility:', toggle_label:'Toggle:',
         show_label:'Show:', original:'Original', modified:'Modified', close:'\u2715 Close',
+        icc_tab_header:'Header', icc_tab_tags:'Tags', icc_loading:'Loading ICC viewer\u2026',
         selected_not_loaded:'Selected file is not loaded.',
         both_needed:'Both files must be loaded.',
         no_k_patches:'No K-only patches matched.',
@@ -1198,6 +1332,7 @@ or ICC profiles</span>
         dataset_settings:'Paramètres du jeu de données',
         select_toggle:'Cliquer pour activer/désactiver\u00a0:', toggle_label:'Afficher\u00a0:',
         show_label:'Afficher\u00a0:', original:'Original', modified:'Modifié', close:'\u2715 Fermer',
+        icc_tab_header:'En-tête', icc_tab_tags:'Balises', icc_loading:'Chargement du visualiseur ICC\u2026',
         selected_not_loaded:'Le fichier sélectionné n\u2019est pas chargé.',
         both_needed:'Les deux fichiers doivent être chargés.',
         no_k_patches:'Aucun patch K seul trouvé.',
@@ -1300,6 +1435,7 @@ or ICC profiles</span>
         dataset_settings:'Datensatzeinstellungen',
         select_toggle:'Klicken zum Ein-/Ausblenden:', toggle_label:'Anzeigen:',
         show_label:'Ansicht:', original:'Original', modified:'Geändert', close:'\u2715 Schließen',
+        icc_tab_header:'Header', icc_tab_tags:'Tags', icc_loading:'ICC-Viewer wird geladen\u2026',
         selected_not_loaded:'Ausgewählte Datei ist nicht geladen.',
         both_needed:'Beide Dateien müssen geladen sein.',
         no_k_patches:'Keine K-Einzel-Patches gefunden.',
@@ -1402,6 +1538,7 @@ or ICC profiles</span>
         dataset_settings:'Impostazioni set di dati',
         select_toggle:'Clicca per attivare/disattivare:', toggle_label:'Mostra:',
         show_label:'Mostra:', original:'Originale', modified:'Modificato', close:'\u2715 Chiudi',
+        icc_tab_header:'Intestazione', icc_tab_tags:'Tag', icc_loading:'Caricamento del visualizzatore ICC\u2026',
         selected_not_loaded:'Il file selezionato non è caricato.',
         both_needed:'Entrambi i file devono essere caricati.',
         no_k_patches:'Nessuna patch K trovata.',
@@ -1504,6 +1641,7 @@ or ICC profiles</span>
         dataset_settings:'Configuración del conjunto de datos',
         select_toggle:'Clic para activar/desactivar:', toggle_label:'Mostrar:',
         show_label:'Mostrar:', original:'Original', modified:'Modificado', close:'\u2715 Cerrar',
+        icc_tab_header:'Cabecera', icc_tab_tags:'Etiquetas', icc_loading:'Cargando visor ICC\u2026',
         selected_not_loaded:'El archivo seleccionado no está cargado.',
         both_needed:'Ambos archivos deben estar cargados.',
         no_k_patches:'No se encontraron patches de solo K.',
@@ -1606,6 +1744,7 @@ or ICC profiles</span>
         dataset_settings:'Definições do conjunto de dados',
         select_toggle:'Clique para activar/desactivar:', toggle_label:'Mostrar:',
         show_label:'Mostrar:', original:'Original', modified:'Modificado', close:'\u2715 Fechar',
+        icc_tab_header:'Cabe\u00e7alho', icc_tab_tags:'Etiquetas', icc_loading:'A carregar o visualizador ICC\u2026',
         selected_not_loaded:'O ficheiro selecionado não está carregado.',
         both_needed:'Ambos os ficheiros devem estar carregados.',
         no_k_patches:'Nenhum patch K encontrado.',
@@ -1708,6 +1847,7 @@ or ICC profiles</span>
         dataset_settings:'Configurações do conjunto de dados',
         select_toggle:'Clique para ativar/desativar:', toggle_label:'Mostrar:',
         show_label:'Mostrar:', original:'Original', modified:'Modificado', close:'\u2715 Fechar',
+        icc_tab_header:'Cabe\u00e7alho', icc_tab_tags:'Tags', icc_loading:'Carregando visualizador ICC\u2026',
         selected_not_loaded:'O arquivo selecionado não está carregado.',
         both_needed:'Ambos os arquivos devem estar carregados.',
         no_k_patches:'Nenhum patch K encontrado.',
@@ -1810,6 +1950,7 @@ or ICC profiles</span>
         dataset_settings:'数据集设置',
         select_toggle:'点击切换可见性：', toggle_label:'切换：',
         show_label:'显示：', original:'原始', modified:'已修改', close:'\u2715 关闭',
+        icc_tab_header:'标头', icc_tab_tags:'标签', icc_loading:'正在加载 ICC 查看器\u2026',
         selected_not_loaded:'所选文件未加载。',
         both_needed:'两个文件都必须加载。',
         no_k_patches:'未找到仅 K 色块。',
@@ -1912,6 +2053,7 @@ or ICC profiles</span>
         dataset_settings:'數據庫設定',
         select_toggle:'點擊切換可見性：', toggle_label:'切換：',
         show_label:'顯示：', original:'原始', modified:'已修改', close:'\u2715 關閉',
+        icc_tab_header:'標頭', icc_tab_tags:'標籤', icc_loading:'正在載入 ICC 檢視器\u2026',
         selected_not_loaded:'所選檔案未載入。',
         both_needed:'兩個檔案都必須載入。',
         no_k_patches:'未找到僅 K 色塊。',
@@ -2014,6 +2156,7 @@ or ICC profiles</span>
         dataset_settings:'データセット設定',
         select_toggle:'クリックして表示/非表示：', toggle_label:'切替：',
         show_label:'表示：', original:'元のファイル', modified:'変更済み', close:'\u2715 閉じる',
+        icc_tab_header:'ヘッダー', icc_tab_tags:'タグ', icc_loading:'ICC ビューアを読み込み中\u2026',
         selected_not_loaded:'選択したファイルが読み込まれていません。',
         both_needed:'両方のファイルを読み込んでください。',
         no_k_patches:'K のみのパッチが見つかりません。',
@@ -2116,6 +2259,7 @@ or ICC profiles</span>
         dataset_settings:'데이터셋 설정',
         select_toggle:'클릭하여 표시/숨기기：', toggle_label:'전환：',
         show_label:'표시：', original:'원본', modified:'수정됨', close:'\u2715 닫기',
+        icc_tab_header:'헤더', icc_tab_tags:'태그', icc_loading:'ICC 뷰어 로드 중\u2026',
         selected_not_loaded:'선택한 파일이 로드되지 않았습니다。',
         both_needed:'두 파일 모두 로드해야 합니다。',
         no_k_patches:'K 전용 패치를 찾을 수 없습니다。',
@@ -2218,6 +2362,7 @@ or ICC profiles</span>
         dataset_settings:'Datamängdsinställningar',
         select_toggle:'Välj för att växla filsynlighet:', toggle_label:'Växla:',
         show_label:'Visa:', original:'Original', modified:'Ändrad', close:'\u2715 Stäng',
+        icc_tab_header:'Header', icc_tab_tags:'Taggar', icc_loading:'Läser in ICC-visare\u2026',
         selected_not_loaded:'Den valda filen är inte inläst.',
         both_needed:'Båda filerna måste vara inlästa.',
         no_k_patches:'Inga enbart K-fläckar matchades.',
@@ -3050,7 +3195,7 @@ or ICC profiles</span>
       if (perFilePointsCb) perFilePointsCb.checked = false;
       syncShellCheckbox(); syncPointsCheckbox(); syncColorCheckboxes();
 
-      document.getElementById('show-file-' + slot).disabled = true;   // binary — no text view
+      document.getElementById('show-file-' + slot).disabled = false;  // ICC → routed to openIccViewer()
       document.getElementById('valid-' + slot).innerHTML = '<div class="valid">\u2713 ' + t('type_icc_profile') + '</div>';
       document.getElementById('valid-' + slot).className = 'validation';
       document.getElementById('colorants-' + slot).textContent =
@@ -3289,6 +3434,7 @@ or ICC profiles</span>
     function showFile(slot) {
       const raw = _rawFileData[slot];
       if (!raw) return;
+      if (raw.isIcc) { openIccViewer(slot); return; }
       _fileViewerSlot = slot;
       document.getElementById('file-viewer-title').textContent = raw.fileName;
       const modeSection = document.getElementById('file-viewer-mode-section');
@@ -3299,6 +3445,157 @@ or ICC profiles</span>
       }
       updateFileViewerContent();
       document.getElementById('file-viewer-overlay').style.display = '';
+    }
+
+    // ── ICC profile viewer ─────────────────────────────────────────────────────
+    // Lazy-loads the IccProfLib WASM (via window.IccViewer in icc-viewer.js) on
+    // first invocation; afterwards reuses the cached module. The bytes captured
+    // when the slot was loaded live on _rawFileData[slot].buffer.
+    let _iccViewerState = null;   // { slot, bytes, data }
+
+    async function openIccViewer(slot) {
+      const raw = _rawFileData[slot];
+      if (!raw || !raw.isIcc || !raw.buffer) return;
+      const overlay  = document.getElementById('icc-viewer-overlay');
+      const loading  = document.getElementById('icc-viewer-loading');
+      const errBox   = document.getElementById('icc-viewer-error');
+      const hdrPanel = document.getElementById('icc-header-panel');
+      const tagPanel = document.getElementById('icc-tags-panel');
+
+      document.getElementById('icc-viewer-title').textContent = raw.fileName;
+      document.getElementById('icc-viewer-subtitle').textContent = '';
+      errBox.style.display = 'none';
+      hdrPanel.style.display = 'none';
+      tagPanel.style.display = 'none';
+      loading.style.display = '';
+      _setIccTab('header', /*skipRender*/ true);
+      overlay.style.display = '';
+
+      const bytes = new Uint8Array(raw.buffer);
+      try {
+        const data = await window.IccViewer.validateProfile(bytes);
+        _iccViewerState = { slot, bytes, data };
+        document.getElementById('icc-viewer-subtitle').textContent =
+          (data.sizeBytes != null ? data.sizeBytes.toLocaleString() + ' bytes' : '') +
+          (data.libraryVersion ? ' · IccProfLib ' + data.libraryVersion : '');
+        document.getElementById('icc-tab-count').textContent = (data.tags || []).length;
+        _renderIccHeader(data);
+        _renderIccTags(data.tags || []);
+        loading.style.display = 'none';
+        _setIccTab('header');
+      } catch (e) {
+        loading.style.display = 'none';
+        errBox.textContent = 'Could not parse ICC profile: ' + (e && e.message ? e.message : e);
+        errBox.style.display = '';
+      }
+    }
+
+    function closeIccViewer() {
+      document.getElementById('icc-viewer-overlay').style.display = 'none';
+    }
+
+    function _setIccTab(name, skipRender) {
+      document.querySelectorAll('#icc-viewer-overlay .icc-tab').forEach(b => {
+        b.classList.toggle('active', b.dataset.iccTab === name);
+      });
+      const showHeader = name === 'header';
+      const hdr = document.getElementById('icc-header-panel');
+      const tag = document.getElementById('icc-tags-panel');
+      if (skipRender) return;
+      hdr.style.display = showHeader ? '' : 'none';
+      tag.style.display = showHeader ? 'none' : '';
+    }
+
+    function _renderIccHeader(data) {
+      const wrap = document.getElementById('icc-header-panel');
+      const id   = data.profileId || '';
+      const idIsEmpty = !id || /^0+$/.test(id);
+      let html = '';
+      if (id && !idIsEmpty) {
+        html += '<div class="icc-profile-id"><span class="lbl">Profile ID</span><span class="val">' +
+                _escapeHtml(id) + '</span></div>';
+      }
+      html += '<table class="icc-header-table"><tbody>';
+      const entries = Object.entries(data.header || {});
+      for (const [k, v] of entries) {
+        const empty = (v == null || v === '');
+        html += '<tr><td class="key">' + _escapeHtml(k) + '</td>' +
+                '<td class="val' + (empty ? ' empty' : '') + '">' +
+                (empty ? '—' : _escapeHtml(String(v))) + '</td></tr>';
+      }
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    }
+
+    function _renderIccTags(tags) {
+      const wrap = document.getElementById('icc-tags-panel');
+      if (!tags.length) {
+        wrap.innerHTML = '<p style="color:#888;padding:14px;">No tags found.</p>';
+        return;
+      }
+      let html = '<div class="icc-tags-list">';
+      html += '<div class="icc-tags-head">' +
+              '<div class="num">#</div><div>Tag Name</div><div>ID</div>' +
+              '<div>Type</div><div class="off">Offset</div><div class="size">Size</div><div class="pad">Pad</div>' +
+              '</div>';
+      tags.forEach((t, i) => {
+        const padCls = t.pad < 0 ? 'err' : (t.pad > 3 ? 'warn' : '');
+        const typeLabel = t.isArrayType && t.type ? 'Array of ' + t.type : (t.type || '—');
+        html +=
+          '<div class="icc-tag-row" data-tag-index="' + i + '" onclick="_toggleIccTagDetail(' + i + ')" tabindex="0">' +
+          '<div class="num">' + (i + 1) + '</div>' +
+          '<div class="name"><span class="caret">▶</span> ' + _escapeHtml(t.name || '—') + '</div>' +
+          '<div class="id">' + _escapeHtml(t.id || '') + '</div>' +
+          '<div class="type">' + _escapeHtml(typeLabel) + '</div>' +
+          '<div class="off">' + (t.offset != null ? t.offset.toLocaleString() : '') + '</div>' +
+          '<div class="size">' + (t.size  != null ? t.size.toLocaleString()  : '') + '</div>' +
+          '<div class="pad ' + padCls + '">' + (t.pad != null ? t.pad : '') + '</div>' +
+          '<div class="meta">' +
+            '<span class="id-inline">' + _escapeHtml(t.id || '') + '</span>' +
+            ' · ' + (t.size != null ? t.size.toLocaleString() + 'B' : '?') +
+            ' · off ' + (t.offset != null ? t.offset.toLocaleString() : '?') +
+            ' · pad <span class="' + (padCls ? 'pad-' + padCls : '') + '">' + (t.pad != null ? t.pad : '?') + '</span>' +
+          '</div>' +
+          '</div>' +
+          '<div class="icc-tag-detail" id="icc-tag-detail-' + i + '" hidden></div>';
+      });
+      html += '</div>';
+      wrap.innerHTML = html;
+    }
+
+    async function _toggleIccTagDetail(i) {
+      const row    = document.querySelector('#icc-tags-panel .icc-tag-row[data-tag-index="' + i + '"]');
+      const detail = document.getElementById('icc-tag-detail-' + i);
+      if (!row || !detail) return;
+      const open = !detail.hidden;
+      // Collapse any other open row first
+      document.querySelectorAll('#icc-tags-panel .icc-tag-detail').forEach(el => { if (el !== detail) el.hidden = true; });
+      document.querySelectorAll('#icc-tags-panel .icc-tag-row.open').forEach(el => { if (el !== row) el.classList.remove('open'); });
+      if (open) {
+        detail.hidden = true;
+        row.classList.remove('open');
+        return;
+      }
+      detail.hidden = false;
+      row.classList.add('open');
+      const tag = _iccViewerState && _iccViewerState.data.tags[i];
+      if (!tag) { detail.innerHTML = '<div class="err">No tag data.</div>'; return; }
+      // Show verbosity-75 dump immediately, then upgrade to verbosity-100 lazily.
+      const initial = tag.description ? tag.description : '(No content)';
+      detail.innerHTML = '<pre>' + _escapeHtml(initial) + '</pre>' +
+                         '<div class="loading" id="icc-tag-detail-loading-' + i + '">Loading full description…</div>';
+      try {
+        const full = await window.IccViewer.describeTag(_iccViewerState.bytes, tag.id);
+        if (detail.hidden) return;  // user collapsed while we were fetching
+        detail.innerHTML = '<pre>' + _escapeHtml(full || '(No content)') + '</pre>';
+      } catch (e) {
+        const loadEl = document.getElementById('icc-tag-detail-loading-' + i);
+        if (loadEl) loadEl.outerHTML = '<div class="err">Could not load full description: ' + _escapeHtml(e.message || String(e)) + '</div>';
+      }
+    }
+
+    function _escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
     function updateFileViewerContent() {
@@ -7219,6 +7516,37 @@ or ICC profiles</span>
         style="flex:1;overflow:auto;margin:0;padding:14px 16px;
                font-size:12px;font-family:monospace;color:#333;
                white-space:pre;background:#f8f9fa;border-radius:0 0 10px 10px;"></pre>
+    </div>
+  </div>
+
+  <!-- ICC profile viewer (lazy — only used for slots holding an ICC profile) -->
+  <div id="icc-viewer-overlay" onclick="closeIccViewer()"
+    style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.4);">
+    <div id="icc-viewer-dialog" onclick="event.stopPropagation()"
+      style="position:absolute;top:5vh;left:50%;transform:translateX(-50%);
+             width:80vw;max-width:1100px;height:88vh;
+             background:#fff;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,0.3);
+             display:flex;flex-direction:column;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;
+                  padding:12px 16px;border-bottom:1px solid #ddd;flex-shrink:0;gap:12px;">
+        <div style="display:flex;flex-direction:column;min-width:0;flex:1;">
+          <span id="icc-viewer-title" style="font-size:14px;font-weight:bold;color:#333;word-break:break-all;"></span>
+          <span id="icc-viewer-subtitle" style="font-size:11px;color:#888;margin-top:2px;"></span>
+        </div>
+        <button onclick="closeIccViewer()" class="validate-btn" style="padding:4px 12px;flex-shrink:0;" data-i18n="close">✕ Close</button>
+      </div>
+      <div class="icc-tab-bar">
+        <button class="icc-tab active" data-icc-tab="header" onclick="_setIccTab('header')" data-i18n="icc_tab_header">Header</button>
+        <button class="icc-tab" data-icc-tab="tags" onclick="_setIccTab('tags')">
+          <span data-i18n="icc_tab_tags">Tags</span><span class="icc-tab-count" id="icc-tab-count">0</span>
+        </button>
+      </div>
+      <div id="icc-viewer-body">
+        <div id="icc-viewer-loading" style="display:none;color:#888;font-style:italic;padding:20px;text-align:center;" data-i18n="icc_loading">Loading ICC viewer…</div>
+        <div id="icc-viewer-error"   style="display:none;color:#b91c1c;padding:14px;border:1px solid #f4cccc;background:#fdf2f2;border-radius:6px;font-size:13px;"></div>
+        <div id="icc-header-panel"   style="display:none;"></div>
+        <div id="icc-tags-panel"     style="display:none;"></div>
+      </div>
     </div>
   </div>
 

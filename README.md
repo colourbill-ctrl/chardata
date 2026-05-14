@@ -35,6 +35,16 @@ compiled to WebAssembly:
 | `public/wasm/chardata-gamut.wasm` | WASM binary (committed build artifact) |
 | `public/gamut.js` | JS wrapper — loads WASM, exposes `window.Gamut` |
 
+A second, optional WASM module wraps **IccProfLib** (from [iccDEV](https://github.com/InternationalColorConsortium/iccDEV)) for ICC profile header + tag display. It is lazy-loaded only when the user clicks **Display File** on an ICC slot, so the cold load stays at the gamut module's ~500 KB:
+
+| File | Purpose |
+|---|---|
+| `icc-viewer-wasm/wrapper.cpp` | C++ source — `validateProfile` + `describeTag` embind exports |
+| `icc-viewer-wasm/CMakeLists.txt` | CMake build, compiles IccProfLib sources directly |
+| `public/wasm/icc-viewer.mjs` | Emscripten JS glue (committed) |
+| `public/wasm/icc-viewer.wasm` | WASM binary (committed) — ~730 KB, lazy |
+| `public/icc-viewer.js` | JS wrapper — `window.IccViewer.{validateProfile, describeTag}` |
+
 ---
 
 ## Building the WASM module
@@ -55,16 +65,13 @@ sudo apt install nlohmann-json3-dev
 **Build:**
 ```bash
 # From WSL, at the repo root:
-scripts/build-wasm.sh
+scripts/build-wasm.sh              # gamut module (lcms2)
+scripts/build-icc-viewer-wasm.sh   # ICC viewer module (IccProfLib from iccDEV)
 ```
 
-Artifacts are written to `public/wasm/`. Commit them alongside any
-C++ source changes — the Lightsail server has no build toolchain.
+The ICC viewer build expects iccDEV at `/home/colour/code/iccdev` (override with `ICCDEV_ROOT=...`). Artifacts are written to `public/wasm/`. Commit them alongside any C++ source changes — the Lightsail server has no build toolchain.
 
-**The pre-commit hook handles this automatically**: if any file under
-`gamut-wasm/` is staged, the hook runs `build-wasm.sh` via WSL and
-stages the rebuilt artifacts before the commit completes. A build
-failure aborts the commit.
+**The pre-commit hook handles this automatically**: if any file under `gamut-wasm/` or `icc-viewer-wasm/` is staged, the hook runs the matching build script via WSL and stages the rebuilt artifacts before the commit completes. A build failure aborts the commit.
 
 ---
 

@@ -11,8 +11,9 @@ node server.js
 
 Serves the app at `http://localhost:3001`. There is no JS build step at runtime — `server.js` is a static file server (Express + helmet) that only sets the `application/wasm` MIME type.
 
-Two things *do* get generated, but only at commit time via the pre-commit hook:
-- `public/wasm/chardata-gamut.{mjs,wasm}` from `gamut-wasm/gamut-wrapper.cpp`
+Three things *do* get generated, but only at commit time via the pre-commit hook:
+- `public/wasm/chardata-gamut.{mjs,wasm}` from `gamut-wasm/gamut-wrapper.cpp` (gamut math + ICC eval via lcms2)
+- `public/wasm/icc-viewer.{mjs,wasm}` from `icc-viewer-wasm/wrapper.cpp` (ICC profile header + tag display via IccProfLib)
 - `public/help.html` from `MANUAL.md`
 
 ## Architecture
@@ -47,6 +48,28 @@ Gamut math (polynomial model fitting, 3D mesh generation, 2D slice, ICC profile 
 lcms2 expects 0..100 inputs for ink colour spaces (CMYK, CMY, NCLR 5..15ch — anything `IsInkSpace` returns true for) and 0..1 for non-ink (RGB/Gray). The wrapper tracks this via `IccProfile::inputMax`; do not reintroduce a blanket `/100.0` scale.
 
 **Sampling caveat**: `BOUNDARY_STEPS`/`SLICE_FACE_STEPS` shrink fast with channel count because mesh vertices grow as `C(N,2) * 2^(N-2) * (steps+1)^2`. For N≥12, even the floor of `steps=2` is best-effort and may OOM in WASM. Don't bump those defaults without measuring.
+
+### ICC viewer WASM (lazy)
+
+A second, independent module wraps **IccProfLib** (from iccDEV at `/home/colour/code/iccdev`) for header + tag-directory display. It is **only loaded when the user clicks "Display File" on an ICC slot** — `chardata-gamut.wasm` keeps using lcms2 for transforms.
+
+- **Source**: `icc-viewer-wasm/wrapper.cpp` — lifted from `~/code/icctools/validator-wasm/wrapper.cpp` and kept in sync; same JSON shape so the icctools layout serves as a template
+- **Build**: `scripts/build-icc-viewer-wasm.sh` — separate from `build-wasm.sh`; compiles IccProfLib sources directly via Emscripten (bypasses iccDEV's top-level CMake so libxml2/tiff/png/jpeg `find_package` calls don't fire)
+- **Artifacts**: `public/wasm/icc-viewer.{mjs,wasm}` (~730 KB WASM + ~40 KB glue, both committed)
+- **JS wrapper**: `public/icc-viewer.js` — exposes `window.IccViewer.{validateProfile, describeTag}`; blob-URL dynamic import matches the `gamut.js` pattern
+
+#### JSON shape from `validateProfile(bytes)`
+```jsonc
+{ libraryVersion, profileId, sizeBytes, sizeBytesHex,
+  header: { Attributes, Cmm, "Creation Date", ..., Version, ... },
+  tags: [ { name, id, type, isArrayType, description, offset, size, pad } ],
+  validation: { level, status, messages[] } }
+```
+`description` is `CIccTag::Describe(verbosity=75)` so CLUT cells and curve points stay out of the bulk pass. The tag detail UI calls `describeTag(bytes, tagSig)` on row expand to fetch the verbosity-100 dump for one tag.
+
+#### UI
+
+`showFile()` in `index.html` branches on `_rawFileData[slot].isIcc` and calls `openIccViewer(slot)` for ICC files (versus the existing text overlay for CSV/CGATS). The viewer is a modal overlay (`#icc-viewer-overlay`) mirroring the existing `#file-viewer-overlay` styling — Arial / blue accent, no icctools crimson. Tabs: **Header** (2-column key/value table) and **Tags** (7-column grid: `# / Name / ID / Type / Offset / Size / Pad`; click a row to expand inline). At viewports ≤720 px the modal goes full-screen and the tag rows reflow into stacked cards — no horizontal scroll.
 
 ### Data flow
 
@@ -101,9 +124,10 @@ Drift audit: `node scripts/check-translations.js` compares each xlsx column 0 ag
 
 ### Pre-commit hook
 
-`hooks/pre-commit` does two jobs:
-1. If anything under `gamut-wasm/` is staged, rebuild the WASM module (via WSL when invoked from a Windows shell, directly when already inside WSL) and stage the artifacts.
-2. If `MANUAL.md` or `scripts/generate-help.js` is staged, regenerate `public/help.html` and stage it.
+`hooks/pre-commit` does three jobs:
+1. If anything under `gamut-wasm/` is staged, rebuild `chardata-gamut.{mjs,wasm}` (via WSL when invoked from a Windows shell, directly when already inside WSL) and stage the artifacts.
+2. If anything under `icc-viewer-wasm/` is staged, rebuild `icc-viewer.{mjs,wasm}` the same way and stage the artifacts.
+3. If `MANUAL.md` or `scripts/generate-help.js` is staged, regenerate `public/help.html` and stage it.
 
 After a fresh clone, activate it with:
 

@@ -14,7 +14,7 @@ if echo "$STAGED" | grep -qE '^gamut-wasm/'; then
     if [ -n "$WSL_DISTRO_NAME" ] || grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null; then
         scripts/build-wasm.sh
     else
-        wsl bash -c "cd /mnt/c/Users/colou/code/compwas && scripts/build-wasm.sh"
+        wsl bash -c "cd /mnt/c/Users/colou/code/chardata && scripts/build-wasm.sh"
     fi
     if [ $? -ne 0 ]; then
         echo ""
@@ -23,7 +23,24 @@ if echo "$STAGED" | grep -qE '^gamut-wasm/'; then
         exit 1
     fi
     git add public/wasm/chardata-gamut.mjs public/wasm/chardata-gamut.wasm
-    echo "WASM artifacts staged."
+    echo "gamut WASM artifacts staged."
+fi
+
+if echo "$STAGED" | grep -qE '^icc-viewer-wasm/'; then
+    echo "icc-viewer-wasm source changed — rebuilding ICC viewer WASM..."
+    if [ -n "$WSL_DISTRO_NAME" ] || grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null; then
+        scripts/build-icc-viewer-wasm.sh
+    else
+        wsl bash -c "cd /mnt/c/Users/colou/code/chardata && scripts/build-icc-viewer-wasm.sh"
+    fi
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "ERROR: icc-viewer WASM build failed — commit aborted."
+        echo "Fix the build error and try again."
+        exit 1
+    fi
+    git add public/wasm/icc-viewer.mjs public/wasm/icc-viewer.wasm
+    echo "icc-viewer WASM artifacts staged."
 fi
 
 HELP_SOURCE_CHANGED=false
