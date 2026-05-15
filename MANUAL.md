@@ -2,7 +2,7 @@
 
 CharData is a browser-based tool for loading, exploring, and comparing colour characterisation datasets — the kind produced by measuring a printed test chart (e.g. IT8, P2P, ECI2002) on a spectrophotometer.
 
-**CharData** is a browser-based tool for exploring and comparing colour characterisation datasets and ICC profiles. It runs entirely in your browser with no installation required, and works on both desktop and mobile.
+**CharData** is a browser-based tool for exploring and comparing colour characterisation datasets and ICC profiles. It runs entirely in your browser with no installation required — all data stays local to the browser, with no upload to any server — and works on both desktop and mobile.
 
 A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L\*a\*b\* colorimetry and, optionally, spectral reflectance. CharData accepts these files in **CGATS/IT8** and **CSV** formats. CharData also accepts **ICC profiles** (output, input, and display classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.
 

@@ -625,6 +625,9 @@
     body.dark .row-count { color: #666; }
     body.dark .file-type { color: #5a9ad4; }
     body.dark #panel-a-empty, body.dark #panel-b-empty { color: #666 !important; }
+    body.dark #panel-a-empty .local-only-note, body.dark #panel-b-empty .local-only-note { color: #d4b85a !important; }
+    body.dark #page-title h1 { color: #e0e0e0 !important; }
+    body.dark #page-title .page-title-sub { color: #888 !important; }
     body.dark #blade, body.dark #file-select-blade { background: #1e1f22; }
     body.dark #blade-content, body.dark #file-select-blade-content { color: #ccc; }
     body.dark #file-select-empty { color: #777; border-color: #3a3b40 !important; }
@@ -892,6 +895,10 @@ or ICC profiles</span>
 
   <!-- Main content -->
   <div id="main-content">
+  <div id="page-title" style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 0 14px 32px;">
+    <h1 style="font-size:24px;font-weight:600;color:#333;margin:0;line-height:1.1;">Chardata Viewer</h1>
+    <span class="page-title-sub" style="font-size:13px;color:#888;" data-i18n="app_subtitle">Free browser-resident online tool</span>
+  </div>
   <div id="seg-row" style="display:inline-flex;gap:6px;margin-left:32px;margin-bottom:24px;">
     <button id="seg-explore" onclick="setMode('explore')" class="seg-btn seg-btn-active" style="border-radius:6px 6px 6px 6px;" data-i18n="explore">Explore</button>
     <button id="seg-compare" onclick="setMode('compare')" class="seg-btn seg-btn-inactive" style="border-radius:6px 6px 6px 6px;" data-i18n="compare">Compare</button>
@@ -903,7 +910,7 @@ or ICC profiles</span>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button class="validate-btn" id="show-file-a" onclick="showFile('a')" disabled data-i18n="display_file">Display File</button>
       </div>
-      <div id="panel-a-empty" style="position:absolute;top:16px;right:16px;font-size:11px;color:#999;text-align:right;pointer-events:none;line-height:1.4;"><span data-i18n="drag_line1">Drag files here from</span><br><span data-i18n="drag_line2">File Select pane or file system</span></div>
+      <div id="panel-a-empty" style="position:absolute;top:16px;right:16px;font-size:11px;color:#999;text-align:right;pointer-events:none;line-height:1.4;"><span data-i18n="drag_line1">Drag files here from</span><br><span data-i18n="drag_line2">File Select pane or file system</span><div class="local-only-note" style="margin-top:10px;color:#c9a000;font-size:11px;line-height:1.4;"><span data-i18n="local_only_note">All data stays local to browser</span></div></div>
       <div class="file-info" id="info-a">
         <div class="file-name" id="name-a"></div>
         <div class="file-type" id="type-a"></div>
@@ -929,7 +936,7 @@ or ICC profiles</span>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <button class="validate-btn" id="show-file-b" onclick="showFile('b')" disabled data-i18n="display_file">Display File</button>
       </div>
-      <div id="panel-b-empty" style="position:absolute;top:16px;right:16px;font-size:11px;color:#999;text-align:right;pointer-events:none;line-height:1.4;"><span data-i18n="drag_line1">Drag files here from</span><br><span data-i18n="drag_line2">File Select pane or file system</span></div>
+      <div id="panel-b-empty" style="position:absolute;top:16px;right:16px;font-size:11px;color:#999;text-align:right;pointer-events:none;line-height:1.4;"><span data-i18n="drag_line1">Drag files here from</span><br><span data-i18n="drag_line2">File Select pane or file system</span><div class="local-only-note" style="margin-top:10px;color:#c9a000;font-size:11px;line-height:1.4;"><span data-i18n="local_only_note">All data stays local to browser</span></div></div>
       <div class="file-info" id="info-b">
         <div class="file-name" id="name-b"></div>
         <div class="file-type" id="type-b"></div>
@@ -1169,6 +1176,8 @@ or ICC profiles</span>
         explore:'Explore', compare:'Compare',
         display_file:'Display File',
         drag_line1:'Drag files here from', drag_line2:'File Select pane or file system',
+        local_only_note:'All data stays local to browser',
+        app_subtitle:'Free browser-resident online tool',
         plot_3d:'3D Plot', controls:'Controls',
         show_shell:'Show gamut shell', show_points:'Show data points',
         color_hue:'Color by hue angle', color_value:'Color by value',
@@ -1277,6 +1286,8 @@ or ICC profiles</span>
         explore:'Explorer', compare:'Comparer',
         display_file:'Afficher le fichier',
         drag_line1:'Faites glisser des fichiers depuis', drag_line2:'le panneau de sélection ou le système de fichiers',
+        local_only_note:'Toutes les données restent locales au navigateur',
+        app_subtitle:'Outil en ligne gratuit qui s’exécute dans votre navigateur',
         plot_3d:'Tracé 3D', controls:'Contrôles',
         show_shell:'Afficher la coquille gamut', show_points:'Afficher les points de données',
         color_hue:'Colorier par teinte', color_value:'Colorier par luminosité',
@@ -1380,6 +1391,8 @@ or ICC profiles</span>
         explore:'Erkunden', compare:'Vergleichen',
         display_file:'Datei anzeigen',
         drag_line1:'Dateien hier hinziehen aus', drag_line2:'Dateiauswahl oder Dateisystem',
+        local_only_note:'Alle Daten bleiben lokal im Browser',
+        app_subtitle:'Kostenloses Online-Tool, das im Browser läuft',
         plot_3d:'3D-Diagramm', controls:'Steuerung',
         show_shell:'Gamut-Hülle anzeigen', show_points:'Datenpunkte anzeigen',
         color_hue:'Nach Farbton einfärben', color_value:'Nach Helligkeit einfärben',
@@ -1483,6 +1496,8 @@ or ICC profiles</span>
         explore:'Esplora', compare:'Confronta',
         display_file:'Mostra file',
         drag_line1:'Trascina i file qui da', drag_line2:'selezione file o file system',
+        local_only_note:'Tutti i dati restano locali nel browser',
+        app_subtitle:'Strumento online gratuito che funziona nel browser',
         plot_3d:'Grafico 3D', controls:'Controlli',
         show_shell:'Mostra guscio gamut', show_points:'Mostra punti dati',
         color_hue:'Colora per angolo di tinta', color_value:'Colora per luminosità',
@@ -1586,6 +1601,8 @@ or ICC profiles</span>
         explore:'Explorar', compare:'Comparar',
         display_file:'Mostrar archivo',
         drag_line1:'Arrastre archivos aquí desde', drag_line2:'el panel de selección o el sistema de archivos',
+        local_only_note:'Todos los datos permanecen locales en el navegador',
+        app_subtitle:'Herramienta en línea gratuita que se ejecuta en el navegador',
         plot_3d:'Gráfico 3D', controls:'Controles',
         show_shell:'Mostrar capa del gama', show_points:'Mostrar puntos de datos',
         color_hue:'Colorear por ángulo de tono', color_value:'Colorear por brillo',
@@ -1689,6 +1706,8 @@ or ICC profiles</span>
         explore:'Explorar', compare:'Comparar',
         display_file:'Mostrar ficheiro',
         drag_line1:'Arraste ficheiros para aqui a partir', drag_line2:'do painel de seleção ou do sistema de ficheiros',
+        local_only_note:'Todos os dados permanecem locais no navegador',
+        app_subtitle:'Ferramenta online gratuita que corre no navegador',
         plot_3d:'Gráfico 3D', controls:'Controlos',
         show_shell:'Mostrar invólucro de gama', show_points:'Mostrar pontos de dados',
         color_hue:'Colorir por ângulo de matiz', color_value:'Colorir por luminosidade',
@@ -1792,6 +1811,8 @@ or ICC profiles</span>
         explore:'Explorar', compare:'Comparar',
         display_file:'Mostrar arquivo',
         drag_line1:'Arraste arquivos para cá a partir', drag_line2:'Caixa de diálogo de seleção ou do sistema de arquivos',
+        local_only_note:'Todos os dados permanecem locais no navegador',
+        app_subtitle:'Ferramenta online gratuita que roda no navegador',
         plot_3d:'Gráfico 3D', controls:'Controles',
         show_shell:'Mostrar superfície do gamut', show_points:'Mostrar pontos de dados',
         color_hue:'Colorir por ângulo de matiz', color_value:'Colorir por luminosidade',
@@ -1895,6 +1916,8 @@ or ICC profiles</span>
         explore:'探索', compare:'比较',
         display_file:'显示文件',
         drag_line1:'从以下位置拖入文件', drag_line2:'文件选择面板或文件系统',
+        local_only_note:'所有数据均保留在浏览器本地',
+        app_subtitle:'免费的在线工具，完全在浏览器中运行',
         plot_3d:'3D 图表', controls:'控件',
         show_shell:'显示色域外壳', show_points:'显示数据点',
         color_hue:'按色相角着色', color_value:'按亮度着色',
@@ -1998,6 +2021,8 @@ or ICC profiles</span>
         explore:'探索', compare:'比較',
         display_file:'顯示檔案',
         drag_line1:'從以下位置拖入檔案', drag_line2:'檔案選擇面板或檔案系統',
+        local_only_note:'所有資料均保留在瀏覽器本機',
+        app_subtitle:'免費線上工具，完全在瀏覽器中執行',
         plot_3d:'3D 圖表', controls:'控制項',
         show_shell:'顯示色域外殼', show_points:'顯示資料點',
         color_hue:'按色相角著色', color_value:'按亮度著色',
@@ -2101,6 +2126,8 @@ or ICC profiles</span>
         explore:'探索', compare:'比較',
         display_file:'ファイル表示',
         drag_line1:'ここにファイルをドラッグ', drag_line2:'ファイル選択またはファイルシステムから',
+        local_only_note:'すべてのデータはブラウザー内に保持されます',
+        app_subtitle:'ブラウザー上で動作する無料のオンラインツール',
         plot_3d:'3D プロット', controls:'コントロール',
         show_shell:'ガマットシェルを表示', show_points:'データポイントを表示',
         color_hue:'色相角で色付け', color_value:'明度で色付け',
@@ -2204,6 +2231,8 @@ or ICC profiles</span>
         explore:'탐색', compare:'비교',
         display_file:'파일 보기',
         drag_line1:'파일을 여기로 드래그하세요', drag_line2:'파일 선택 패널 또는 파일 시스템에서',
+        local_only_note:'모든 데이터는 브라우저 내에 보관됩니다',
+        app_subtitle:'브라우저에서 동작하는 무료 온라인 도구',
         plot_3d:'3D 플롯', controls:'컨트롤',
         show_shell:'색역 셸 표시', show_points:'데이터 포인트 표시',
         color_hue:'색상각으로 색상 지정', color_value:'명도로 색상 지정',
@@ -2307,6 +2336,8 @@ or ICC profiles</span>
         explore:'Utforska', compare:'Jämför',
         display_file:'Visa fil',
         drag_line1:'Dra filer hit från', drag_line2:'filval eller filsystem',
+        local_only_note:'All data stannar lokalt i webbläsaren',
+        app_subtitle:'Gratis onlineverktyg som körs i webbläsaren',
         plot_3d:'3D-diagram', controls:'Kontroller',
         show_shell:'Visa gamutskalet', show_points:'Visa datapunkter',
         color_hue:'Färga efter nyansvinkel', color_value:'Färga efter ljusstyrka',
