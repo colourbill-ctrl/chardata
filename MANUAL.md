@@ -122,7 +122,7 @@ Click a section header (▾) to collapse or expand that section; the state persi
 - **Drag and drop** files from your file system directly onto a Dataset panel or anywhere inside the File Select panel.
 - **Drag a card** from the File Select panel onto Dataset A or Dataset B to assign it.
 - **Click a card** to assign it to the next available slot (Explore mode → A; Compare mode → first empty of A / B).
-- Click **Display File** (after a file loads) to view its contents. For CSV / CGATS, this shows the raw text. For ICC profiles, it opens an in-page viewer with **Header** and **Tags** tabs, where each tag row expands inline to show its full type-specific description (loaded on demand).
+- Click **Display File** (after a file loads) to view its contents. For CSV / CGATS, this shows the raw text. For ICC profiles, it opens an in-page viewer with **Header** and **Tags** tabs, where each tag row expands inline to show its full type-specific description (loaded on demand). The ICC viewer also has a **Launch editor** button that opens the profile in [icctools](https://chardata.colourbill.com/profiletool/) in a new tab — useful for inspecting tag XML/JSON or making round-trip edits. The profile bytes are passed to icctools in-browser via `postMessage`, no upload involved.
 
 Once a file loads, the slot panel shows:
 
