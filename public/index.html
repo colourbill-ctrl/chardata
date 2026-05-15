@@ -2434,6 +2434,14 @@ or ICC profiles</span>
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
+    // Returns a localized string with {var} substitutions escaped.
+    // SECURITY: the template strings themselves (values in I18N[lang]) are
+    // treated as TRUSTED HTML — callers like `el.innerHTML = t('foo_html')`
+    // expect to use entities and basic tags. The xlsx translation pipeline
+    // is reviewer-controlled, so this is acceptable today. If translations
+    // ever open to untrusted contributors, callers using `innerHTML = t(...)`
+    // must be audited and either switched to textContent or strict allow-list
+    // sanitised.
     function t(key, vars = {}) {
       const dict = I18N[resolveLang()] || I18N.en;
       let s = dict[key] ?? I18N.en[key] ?? key;
@@ -3306,8 +3314,8 @@ or ICC profiles</span>
       if (isCGATS) {
         const cgats = validateCGATS(text);
         if (!cgats.ok) {
-          validEl.innerHTML = cgats.warnings.map(w => `<div class="cgats-warn">${w}</div>`).join('')
-                            + cgats.errors.map(e => `<div>${e}</div>`).join('');
+          validEl.innerHTML = cgats.warnings.map(w => `<div class="cgats-warn">${escapeHtml(w)}</div>`).join('')
+                            + cgats.errors.map(e => `<div>${escapeHtml(e)}</div>`).join('');
           validEl.className = 'validation invalid';
           state[slot] = null;
           document.getElementById('show-file-' + slot).disabled = false;
@@ -3318,7 +3326,7 @@ or ICC profiles</span>
           return;
         }
         if (cgats.warnings.length > 0) {
-          validEl.innerHTML = cgats.warnings.map(w => `<div class="cgats-warn">${w}</div>`).join('');
+          validEl.innerHTML = cgats.warnings.map(w => `<div class="cgats-warn">${escapeHtml(w)}</div>`).join('');
           validEl.className = 'validation';
         }
       }
@@ -3506,6 +3514,10 @@ or ICC profiles</span>
       if (!_iccViewerState || !_iccViewerState.bytes) return;
       const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
       const url = isLocal ? 'http://localhost:5173/?source=chardata' : '/profiletool/?source=chardata';
+      // Pin the targetOrigin so the bytes can only be delivered to the
+      // icctools origin we opened, even if the popup is later navigated
+      // somewhere else.
+      const targetOrigin = isLocal ? 'http://localhost:5173' : location.origin;
       const win = window.open(url, '_blank');
       if (!win) {
         alert('Popup blocked — allow popups for this site to launch the editor.');
@@ -3515,8 +3527,9 @@ or ICC profiles</span>
       const bytes = _iccViewerState.bytes;
       function onMsg(ev) {
         if (ev.source !== win) return;
+        if (ev.origin !== targetOrigin) return;
         if (!ev.data || ev.data.type !== 'icctools:ready') return;
-        win.postMessage({ type: 'icctools:load', filename, bytes }, '*');
+        win.postMessage({ type: 'icctools:load', filename, bytes }, targetOrigin);
       }
       window.addEventListener('message', onMsg);
       setTimeout(() => window.removeEventListener('message', onMsg), 15000);
