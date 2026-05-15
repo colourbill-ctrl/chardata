@@ -71,6 +71,8 @@ A second, independent module wraps **IccProfLib** (from iccDEV at `/home/colour/
 
 `showFile()` in `index.html` branches on `_rawFileData[slot].isIcc` and calls `openIccViewer(slot)` for ICC files (versus the existing text overlay for CSV/CGATS). The viewer is a modal overlay (`#icc-viewer-overlay`) mirroring the existing `#file-viewer-overlay` styling — Arial / blue accent, no icctools crimson. Tabs: **Header** (2-column key/value table) and **Tags** (7-column grid: `# / Name / ID / Type / Offset / Size / Pad`; click a row to expand inline). At viewports ≤720 px the modal goes full-screen and the tag rows reflow into stacked cards — no horizontal scroll.
 
+The viewer title row also carries a **Launch editor** button that hands the profile bytes off to icctools in a new tab. `launchIccEditor()` opens `http://localhost:5173/?source=chardata` (dev) or `/profiletool/?source=chardata` (prod), waits for `{type:'icctools:ready'}` from `window.opener` via `postMessage`, and replies with `{type:'icctools:load', filename, bytes}`. One-way — chardata never accepts edits back; the user saves from icctools directly. Same-origin in prod (icctools is served at chardata.colourbill.com/profiletool/); cross-origin in dev but `postMessage` is unaffected.
+
 ### Data flow
 
 A "slot" is `'a'` or `'b'`. Each slot can hold either characterisation data (CSV/CGATS) or an ICC profile, and there are two parallel state objects:

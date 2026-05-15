@@ -22,7 +22,14 @@ app.use(helmet({
       frameAncestors:  ["'none'"],
     },
   },
-  crossOriginEmbedderPolicy: false // WASM blob-URL loading requires relaxed COEP
+  crossOriginEmbedderPolicy: false, // WASM blob-URL loading requires relaxed COEP
+  // helmet's default COOP is 'same-origin', which nulls out window.opener for
+  // cross-origin popups — that breaks the chardata → icctools launch hand-off
+  // in local dev (chardata:3001 opens icctools:5173). 'same-origin-allow-popups'
+  // keeps the main page cross-origin-isolated but preserves the opener handle
+  // for windows this page opens. Production is same-origin (/profiletool/
+  // subpath) so this is a no-op there.
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
 }));
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
