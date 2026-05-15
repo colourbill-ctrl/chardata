@@ -71,7 +71,9 @@ A second, independent module wraps **IccProfLib** (from iccDEV at `/home/colour/
 
 `showFile()` in `index.html` branches on `_rawFileData[slot].isIcc` and calls `openIccViewer(slot)` for ICC files (versus the existing text overlay for CSV/CGATS). The viewer is a modal overlay (`#icc-viewer-overlay`) mirroring the existing `#file-viewer-overlay` styling — Arial / blue accent, no icctools crimson. Tabs: **Header** (2-column key/value table) and **Tags** (7-column grid: `# / Name / ID / Type / Offset / Size / Pad`; click a row to expand inline). At viewports ≤720 px the modal goes full-screen and the tag rows reflow into stacked cards — no horizontal scroll.
 
-The viewer title row also carries a **Launch editor** button that hands the profile bytes off to icctools in a new tab. `launchIccEditor()` opens `http://localhost:5173/?source=chardata` (dev) or `/profiletool/?source=chardata` (prod), waits for `{type:'icctools:ready'}` from `window.opener` via `postMessage`, and replies with `{type:'icctools:load', filename, bytes}`. One-way — chardata never accepts edits back; the user saves from icctools directly. Same-origin in prod (icctools is served at chardata.colourbill.com/profiletool/); cross-origin in dev but `postMessage` is unaffected.
+The viewer title row also carries a **Launch editor** button that hands the profile bytes off to icctools in a new tab. `launchIccEditor()` opens `http://localhost:5173/?source=chardata` (dev) or `/profiletool/?source=chardata` (prod), waits for `{type:'icctools:ready'}` from `window.opener` via `postMessage`, and replies with `{type:'icctools:load', filename, bytes}`. The reply pins `targetOrigin` to the concrete icctools origin (`http://localhost:5173` in dev, `location.origin` in prod) — never `'*'` — so profile bytes can only reach the intended target even if the popup is navigated cross-origin before the handshake completes. The incoming `ready` is also `ev.origin`-checked against that same target. One-way — chardata never accepts edits back; the user saves from icctools directly. Same-origin in prod (icctools is served at chardata.colourbill.com/profiletool/); cross-origin in dev but `postMessage` is unaffected.
+
+For the dev-mode cross-origin popup to retain its `window.opener`, the helmet config in `server.js` sets `crossOriginOpenerPolicy: 'same-origin-allow-popups'` instead of helmet's default `same-origin`. See the inline comment in `server.js` — don't tighten this back without a same-origin alternative for dev.
 
 ### Data flow
 
@@ -112,7 +114,13 @@ Required columns: `CYAN`, `MAGENTA`, `YELLOW`, `BLACK`, `LAB_L`, `LAB_A`, `LAB_B
 
 Strings live in an `I18N` dictionary inside `index.html` with 11 supported languages plus EN fallback (`I18N[lang][key] ?? I18N.en[key] ?? key`). The canonical source is `translations/Eng-*.xlsx` — when adding strings, update both the dictionary and the spreadsheets so the next translation pass stays in sync. The `xlsx` npm package is the usual tool for batch-updating the spreadsheets from a script.
 
+**Translation strings are trusted HTML.** `t(key)` returns dictionary values verbatim and callers like `el.innerHTML = t('foo')` rely on no escaping happening. Don't ever route user-derived text through the I18N dictionary or through `t()` — there's a doc comment near the `t()` definition flagging this for future maintainers.
+
 Drift audit: `node scripts/check-translations.js` compares each xlsx column 0 against the EN values in the I18N dict and reports missing/extra rows. The `_BP`, `_BP2`, and `-BM` xlsx files are external-reviewer artifacts whose content has already been incorporated — ignore them when auditing.
+
+### `innerHTML` hygiene
+
+`index.html` interpolates a lot of values into `innerHTML` strings (table cells, legends, attribute values, inline handler arguments). The convention is: **anything user-derived — file names, CSV/CGATS column headers, ICC ink names, validation messages — must go through `escapeHtml()` before being interpolated**, even in attribute or `onclick`-handler-argument contexts. Numeric formatting (`fmtLab`, `fmtCH`, `toFixed`) is safe because it can only emit numbers or the `'—'` placeholder. The Estimate and Explore tables use index-keyed IDs and handler args (`onEstimateInput(idx, val)`) specifically so colorant names never reach an HTML attribute. Treat these as load-bearing patterns — `SECURITY-FOLLOWUPS.md` documents the specific XSS sinks that were closed via this convention.
 
 ### Server
 
@@ -145,7 +153,7 @@ Pushes to `main` auto-deploy to AWS Lightsail via `.github/workflows/deploy.yml`
 
 ### Deferred hardening
 
-`SECURITY-FOLLOWUPS.md` (repo root) tracks deferred items from the 1.4.0 security review — a remaining `escapeHtml` sweep at known line numbers, the still-disabled CSP in `server.js`, and a missing max-file-size guard. Read it before claiming a security pass is complete.
+`SECURITY-FOLLOWUPS.md` (repo root) is the rolling security log. The 1.4.0 and 1.6.0 findings (CSP enable, `escapeHtml` sweep, max-file-size guard, Estimate/Explore XSS sinks, `npm ci` supply-chain pin) are all resolved and recorded there. Still deferred: tracking the vendored **lcms2** submodule for upstream CVE bumps, and adding a CSP `report-uri` / `report-to` endpoint so production violations are observable. Read the file before claiming a fresh security pass is complete.
 
 ### Dependencies
 
