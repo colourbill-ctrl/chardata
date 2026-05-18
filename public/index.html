@@ -7,6 +7,7 @@
   <title>CharData</title>
   <script src="gamut.js"></script>
   <script src="icc-viewer.js"></script>
+  <script src="lib/utif.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-V301BZ7TXD"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -959,6 +960,42 @@ or ICC profiles</span>
   </div>
 
   <div id="result"></div>
+
+  <!-- Image gamut tab (Compare mode only; visible once Datasets A and B are loaded) -->
+  <div id="image-section" style="margin-top:24px;display:none;">
+    <div onclick="toggleImageSection()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+      <span data-i18n="image_tab">Image</span><span id="image-arrow">&#9660;</span>
+    </div>
+    <div id="image-wrap" style="border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:14px 16px;font-size:13px;color:#444;">
+      <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;">
+        <div>
+          <div style="font-size:11px;color:#666;margin-bottom:3px;" data-i18n="bind_to_dataset">Bind image to dataset</div>
+          <select id="image-bind-slot" style="font-size:13px;padding:3px 6px;min-width:160px;" onchange="onImageBindSlotChange()">
+            <option value="a">Dataset A</option>
+            <option value="b">Dataset B</option>
+          </select>
+        </div>
+        <div>
+          <button id="image-load-btn" onclick="document.getElementById('image-file-input').click()"
+                  style="padding:6px 12px;font-size:13px;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;cursor:pointer;color:#333;" data-i18n="load_image_btn">Load Image</button>
+          <input type="file" id="image-file-input" accept="image/png,image/jpeg,image/tiff,.tif,.tiff" style="display:none;" onchange="onImageFileSelected(this.files && this.files[0])">
+        </div>
+        <div>
+          <button id="image-remove-btn" onclick="removeImage()" style="display:none;padding:6px 10px;font-size:12px;background:#fff;border:1px solid #ccc;border-radius:6px;cursor:pointer;color:#666;" data-i18n="remove_image">Remove image</button>
+        </div>
+      </div>
+      <div id="image-info" style="display:none;margin-top:14px;padding:10px;background:#fafbfc;border:1px solid #eee;border-radius:6px;display:flex;gap:14px;align-items:flex-start;">
+        <img id="image-thumb" alt="" style="display:block;max-width:96px;max-height:96px;border:1px solid #ddd;background:#fff;">
+        <div style="flex:1;min-width:0;">
+          <div id="image-name" style="font-weight:bold;color:#333;word-break:break-all;"></div>
+          <div id="image-cspace" style="font-size:12px;color:#555;margin-top:3px;"></div>
+          <div id="image-pts" style="font-size:11px;color:#888;margin-top:3px;"></div>
+          <div id="image-status" style="font-size:12px;margin-top:6px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="plot-section" style="margin-top:24px;display:none;">
     <div onclick="togglePlot()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;display:flex;justify-content:space-between;align-items:center;user-select:none;">
       <span id="plot-tab-label" data-i18n="plot_3d">3D Plot</span><span id="plot-arrow">▼</span>
@@ -1264,6 +1301,14 @@ or ICC profiles</span>
         about:'About CharData', kofi_support:'Support on Ko-fi', kofi_btn_label:'Buy me a coffee',
         reflectance:'Reflectance',
         kofi_msg:'CharData is free for the color community. If it helps you, a small Ko-fi donation helps keep it running.',
+        image_tab:'Image', load_image_btn:'Load Image',
+        bind_to_dataset:'Bind image to dataset', remove_image:'Remove image',
+        image_colorspace:'Image color space: {cs} {src}',
+        image_bound_to:'Bound to {name} — {n} points',
+        image_lab_note:'Lab image — {n} points',
+        image_mismatch_msg:'Cannot bind: image is {img} but Dataset {slot} is {family}.',
+        image_format_unsupported:'Unsupported image format. Use PNG, JPEG, or TIFF.',
+        image_too_large:'“{name}” is too large ({mb} MB). Maximum image size is {max} MB.',
       },
       fr: {
         settings:'Paramètres', de_method:'Méthode ΔE', filter_dups:'Filtrer les doublons',
@@ -1369,6 +1414,14 @@ or ICC profiles</span>
         about:'À propos de CharData', kofi_support:'Soutenir sur Ko-fi', kofi_btn_label:'Offrez-moi un café',
         reflectance:'Réflectance',
         kofi_msg:'CharData est gratuit pour la communauté couleur. Si cela vous aide, un don Ko-fi aide à maintenir le service.',
+        image_tab:'Image', load_image_btn:'Charger l’image',
+        bind_to_dataset:'Lier l’image au jeu de données', remove_image:'Retirer l’image',
+        image_colorspace:'Espace colorimétrique de l’image : {cs} {src}',
+        image_bound_to:'Lié à {name} — {n} points',
+        image_lab_note:'Image Lab — {n} points',
+        image_mismatch_msg:'Liaison impossible : l’image est {img} mais le Dataset {slot} est {family}.',
+        image_format_unsupported:'Format d’image non pris en charge. Utilisez PNG, JPEG ou TIFF.',
+        image_too_large:'« {name} » est trop volumineuse ({mb} Mo). Taille maximale : {max} Mo.',
       },
       de: {
         settings:'Einstellungen', de_method:'ΔE-Methode', filter_dups:'Duplikate filtern',
@@ -1474,6 +1527,14 @@ or ICC profiles</span>
         about:'Über CharData', kofi_support:'Ko-fi unterstützen', kofi_btn_label:'Kauf mir einen Kaffee',
         reflectance:'Reflexionsgrad',
         kofi_msg:'CharData ist für die Farbgemeinschaft kostenlos. Eine kleine Ko-fi-Spende hilft, den Dienst am Laufen zu halten.',
+        image_tab:'Bild', load_image_btn:'Bild laden',
+        bind_to_dataset:'Bild mit Datensatz verknüpfen', remove_image:'Bild entfernen',
+        image_colorspace:'Bildfarbraum: {cs} {src}',
+        image_bound_to:'Verknüpft mit {name} — {n} Punkte',
+        image_lab_note:'Lab-Bild — {n} Punkte',
+        image_mismatch_msg:'Verknüpfung nicht möglich: Bild ist {img}, aber Datensatz {slot} ist {family}.',
+        image_format_unsupported:'Bildformat nicht unterstützt. Bitte PNG, JPEG oder TIFF verwenden.',
+        image_too_large:'„{name}“ ist zu groß ({mb} MB). Maximale Bildgröße: {max} MB.',
       },
       it: {
         settings:'Impostazioni', de_method:'Metodo ΔE', filter_dups:'Filtra duplicati',
@@ -1579,6 +1640,14 @@ or ICC profiles</span>
         about:'Informazioni su CharData', kofi_support:'Sostieni su Ko-fi', kofi_btn_label:'Offrimi un caffè',
         reflectance:'Riflettanza',
         kofi_msg:'CharData è gratuito per la comunità del colore. Un piccolo contributo Ko-fi aiuta a mantenerlo attivo.',
+        image_tab:'Immagine', load_image_btn:'Carica immagine',
+        bind_to_dataset:'Associa l’immagine al dataset', remove_image:'Rimuovi immagine',
+        image_colorspace:'Spazio colore immagine: {cs} {src}',
+        image_bound_to:'Associato a {name} — {n} punti',
+        image_lab_note:'Immagine Lab — {n} punti',
+        image_mismatch_msg:'Associazione impossibile: l’immagine è {img} ma il Dataset {slot} è {family}.',
+        image_format_unsupported:'Formato immagine non supportato. Usa PNG, JPEG o TIFF.',
+        image_too_large:'“{name}” è troppo grande ({mb} MB). Dimensione massima: {max} MB.',
       },
       es: {
         settings:'Configuración', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -1684,6 +1753,14 @@ or ICC profiles</span>
         about:'Acerca de CharData', kofi_support:'Apoyar en Ko-fi', kofi_btn_label:'Invítame a un café',
         reflectance:'Reflectancia',
         kofi_msg:'CharData es gratuito para la comunidad del color. Una pequeña donación en Ko-fi ayuda a mantenerlo.',
+        image_tab:'Imagen', load_image_btn:'Cargar imagen',
+        bind_to_dataset:'Vincular imagen al conjunto de datos', remove_image:'Quitar imagen',
+        image_colorspace:'Espacio de color de la imagen: {cs} {src}',
+        image_bound_to:'Vinculada a {name} — {n} puntos',
+        image_lab_note:'Imagen Lab — {n} puntos',
+        image_mismatch_msg:'No se puede vincular: la imagen es {img} pero el Dataset {slot} es {family}.',
+        image_format_unsupported:'Formato de imagen no compatible. Use PNG, JPEG o TIFF.',
+        image_too_large:'«{name}» es demasiado grande ({mb} MB). Tamaño máximo: {max} MB.',
       },
       'pt-PT': {
         settings:'Definições', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -1789,6 +1866,14 @@ or ICC profiles</span>
         about:'Sobre CharData', kofi_support:'Suporte no Ko-fi', kofi_btn_label:'Pague-me um café',
         reflectance:'Reflectância',
         kofi_msg:'CharData é gratuito para a comunidade de cor. Uma pequena doação ao Ko-fi ajuda a manter o serviço.',
+        image_tab:'Imagem', load_image_btn:'Carregar imagem',
+        bind_to_dataset:'Associar imagem ao conjunto de dados', remove_image:'Remover imagem',
+        image_colorspace:'Espaço de cor da imagem: {cs} {src}',
+        image_bound_to:'Associada a {name} — {n} pontos',
+        image_lab_note:'Imagem Lab — {n} pontos',
+        image_mismatch_msg:'Não é possível associar: imagem é {img} mas o Dataset {slot} é {family}.',
+        image_format_unsupported:'Formato de imagem não suportado. Use PNG, JPEG ou TIFF.',
+        image_too_large:'“{name}” é demasiado grande ({mb} MB). Tamanho máximo: {max} MB.',
       },
       'pt-BR': {
         settings:'Configurações', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -1894,6 +1979,14 @@ or ICC profiles</span>
         about:'Sobre o CharData', kofi_support:'Suporte no Ko-fi', kofi_btn_label:'Pague-me um café',
         reflectance:'Refletância',
         kofi_msg:'CharData é gratuito para a comunidade de cor. Uma pequena doação ao Ko-fi ajuda a manter o serviço.',
+        image_tab:'Imagem', load_image_btn:'Carregar imagem',
+        bind_to_dataset:'Vincular imagem ao conjunto de dados', remove_image:'Remover imagem',
+        image_colorspace:'Espaço de cor da imagem: {cs} {src}',
+        image_bound_to:'Vinculada a {name} — {n} pontos',
+        image_lab_note:'Imagem Lab — {n} pontos',
+        image_mismatch_msg:'Não é possível vincular: imagem é {img} mas o Dataset {slot} é {family}.',
+        image_format_unsupported:'Formato de imagem não suportado. Use PNG, JPEG ou TIFF.',
+        image_too_large:'“{name}” é grande demais ({mb} MB). Tamanho máximo: {max} MB.',
       },
       'zh-CN': {
         settings:'设置', de_method:'ΔE 方法', filter_dups:'过滤重复项',
@@ -1999,6 +2092,14 @@ or ICC profiles</span>
         about:'关于 CharData', kofi_support:'对Ko-fi的支持', kofi_btn_label:'请我喝咖啡',
         reflectance:'反射率',
         kofi_msg:'CharData 免费向色彩行业社群开放使用。若本工具对你有所帮助，欢迎小额赞助支持我们持续运营。',
+        image_tab:'图像', load_image_btn:'加载图像',
+        bind_to_dataset:'将图像绑定到数据集', remove_image:'移除图像',
+        image_colorspace:'图像色彩空间：{cs} {src}',
+        image_bound_to:'已绑定 {name} — {n} 个点',
+        image_lab_note:'Lab 图像 — {n} 个点',
+        image_mismatch_msg:'无法绑定：图像为 {img}，但数据集 {slot} 为 {family}。',
+        image_format_unsupported:'不支持的图像格式。请使用 PNG、JPEG 或 TIFF。',
+        image_too_large:'“{name}”太大（{mb} MB）。最大图像大小为 {max} MB。',
       },
       'zh-TW': {
         settings:'設定', de_method:'ΔE 方法', filter_dups:'過濾重複項',
@@ -2104,6 +2205,14 @@ or ICC profiles</span>
         about:'關於 CharData', kofi_support:'對Ko-fi的支持', kofi_btn_label:'請我喝咖啡',
         reflectance:'反射率',
         kofi_msg:'CharData 免費向色彩行業社群開放使用。若本工具對你有所幫助，歡迎小額贊助支持我們持續運營。',
+        image_tab:'影像', load_image_btn:'載入影像',
+        bind_to_dataset:'將影像綁定到資料集', remove_image:'移除影像',
+        image_colorspace:'影像色彩空間：{cs} {src}',
+        image_bound_to:'已綁定 {name} — {n} 個點',
+        image_lab_note:'Lab 影像 — {n} 個點',
+        image_mismatch_msg:'無法綁定：影像為 {img}，但資料集 {slot} 為 {family}。',
+        image_format_unsupported:'不支援的影像格式。請使用 PNG、JPEG 或 TIFF。',
+        image_too_large:'「{name}」太大（{mb} MB）。最大影像大小為 {max} MB。',
       },
       ja: {
         settings:'設定', de_method:'ΔE 方法', filter_dups:'重複フィルター',
@@ -2209,6 +2318,14 @@ or ICC profiles</span>
         about:'CharData について', kofi_support:'Ko-fi でサポート', kofi_btn_label:'コーヒーをおごってください',
         reflectance:'反射率',
         kofi_msg:'CharData はカラーコミュニティのために無料で提供されています。役立つ場合、Ko-fi での少額の寄付が継続に役立ちます。',
+        image_tab:'画像', load_image_btn:'画像を読み込む',
+        bind_to_dataset:'画像をデータセットに関連付ける', remove_image:'画像を削除',
+        image_colorspace:'画像の色空間：{cs} {src}',
+        image_bound_to:'{name} に関連付け済み — {n} 点',
+        image_lab_note:'Lab 画像 — {n} 点',
+        image_mismatch_msg:'関連付けできません：画像は {img} ですが、データセット {slot} は {family} です。',
+        image_format_unsupported:'対応していない画像形式です。PNG、JPEG、または TIFF を使用してください。',
+        image_too_large:'「{name}」が大きすぎます（{mb} MB）。最大画像サイズは {max} MB です。',
       },
       ko: {
         settings:'설정', de_method:'ΔE 방법', filter_dups:'중복 필터',
@@ -2314,6 +2431,14 @@ or ICC profiles</span>
         about:'CharData 정보', kofi_support:'Ko-fi에서 지원', kofi_btn_label:'커피 한 잔 사주세요',
         reflectance:'반사율',
         kofi_msg:'CharData는 색채 커뮤니티를 위해 무료로 제공됩니다. 도움이 되셨다면 Ko-fi 소액 후원이 운영에 도움이 됩니다.',
+        image_tab:'이미지', load_image_btn:'이미지 불러오기',
+        bind_to_dataset:'이미지를 데이터셋에 연결', remove_image:'이미지 제거',
+        image_colorspace:'이미지 색 공간: {cs} {src}',
+        image_bound_to:'{name}에 연결됨 — {n}개 포인트',
+        image_lab_note:'Lab 이미지 — {n}개 포인트',
+        image_mismatch_msg:'연결할 수 없습니다: 이미지는 {img}이지만 데이터셋 {slot}은 {family}입니다.',
+        image_format_unsupported:'지원되지 않는 이미지 형식입니다. PNG, JPEG 또는 TIFF를 사용하세요.',
+        image_too_large:'“{name}”이(가) 너무 큽니다 ({mb} MB). 최대 이미지 크기는 {max} MB입니다.',
       },
       sv: {
         settings:'Inställningar', de_method:'ΔE-metod', filter_dups:'Filtrera dubbletter',
@@ -2424,6 +2549,14 @@ or ICC profiles</span>
         about:'Om CharData', kofi_support:'Stöd på Ko-fi', kofi_btn_label:'Bjud mig på en kaffe',
         reflectance:'Reflektans',
         kofi_msg:'CharData är gratis för färggemenskapen. Om det hjälper dig bidrar en liten Ko-fi-donation till att hålla det igång.',
+        image_tab:'Bild', load_image_btn:'Läs in bild',
+        bind_to_dataset:'Koppla bild till dataset', remove_image:'Ta bort bild',
+        image_colorspace:'Bildens färgrymd: {cs} {src}',
+        image_bound_to:'Kopplad till {name} — {n} punkter',
+        image_lab_note:'Lab-bild — {n} punkter',
+        image_mismatch_msg:'Kan inte koppla: bilden är {img} men dataset {slot} är {family}.',
+        image_format_unsupported:'Bildformatet stöds inte. Använd PNG, JPEG eller TIFF.',
+        image_too_large:'”{name}” är för stor ({mb} MB). Maximal bildstorlek: {max} MB.',
       },
     };
 
@@ -2651,6 +2784,8 @@ or ICC profiles</span>
     let _plotHandlerAttached = false;
     let _plotLegendHandler = null;
     let _plotVisible = [];       // per-trace visibility for scatter traces, preserved across re-renders
+    let _plotSlots   = [];       // per-trace slot key ('a','b','img'), set during renderPlot
+    let _plotColors  = [];       // per-trace dot color, set during renderPlot
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
     let _nSpecs = 0;             // number of datasets; shell traces at 0.._nSpecs-1, scatter at _nSpecs..2*_nSpecs-1
     const _sliceState = { axis: 'L', value: 50, thickness: 1, falloff: 'soft', showPoints: false };
@@ -2659,13 +2794,27 @@ or ICC profiles</span>
       a: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
       b: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null, panelOpen: false,
-           lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } }
+           lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
+      // Image-derived gamut (Compare mode only). Reuses cachedXYZ for the point cloud; no shell/model.
+      // `lighting` and `meshDensity` are inert for img (the shell trace is always invisible) but the
+      // shared shell-trace builder reads them unconditionally — keep the shape parallel to a/b.
+      img: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null,
+             lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } }
     };
+    _sliceVisible.img = true;
     // ICC profile state — parallel to _gamutState, one entry per slot.
     const _iccState = {
       a: { handleId: null, info: null, renderingIntent: 3, patchLabValues: null },
       b: { handleId: null, info: null, renderingIntent: 3, patchLabValues: null }
     };
+    // Image-gamut state. Persists across mode toggles; section visibility gated in applyMode().
+    let _imageState = null;
+    // Shape when populated:
+    //   { name, fileBytes, sourceFormat ('png'|'jpeg'|'tiff'),
+    //     colorSpace ('Gray'|'RGB'|'CMYK'|'NCLR-N'|'Lab'),
+    //     spaceSource ('icc'|'channels'|'tiff-photometric'),
+    //     channels, colorantNames, devicePixels (Float32Array N*K, 0..100 ink / 0..1 non-ink / Lab passthrough),
+    //     thumbDataUrl, boundSlot ('a'|'b'|null), labPoints ({L,a,b}|null), status }
 
     // ── IT8.7/5-compatible CMYK patch set ─────────────────────────────────────
     // Used as the canonical evaluation set for ICC profile comparison and
@@ -2795,6 +2944,7 @@ or ICC profiles</span>
       document.querySelector('#panel-a h2').textContent = t('dataset_slot', {slot:'A'});
       document.getElementById('result').innerHTML = '';
       document.getElementById('plot-section').style.display = 'none';
+      refreshImageSectionVisibility();
 
       renderFileList();
       updateCompareBtn();
@@ -3698,6 +3848,7 @@ or ICC profiles</span>
 
     function updateCompareBtn() {
       if (_mode === 'compare' && state.a && state.b) runCompare();
+      refreshImageSectionVisibility();
     }
 
     function _sniffIcc(buffer) {
@@ -6278,15 +6429,14 @@ or ICC profiles</span>
     function recolorPlot() {
       const plotEl = document.getElementById('plot');
       if (!plotEl || _nSpecs === 0) return;
-      const slotColors = ['#4a90e2', '#e24a4a'];
-      const slots = ['a', 'b'];
       // Collect all updates first, then apply in two batched Plotly calls
       const scatterIdx = [], scatterColors = [];
       const shellIdx = [], shellVCs = [];
       for (let i = 0; i < _nSpecs; i++) {
-        const slot = slots[i];
-        const defColor = slotColors[i];
+        const slot = _plotSlots[i] || (i === 0 ? 'a' : 'b');
+        const defColor = _plotColors[i] || (i === 0 ? '#4a90e2' : '#e24a4a');
         const gs = _gamutState[slot];
+        if (!gs) continue;
         const useHue = gs.hueOn, useVal = gs.valueOn;
         if (gs.cachedScatter) {
           const { ax, bx, lx } = gs.cachedScatter;
@@ -6339,8 +6489,8 @@ or ICC profiles</span>
       // Build trace + record which original row index each plotted point came from
       const buildTrace = (data, slot, name, defaultColor, useHue, useVal) => {
         const xs = [], ys = [], zs = [], colors = [], rowMap = [];
-        if (data.dataType === 'icc') {
-          // ICC: use pre-evaluated IT8.7/5 Lab values from cachedXYZ
+        if (slot === 'img' || data.dataType === 'icc') {
+          // ICC or image: use pre-evaluated Lab values from cachedXYZ
           const xyz = _gamutState[slot].cachedXYZ;
           if (xyz) {
             for (let i = 0; i < xyz.x.length; i++) {
@@ -6375,8 +6525,14 @@ or ICC profiles</span>
       // Build traces, preserving per-trace visibility across re-renders
       const traceSpecs = [{ data: a, name: a.name, color: '#4a90e2', slot: 'a' }];
       if (_mode === 'compare' && b) traceSpecs.push({ data: b, name: b.name, color: '#e24a4a', slot: 'b' });
+      if (_mode === 'compare' && _gamutState.img && _gamutState.img.cachedXYZ && _gamutState.img.cachedXYZ.x.length) {
+        const imgName = (typeof _imageState === 'object' && _imageState && _imageState.name) ? _imageState.name : 'Image';
+        traceSpecs.push({ data: { dataType: 'image' }, name: imgName, color: IMAGE_TRACE_COLOR, slot: 'img' });
+      }
       _nSpecs = traceSpecs.length;
       if (_plotVisible.length !== _nSpecs) _plotVisible = Array(_nSpecs).fill(true);
+      _plotSlots  = traceSpecs.map(s => s.slot);
+      _plotColors = traceSpecs.map(s => s.color);
 
       _plotRowMap = [];
       const scatterTraces = traceSpecs.map((spec, i) => {
@@ -6537,18 +6693,21 @@ or ICC profiles</span>
         </div>`;
       };
 
-      // Build legend item HTML (with gear button + gamut panel)
+      // Build legend item HTML (with gear button + gamut panel).
+      // The image-derived trace omits the gear button and gamut panel — its trace is
+      // points-only and has no shell/mesh/lighting controls to configure.
       const legendItemHTML = (spec, i, toggleable) => {
         const on = _plotVisible[i];
+        const isImg = spec.slot === 'img';
         return `<div style="display:flex;flex-direction:column;gap:3px;">
           <div class="legend-item legend-item-row" style="${on ? '' : 'opacity:0.45;'}">
-            <button class="legend-gear-btn" data-i18n-title="dataset_settings" title="Dataset Settings" onclick="event.stopPropagation();toggleGamutPanel('${spec.slot}')">&#9881;&#xFE0E;</button>
+            ${isImg ? '' : `<button class="legend-gear-btn" data-i18n-title="dataset_settings" title="Dataset Settings" onclick="event.stopPropagation();toggleGamutPanel('${spec.slot}')">&#9881;&#xFE0E;</button>`}
             <div class="legend-item-left" ${toggleable ? `onclick="togglePlotTrace(${i})" title="${t('click_toggle')}"` : ''}>
               <span class="legend-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${on ? spec.color : '#aaa'};flex-shrink:0;"></span>
               <span class="legend-name" style="${on ? 'color:#333;' : 'color:#999;text-decoration:line-through;'}">${escapeHtml(spec.name)}</span>
             </div>
           </div>
-          ${gamutPanelHTML(spec)}
+          ${isImg ? '' : gamutPanelHTML(spec)}
         </div>`;
       };
 
@@ -6600,13 +6759,16 @@ or ICC profiles</span>
               if (curveNum < _nSpecs) return; // clicked shell trace, not scatter
               const ptNum = pt.pointNumber;
               const scatterCurve = curveNum - _nSpecs;
+              // Image scatter has no row-backed spectral data — ignore clicks.
+              if (_plotSlots[scatterCurve] === 'img') return;
               const rowMap = _plotRowMap[scatterCurve];
               if (!rowMap) return;
               const rowIdx = rowMap[ptNum];
               if (rowIdx === undefined) return;
-              const slot = scatterCurve === 0 ? state.a : state.b;
+              const slotKey = _plotSlots[scatterCurve] || (scatterCurve === 0 ? 'a' : 'b');
+              const slot = state[slotKey];
               if (!slot) return;
-              const color = scatterCurve === 0 ? '#4a90e2' : '#e24a4a';
+              const color = _plotColors[scatterCurve] || (scatterCurve === 0 ? '#4a90e2' : '#e24a4a');
               const spec = extractSpectral(slot.headers, slot.rows[rowIdx]);
               _suppressDismiss = true;
               const cx = (pt.event && pt.event.clientX != null) ? pt.event.clientX : window.innerWidth  / 2;
@@ -6633,11 +6795,11 @@ or ICC profiles</span>
       } : {};
       // Update scatter trace
       Plotly.update(plotEl, { visible: [on] }, layout, [_nSpecs + i]);
-      // Also hide/show shell trace if it exists
+      // Also hide/show shell trace if it exists. Image slot has no shell.
       const shellIdx = i;
-      const slotKey = i === 0 ? 'a' : 'b';
+      const slotKey = _plotSlots[i];
       const gs = _gamutState[slotKey];
-      if (gs.cachedXYZ) {
+      if (gs && gs.cachedXYZ && slotKey !== 'img') {
         if (on) {
           Plotly.update(plotEl, { visible: [true], opacity: [gs.shellOn ? gs.alpha / 100 : 0] }, {}, [shellIdx]);
         } else {
@@ -6646,11 +6808,10 @@ or ICC profiles</span>
       }
       // Refresh custom legend appearance
       const items = document.querySelectorAll('#plot-custom-legend .legend-item');
-      const colors = ['#4a90e2', '#e24a4a'];
       if (items[i]) {
         items[i].style.opacity = on ? '' : '0.45';
         const dot = items[i].querySelector('.legend-dot');
-        if (dot) dot.style.background = on ? colors[i] : '#aaa';
+        if (dot) dot.style.background = on ? (_plotColors[i] || '#4a90e2') : '#aaa';
         const name = items[i].querySelector('.legend-name');
         if (name) { name.style.color = on ? '#333' : '#999'; name.style.textDecoration = on ? '' : 'line-through'; }
       }
@@ -7380,6 +7541,10 @@ or ICC profiles</span>
       const allSpecs = [];
       if (_gamutState.a.cachedXYZ) allSpecs.push({ slot: 'a', color: '#4a90e2', name: a ? a.name : 'Dataset A' });
       if (_mode === 'compare' && _gamutState.b.cachedXYZ) allSpecs.push({ slot: 'b', color: '#e24a4a', name: b ? b.name : 'Dataset B' });
+      if (_mode === 'compare' && _gamutState.img && _gamutState.img.cachedXYZ && _gamutState.img.cachedXYZ.x.length) {
+        const imgName = (typeof _imageState === 'object' && _imageState && _imageState.name) ? _imageState.name : 'Image';
+        allSpecs.push({ slot: 'img', color: IMAGE_TRACE_COLOR, name: imgName });
+      }
 
       if (sectionEl) sectionEl.style.display = (state.a || state.b) ? '' : 'none';
 
@@ -7559,6 +7724,743 @@ or ICC profiles</span>
         if (_mode === 'explore' && state.a) renderExplore();
       }
     });
+
+    // ────────────────────────────────────────────────────────────────────────────
+    // Image gamut (1.7.0)
+    // ────────────────────────────────────────────────────────────────────────────
+    // Decodes PNG / JPEG / TIFF, extracts the device colorant space, bins the
+    // pixels down to ~2000 representative points, dedupes near-duplicates in
+    // device space, then converts to Lab via either the slot's ICC A2B3 transform
+    // or the slot's fitted polynomial model. The resulting Lab cloud is rendered
+    // as a third trace in the 3D plot and 2D slicer (Compare mode only).
+
+    const IMAGE_MAX_FILE_BYTES = 100 * 1024 * 1024;   // 100 MB hard cap
+    const IMAGE_TARGET_CELLS   = 2025;                // ≤45×45 bins
+    const IMAGE_DEDUPE_RADIUS  = 1.0;                 // device-units; ink=0..100, scaled per family
+    const IMAGE_TRACE_COLOR    = '#3a9a3a';           // green — distinct from A (blue) / B (red)
+
+    function toggleImageSection() {
+      const wrap = document.getElementById('image-wrap');
+      const arrow = document.getElementById('image-arrow');
+      if (!wrap) return;
+      const hidden = wrap.style.display === 'none';
+      wrap.style.display = hidden ? '' : 'none';
+      arrow.textContent = hidden ? '▼' : '▶';
+    }
+
+    function refreshImageSectionVisibility() {
+      const sec = document.getElementById('image-section');
+      if (!sec) return;
+      const show = _mode === 'compare' && state.a && state.b;
+      sec.style.display = show ? '' : 'none';
+      if (show) repopulateImageBindDropdown();
+      // If image is loaded but mode left Compare, drop its trace from the plot.
+      if (!show && _gamutState.img && _gamutState.img.cachedXYZ) {
+        // Keep _imageState (so user can resume) but hide the trace.
+        if (typeof renderPlot === 'function' && state.a) renderPlot();
+        if (typeof renderSlicePlot === 'function') renderSlicePlot();
+      }
+    }
+
+    function repopulateImageBindDropdown() {
+      const sel = document.getElementById('image-bind-slot');
+      if (!sel) return;
+      const prev = sel.value;
+      const aName = (state.a && state.a.name) || 'Dataset A';
+      const bName = (state.b && state.b.name) || 'Dataset B';
+      sel.innerHTML = '';
+      const optA = document.createElement('option');
+      optA.value = 'a'; optA.textContent = aName;
+      const optB = document.createElement('option');
+      optB.value = 'b'; optB.textContent = bName;
+      sel.appendChild(optA); sel.appendChild(optB);
+      if (prev === 'a' || prev === 'b') sel.value = prev;
+      // Ghost when Lab image is loaded (binding not applicable).
+      sel.disabled = !!(_imageState && _imageState.colorSpace === 'Lab');
+    }
+
+    // ── Slot family / colorant-canonicalisation helpers ────────────────────────
+    // Returns a coarse family tag and channel count for a slot.
+    function slotFamily(slot) {
+      const s = state[slot];
+      if (!s) return null;
+      // ICC: prefer the wrapper's reported colorSpace ('CMYK', 'RGB', 'GRAY', '5CLR'..'FCLR').
+      if (s.dataType === 'icc') {
+        const ic = _iccState[slot] && _iccState[slot].info;
+        const cs = ic && ic.colorSpace ? String(ic.colorSpace).toUpperCase() : '';
+        const k = (s.colorants || []).length;
+        if (cs === 'CMYK') return { family: 'CMYK', channels: 4 };
+        if (cs === 'RGB')  return { family: 'RGB',  channels: 3 };
+        if (cs === 'GRAY') return { family: 'Gray', channels: 1 };
+        if (cs === 'CMY')  return { family: 'CMY',  channels: 3 };
+        return { family: 'NCLR-' + k, channels: k };
+      }
+      // Char data: classify by colorant set.
+      const cols = (s.colorants || []).map(c => c.toUpperCase());
+      const k = cols.length;
+      if (k === 1) return { family: 'Gray', channels: 1 };
+      if (k === 3) return { family: 'RGB',  channels: 3 };  // includes RED/GREEN/BLUE or RGB_R/G/B
+      if (k === 4 && cols.includes('CYAN') && cols.includes('MAGENTA') && cols.includes('YELLOW') && cols.includes('BLACK'))
+        return { family: 'CMYK', channels: 4 };
+      return { family: 'NCLR-' + k, channels: k };
+    }
+
+    // Channel-family canonicalisation for an image-derived space.
+    function imageFamilyFromChannels(channels, iccSig) {
+      // iccSig: 4-char colorspace signature from embedded ICC header, if any.
+      // Recognised: 'GRAY','RGB ','CMYK','CMY ','2CLR'..'FCLR'.
+      if (iccSig) {
+        const sig = iccSig.toUpperCase();
+        if (sig === 'GRAY') return 'Gray';
+        if (sig === 'RGB')  return 'RGB';
+        if (sig === 'CMYK') return 'CMYK';
+        if (sig === 'CMY')  return 'CMY';
+        const m = /^(\d|[A-F])CLR$/.exec(sig);
+        if (m) {
+          const n = m[1] === 'A' ? 10 : m[1] === 'B' ? 11 : m[1] === 'C' ? 12 :
+                    m[1] === 'D' ? 13 : m[1] === 'E' ? 14 : m[1] === 'F' ? 15 : parseInt(m[1], 10);
+          return 'NCLR-' + n;
+        }
+      }
+      // Fall back to channel-count inference.
+      if (channels === 1) return 'Gray';
+      if (channels === 3) return 'RGB';
+      if (channels === 4) return 'CMYK';
+      return 'NCLR-' + channels;
+    }
+
+    function familyChannelCount(family) {
+      if (family === 'Gray') return 1;
+      if (family === 'RGB' || family === 'CMY') return 3;
+      if (family === 'CMYK') return 4;
+      const m = /^NCLR-(\d+)$/.exec(family);
+      return m ? parseInt(m[1], 10) : 0;
+    }
+
+    function familyIsInkSpace(family) {
+      // Match the lcms2/IsInkSpace convention: CMYK + CMY + NCLR ≥ 5 channels are ink.
+      // Gray and RGB are non-ink. Lab is its own thing.
+      if (family === 'CMYK' || family === 'CMY') return true;
+      const m = /^NCLR-(\d+)$/.exec(family);
+      if (m) return parseInt(m[1], 10) >= 5;
+      return false;
+    }
+
+    // ── Image format sniffing + embedded ICC extraction ────────────────────────
+    function sniffImage(bytes) {
+      const u = bytes;
+      if (u.length < 8) throw new Error('image_too_small');
+      // PNG signature: 89 50 4E 47 0D 0A 1A 0A
+      if (u[0] === 0x89 && u[1] === 0x50 && u[2] === 0x4E && u[3] === 0x47) {
+        return sniffPng(u);
+      }
+      // JPEG signature: FF D8 FF
+      if (u[0] === 0xFF && u[1] === 0xD8 && u[2] === 0xFF) {
+        return sniffJpeg(u);
+      }
+      // TIFF signature: II 2A 00 (little-endian) or MM 00 2A (big-endian)
+      if ((u[0] === 0x49 && u[1] === 0x49 && u[2] === 0x2A && u[3] === 0x00) ||
+          (u[0] === 0x4D && u[1] === 0x4D && u[2] === 0x00 && u[3] === 0x2A)) {
+        return sniffTiff(u);
+      }
+      throw new Error('image_format_unsupported');
+    }
+
+    function sniffPng(u) {
+      // IHDR is the first chunk after the 8-byte signature.
+      // Bytes 16..23 = width, height (big-endian uint32). Byte 25 = ColorType.
+      //   ColorType: 0=Grayscale (1ch), 2=RGB (3ch), 3=Indexed (1ch→palette to RGB),
+      //              4=GrayA (2ch), 6=RGBA (4ch).
+      const colorType = u[25];
+      let channels;
+      if (colorType === 0 || colorType === 3) channels = 1;       // gray / indexed (treat as gray; will rehydrate via Canvas → RGB if indexed)
+      else if (colorType === 4) channels = 1;                     // gray + alpha → 1ch after alpha drop
+      else if (colorType === 2) channels = 3;                     // RGB
+      else if (colorType === 6) channels = 3;                     // RGBA → 3ch
+      else throw new Error('image_format_unsupported');
+
+      // Walk chunks looking for iCCP.
+      let iccBytes = null;
+      let off = 8;
+      while (off + 8 <= u.length) {
+        const len = (u[off] << 24) | (u[off+1] << 16) | (u[off+2] << 8) | u[off+3];
+        const type = String.fromCharCode(u[off+4], u[off+5], u[off+6], u[off+7]);
+        if (type === 'IDAT' || type === 'IEND') break;
+        if (type === 'iCCP') {
+          // Profile name (null-terminated) + compression method (1 byte, must be 0=zlib) + compressed profile.
+          let p = off + 8;
+          while (p < off + 8 + len && u[p] !== 0) p++;
+          p += 2; // skip null + compression-method byte
+          const compressed = u.subarray(p, off + 8 + len);
+          iccBytes = inflateDeflate(compressed);
+        }
+        off += 8 + len + 4; // length + type + data + crc
+      }
+      const iccSig = iccBytes ? iccColorSpaceSig(iccBytes) : null;
+      return { format: 'png', channels, iccBytes, iccSig };
+    }
+
+    function sniffJpeg(u) {
+      // Walk markers. Concatenate APP2 ICC_PROFILE segments by sequence number.
+      let i = 2; // skip SOI
+      let channels = 3;
+      const iccParts = []; // [{seq, total, bytes}]
+      while (i < u.length) {
+        if (u[i] !== 0xFF) break;
+        const marker = u[i+1];
+        if (marker === 0xD9 || marker === 0xDA) break;          // EOI / SOS — stop scanning headers
+        if (marker >= 0xD0 && marker <= 0xD7) { i += 2; continue; } // RSTn, no length
+        const len = (u[i+2] << 8) | u[i+3];
+        // SOF0..SOF15 except DHT(C4), JPG(C8), DAC(CC) — read NumberOfComponents
+        if ((marker >= 0xC0 && marker <= 0xCF) && marker !== 0xC4 && marker !== 0xC8 && marker !== 0xCC) {
+          channels = u[i + 4 + 5];
+        }
+        if (marker === 0xE2 && len > 16) {
+          // APP2 — check for "ICC_PROFILE\0" header
+          const hdr = String.fromCharCode(u[i+4], u[i+5], u[i+6], u[i+7], u[i+8], u[i+9], u[i+10], u[i+11], u[i+12], u[i+13], u[i+14]);
+          if (hdr === 'ICC_PROFILE' && u[i+15] === 0) {
+            const seq   = u[i+16];
+            const total = u[i+17];
+            const data  = u.subarray(i + 18, i + 2 + len);
+            iccParts.push({ seq, total, bytes: data });
+          }
+        }
+        i += 2 + len;
+      }
+      let iccBytes = null;
+      if (iccParts.length) {
+        iccParts.sort((a, b) => a.seq - b.seq);
+        const totalLen = iccParts.reduce((s, p) => s + p.bytes.length, 0);
+        iccBytes = new Uint8Array(totalLen);
+        let p = 0;
+        for (const part of iccParts) { iccBytes.set(part.bytes, p); p += part.bytes.length; }
+      }
+      const iccSig = iccBytes ? iccColorSpaceSig(iccBytes) : null;
+      return { format: 'jpeg', channels, iccBytes, iccSig };
+    }
+
+    function sniffTiff(u) {
+      // Decode metadata via UTIF.
+      if (typeof UTIF === 'undefined') throw new Error('image_tiff_lib_missing');
+      const ifds = UTIF.decode(u.buffer.slice(u.byteOffset, u.byteOffset + u.byteLength));
+      if (!ifds || !ifds.length) throw new Error('image_format_unsupported');
+      const ifd = ifds[0];
+      const samplesPerPixel = (ifd.t277 && ifd.t277[0]) || 1;
+      const photometric     = (ifd.t262 && ifd.t262[0]);   // 0/1=Gray, 2=RGB, 5=CMYK, 8=CIELAB, 9=ICCLab
+      const iccBytes        = ifd.t34675 ? new Uint8Array(ifd.t34675) : null;
+      let iccSig = iccBytes ? iccColorSpaceSig(iccBytes) : null;
+      let channels = samplesPerPixel;
+      let labFlag = false;
+      if (photometric === 8 || photometric === 9) {
+        // Lab TIFF — channels are L*, a*, b* (+ optional alpha)
+        channels = 3;
+        labFlag = true;
+      } else if (photometric === 0 || photometric === 1) {
+        channels = 1;
+      } else if (photometric === 2) {
+        channels = 3;
+      } else if (photometric === 5) {
+        channels = 4;
+      } else if (samplesPerPixel >= 5) {
+        // NCLR / Separation — channel count from samplesPerPixel.
+        // ExtraSamples may indicate alpha; we'd subtract those, but most prepress NCLR TIFFs encode all colorants as primary samples.
+        channels = samplesPerPixel;
+      }
+      return { format: 'tiff', channels, iccBytes, iccSig, photometric, labFlag, ifd };
+    }
+
+    // Read the 4-byte ICC ColorSpace signature at offset 16. Returns e.g. 'RGB ', 'CMYK', 'GRAY', '5CLR'.
+    function iccColorSpaceSig(iccBytes) {
+      if (iccBytes.length < 20) return null;
+      return String.fromCharCode(iccBytes[16], iccBytes[17], iccBytes[18], iccBytes[19]);
+    }
+
+    // Inflate a zlib-wrapped deflate stream (used for PNG iCCP).
+    function inflateDeflate(compressed) {
+      // PNG iCCP uses zlib (DEFLATE wrapped in 2-byte zlib header + 4-byte Adler32 tail).
+      // Modern browsers expose DecompressionStream('deflate') which accepts zlib.
+      // We need a sync result here but DecompressionStream is async — return null and let the caller
+      // request decompression asynchronously. For now we'll inline a tiny zlib inflater.
+      try {
+        // Try the synchronous fallback first via pako if it ever ships; otherwise return null.
+        if (typeof pako !== 'undefined' && pako.inflate) return pako.inflate(compressed);
+      } catch (_) { /* fall through */ }
+      // No sync inflater available — return null so we treat the profile as "no embedded ICC".
+      // (Channel-count inference still gives us a usable family.)
+      return null;
+    }
+
+    // ── Decode pipeline ────────────────────────────────────────────────────────
+    async function decodeImage(file, sniff, fileBytes) {
+      // Returns { rawPixels: Float32Array (channel-interleaved, scaled per family),
+      //           width, height, channels, family, sourceBpc }
+      if (sniff.format === 'tiff') {
+        return decodeTiff(fileBytes, sniff);
+      }
+      // PNG or JPEG → use HTMLImageElement + Canvas. CMYK JPEG isn't supported by Canvas — error out.
+      if (sniff.format === 'jpeg' && sniff.channels === 4) {
+        throw new Error('image_cmyk_jpeg_unsupported');
+      }
+      return decodePngOrJpegViaCanvas(file, sniff);
+    }
+
+    function decodePngOrJpegViaCanvas(file, sniff) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const w = img.naturalWidth, h = img.naturalHeight;
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const id = ctx.getImageData(0, 0, w, h);
+            URL.revokeObjectURL(url);
+            // ImageData is always RGBA 8-bit. Strip alpha and reduce to channels.
+            const channels = sniff.channels;
+            const rawPixels = new Float32Array(w * h * channels);
+            const src = id.data;
+            if (channels === 1) {
+              for (let i = 0, j = 0; i < src.length; i += 4, j++) {
+                // Standard luma weights (sRGB-ish) — for true Gray PNGs the R/G/B bytes are all equal anyway.
+                rawPixels[j] = (0.2126 * src[i] + 0.7152 * src[i+1] + 0.0722 * src[i+2]) / 255.0;
+              }
+            } else if (channels === 3) {
+              for (let i = 0, j = 0; i < src.length; i += 4, j += 3) {
+                rawPixels[j]   = src[i]   / 255.0;
+                rawPixels[j+1] = src[i+1] / 255.0;
+                rawPixels[j+2] = src[i+2] / 255.0;
+              }
+            }
+            resolve({ rawPixels, width: w, height: h, channels, sourceBpc: 8, isLab: false });
+          } catch (e) { URL.revokeObjectURL(url); reject(e); }
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image_decode_failed')); };
+        img.src = url;
+      });
+    }
+
+    function decodeTiff(fileBytes, sniff) {
+      // UTIF gives us a Uint8 RGBA buffer via UTIF.toRGBA8 for most photometrics,
+      // but we want device-space values, not sRGB-converted RGBA. So we read the raw
+      // strips ourselves via UTIF.decodeImage and reinterpret per channel layout.
+      const ifd = sniff.ifd;
+      UTIF.decodeImage(fileBytes.buffer.slice(fileBytes.byteOffset, fileBytes.byteOffset + fileBytes.byteLength), ifd);
+      const w = ifd.width, h = ifd.height;
+      const bpc = (ifd.t258 && ifd.t258[0]) || 8;     // BitsPerSample
+      const samplesPerPixel = (ifd.t277 && ifd.t277[0]) || 1;
+      const sampleFormat = (ifd.t339 && ifd.t339[0]) || 1; // 1=uint, 2=int, 3=float
+      const channels = sniff.channels;
+      const raw = ifd.data;   // Uint8Array of interleaved channels at native bpc
+
+      // Decode into Float32 normalized 0..1 (or Lab passthrough for labFlag).
+      const N = w * h;
+      const rawPixels = new Float32Array(N * channels);
+      const readSample = makeTiffSampleReader(raw, bpc, sampleFormat);
+      const stride = samplesPerPixel; // we discard alpha / extra samples beyond `channels`
+
+      if (sniff.labFlag) {
+        // PhotometricInterpretation 8 (CIELAB): L=0..255 → 0..100, a/b signed 8-bit (-128..127).
+        // PhotometricInterpretation 9 (ICCLab): L=0..255 → 0..100, a/b unsigned with offset 128.
+        const labOffset = sniff.photometric === 9 ? 128 : 0;
+        const signedAB  = sniff.photometric === 8;
+        for (let i = 0, j = 0; i < N; i++, j += stride) {
+          const lRaw = readSample(j);
+          const aRaw = readSample(j + 1);
+          const bRaw = readSample(j + 2);
+          if (bpc === 8) {
+            rawPixels[i*3]   = (lRaw / 255.0) * 100.0;
+            rawPixels[i*3+1] = signedAB ? (aRaw < 128 ? aRaw : aRaw - 256) : (aRaw - labOffset);
+            rawPixels[i*3+2] = signedAB ? (bRaw < 128 ? bRaw : bRaw - 256) : (bRaw - labOffset);
+          } else {
+            // 16-bit Lab — L 0..65535 → 0..100; a/b signed 16-bit.
+            rawPixels[i*3]   = (lRaw / 65535.0) * 100.0;
+            rawPixels[i*3+1] = (aRaw < 32768 ? aRaw : aRaw - 65536) / 256.0;
+            rawPixels[i*3+2] = (bRaw < 32768 ? bRaw : bRaw - 65536) / 256.0;
+          }
+        }
+        return { rawPixels, width: w, height: h, channels: 3, sourceBpc: bpc, isLab: true };
+      }
+
+      const maxVal = bpc === 16 ? 65535 : 255;
+      for (let i = 0; i < N; i++) {
+        const base = i * stride;
+        const outBase = i * channels;
+        for (let c = 0; c < channels; c++) {
+          rawPixels[outBase + c] = readSample(base + c) / maxVal;
+        }
+      }
+      return { rawPixels, width: w, height: h, channels, sourceBpc: bpc, isLab: false };
+    }
+
+    function makeTiffSampleReader(raw, bpc, sampleFormat) {
+      if (bpc === 8)  return (i) => raw[i];
+      if (bpc === 16) {
+        // UTIF returns 16-bit as little-endian Uint8Array; pair bytes.
+        return (i) => raw[i*2] | (raw[i*2 + 1] << 8);
+      }
+      // Fallback: treat as 8-bit.
+      return (i) => raw[i];
+    }
+
+    // ── Bin + dedupe ───────────────────────────────────────────────────────────
+    function binImage(decoded) {
+      const { rawPixels, width: w, height: h, channels, isLab } = decoded;
+      // Target a roughly square output grid with up to IMAGE_TARGET_CELLS cells.
+      const side = Math.ceil(Math.sqrt(IMAGE_TARGET_CELLS));
+      let outW, outH;
+      if (w >= h) { outW = Math.min(side, w); outH = Math.max(1, Math.round(outW * h / w)); }
+      else        { outH = Math.min(side, h); outW = Math.max(1, Math.round(outH * w / h)); }
+
+      const binned = new Float32Array(outW * outH * channels);
+      const counts = new Uint32Array(outW * outH);
+      for (let y = 0; y < h; y++) {
+        const by = Math.min(outH - 1, Math.floor(y * outH / h));
+        for (let x = 0; x < w; x++) {
+          const bx = Math.min(outW - 1, Math.floor(x * outW / w));
+          const bIdx = by * outW + bx;
+          const srcIdx = (y * w + x) * channels;
+          const dstIdx = bIdx * channels;
+          for (let c = 0; c < channels; c++) binned[dstIdx + c] += rawPixels[srcIdx + c];
+          counts[bIdx]++;
+        }
+      }
+      for (let i = 0; i < counts.length; i++) {
+        if (counts[i] === 0) continue;
+        const dst = i * channels;
+        for (let c = 0; c < channels; c++) binned[dst + c] /= counts[i];
+      }
+      return { pixels: binned, count: outW * outH, channels, width: outW, height: outH, isLab };
+    }
+
+    function dedupeRadial(binned, family) {
+      // Naive O(N²) dedupe — fine for N ≤ ~2025.
+      const { pixels, count, channels, isLab } = binned;
+      // Radius is in device-units appropriate for the family:
+      //   Ink (0..100):  IMAGE_DEDUPE_RADIUS = 1.0
+      //   Non-ink (0..1): scale to 0..1 space → radius * 0.01
+      //   Lab:           1.0 ΔE in raw Lab units
+      const radius = isLab
+        ? IMAGE_DEDUPE_RADIUS
+        : familyIsInkSpace(family) ? IMAGE_DEDUPE_RADIUS / 100.0 : IMAGE_DEDUPE_RADIUS / 100.0;
+      const r2 = radius * radius;
+      const kept = [];   // Array of Float32Array snapshots
+      for (let i = 0; i < count; i++) {
+        const off = i * channels;
+        let isDup = false;
+        for (let j = 0; j < kept.length; j++) {
+          let s = 0;
+          for (let c = 0; c < channels; c++) {
+            const d = pixels[off + c] - kept[j][c];
+            s += d * d;
+            if (s > r2) break;
+          }
+          if (s <= r2) { isDup = true; break; }
+        }
+        if (!isDup) kept.push(pixels.slice(off, off + channels));
+      }
+      // Flatten back to a single Float32Array.
+      const out = new Float32Array(kept.length * channels);
+      for (let i = 0; i < kept.length; i++) out.set(kept[i], i * channels);
+      return { pixels: out, count: kept.length, channels };
+    }
+
+    // ── Conversion to Lab ──────────────────────────────────────────────────────
+    function convertImageToLab(deduped, family, slot) {
+      // Returns { L:[], a:[], b:[] } for the plot.
+      const { pixels, count, channels } = deduped;
+      const out = { L: new Array(count), a: new Array(count), b: new Array(count) };
+      if (_imageState.isLab) {
+        for (let i = 0; i < count; i++) {
+          out.L[i] = pixels[i*3];
+          out.a[i] = pixels[i*3 + 1];
+          out.b[i] = pixels[i*3 + 2];
+        }
+        return out;
+      }
+      const isIcc = _slotIsIcc(slot);
+      if (isIcc) {
+        // ICC: build patches in 0..100 (JS API convention — WASM wrapper rescales internally).
+        const ic = _iccState[slot];
+        const slotColorants = ic.info.colorants || [];
+        const patches = new Array(count);
+        // Image device pixels are in normalized form: ink families come in 0..1 (since decode produced 0..1 universally),
+        // non-ink (Gray/RGB) also 0..1. Multiply by 100 to hand to evalIccBatchSync.
+        for (let i = 0; i < count; i++) {
+          const base = i * channels;
+          const arr = new Array(channels);
+          for (let c = 0; c < channels; c++) arr[c] = pixels[base + c] * 100.0;
+          patches[i] = arr;
+        }
+        const labs = Gamut.evalIccBatchSync(ic.handleId, patches, 3);   // RI=3 (Absolute Colorimetric) per spec
+        for (let i = 0; i < count; i++) {
+          out.L[i] = labs[i] ? labs[i].L : NaN;
+          out.a[i] = labs[i] ? labs[i].a : NaN;
+          out.b[i] = labs[i] ? labs[i].b : NaN;
+        }
+        return out;
+      }
+      // Char data: use the slot's fitted polynomial model.
+      const model = _gamutState[slot].cachedModel;
+      if (!model) throw new Error('image_slot_model_missing');
+      // Scale image 0..1 values into the model's native input range per axis.
+      // model.mins[i] / model.ranges[i] give the training-data extent of input axis i.
+      const mins = model.mins || [];
+      const ranges = model.ranges || [];
+      const vals = new Array(channels);
+      for (let i = 0; i < count; i++) {
+        const base = i * channels;
+        for (let c = 0; c < channels; c++) vals[c] = (mins[c] || 0) + (ranges[c] || 100) * pixels[base + c];
+        const lab = evalPolynomialModel(model, vals);
+        out.L[i] = lab.L; out.a[i] = lab.a; out.b[i] = lab.b;
+      }
+      return out;
+    }
+
+    // ── File-input handler ─────────────────────────────────────────────────────
+    async function onImageFileSelected(file) {
+      if (!file) return;
+      try {
+        if (file.size > IMAGE_MAX_FILE_BYTES) {
+          setImageStatus('error', t('image_too_large', {
+            name: file.name,
+            mb: (file.size / 1024 / 1024).toFixed(0),
+            max: (IMAGE_MAX_FILE_BYTES / 1024 / 1024).toFixed(0)
+          }));
+          return;
+        }
+        setImageStatus('info', 'Decoding image…');
+        const fileBytes = new Uint8Array(await file.arrayBuffer());
+        const sniff = sniffImage(fileBytes);
+        const imageFamily = imageFamilyFromChannels(sniff.channels, sniff.iccSig);
+        const isLab = !!sniff.labFlag;
+
+        // Stage state before decode so the UI can paint colour-space line immediately.
+        _imageState = {
+          name: file.name,
+          fileBytes,
+          sourceFormat: sniff.format,
+          colorSpace: isLab ? 'Lab' : imageFamily,
+          spaceSource: sniff.labFlag ? 'tiff-photometric' : (sniff.iccSig ? 'icc' : 'channels'),
+          channels: isLab ? 3 : sniff.channels,
+          devicePixels: null,
+          thumbDataUrl: null,
+          boundSlot: null,
+          labPoints: null,
+          isLab,
+          status: 'decoding'
+        };
+        renderImageInfo();
+
+        const decoded = await decodeImage(file, sniff, fileBytes);
+        const binned = binImage(decoded);
+        const family = isLab ? 'Lab' : imageFamily;
+        const deduped = dedupeRadial(binned, family);
+        _imageState.devicePixels = deduped.pixels;
+        _imageState.dedupedCount = deduped.count;
+        _imageState.thumbDataUrl = await makeThumb(file, decoded);
+        renderImageInfo();
+        bindImageToCurrentSelection();
+      } catch (e) {
+        const msg = e && e.message ? e.message : 'image_decode_failed';
+        setImageStatus('error', humaniseImageError(msg));
+        clearImageTrace();
+      } finally {
+        // Allow the same file to be re-selected.
+        const input = document.getElementById('image-file-input');
+        if (input) input.value = '';
+      }
+    }
+
+    function humaniseImageError(code) {
+      switch (code) {
+        case 'image_format_unsupported': return t('image_format_unsupported');
+        case 'image_too_small':          return 'Image file is too small / corrupt.';
+        case 'image_cmyk_jpeg_unsupported': return 'CMYK JPEGs are not supported in the browser — convert to TIFF.';
+        case 'image_tiff_lib_missing':   return 'TIFF decoder library failed to load.';
+        case 'image_slot_model_missing': return 'Selected dataset model is still loading — try again in a moment.';
+        case 'image_decode_failed':      return 'Image decode failed.';
+        default: return code;
+      }
+    }
+
+    async function makeThumb(file, decoded) {
+      // Use a downscaled preview from a Canvas — for TIFF (which we can't <img>), render from decoded.
+      try {
+        if (decoded && decoded.isLab) {
+          // Lab → display sRGB approximation via labToRgb.
+          const w = Math.min(96, decoded.width);
+          const h = Math.round(w * decoded.height / decoded.width);
+          const cnv = document.createElement('canvas'); cnv.width = w; cnv.height = h;
+          const ctx = cnv.getContext('2d');
+          const id = ctx.createImageData(w, h);
+          for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+              const sx = Math.floor(x * decoded.width / w);
+              const sy = Math.floor(y * decoded.height / h);
+              const sIdx = (sy * decoded.width + sx) * 3;
+              const L = decoded.rawPixels[sIdx], a = decoded.rawPixels[sIdx+1], b = decoded.rawPixels[sIdx+2];
+              const rgb = labToRgb(L, a, b);
+              const dIdx = (y * w + x) * 4;
+              id.data[dIdx]   = Math.max(0, Math.min(255, Math.round(rgb[0])));
+              id.data[dIdx+1] = Math.max(0, Math.min(255, Math.round(rgb[1])));
+              id.data[dIdx+2] = Math.max(0, Math.min(255, Math.round(rgb[2])));
+              id.data[dIdx+3] = 255;
+            }
+          }
+          ctx.putImageData(id, 0, 0);
+          return cnv.toDataURL();
+        }
+        if (file.type === 'image/png' || file.type === 'image/jpeg') {
+          return URL.createObjectURL(file);
+        }
+        // TIFF (non-Lab) — render channels 1/3 only for the preview; CMYK/NCLR previews fall back to a placeholder.
+        if (decoded && decoded.channels <= 3) {
+          const w = Math.min(96, decoded.width);
+          const h = Math.round(w * decoded.height / decoded.width);
+          const cnv = document.createElement('canvas'); cnv.width = w; cnv.height = h;
+          const ctx = cnv.getContext('2d');
+          const id = ctx.createImageData(w, h);
+          for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+              const sx = Math.floor(x * decoded.width / w);
+              const sy = Math.floor(y * decoded.height / h);
+              const sIdx = (sy * decoded.width + sx) * decoded.channels;
+              const dIdx = (y * w + x) * 4;
+              if (decoded.channels === 1) {
+                const v = Math.round(decoded.rawPixels[sIdx] * 255);
+                id.data[dIdx] = id.data[dIdx+1] = id.data[dIdx+2] = v;
+              } else {
+                id.data[dIdx]   = Math.round(decoded.rawPixels[sIdx]   * 255);
+                id.data[dIdx+1] = Math.round(decoded.rawPixels[sIdx+1] * 255);
+                id.data[dIdx+2] = Math.round(decoded.rawPixels[sIdx+2] * 255);
+              }
+              id.data[dIdx+3] = 255;
+            }
+          }
+          ctx.putImageData(id, 0, 0);
+          return cnv.toDataURL();
+        }
+      } catch (_) { /* fall through */ }
+      return null;
+    }
+
+    function onImageBindSlotChange() {
+      bindImageToCurrentSelection();
+    }
+
+    function bindImageToCurrentSelection() {
+      if (!_imageState || !_imageState.devicePixels) return;
+      // Lab images don't bind — they plot directly.
+      if (_imageState.isLab) {
+        _imageState.boundSlot = null;
+        try {
+          const labPoints = convertImageToLab(
+            { pixels: _imageState.devicePixels, count: _imageState.dedupedCount, channels: 3 },
+            'Lab', null
+          );
+          _imageState.labPoints = labPoints;
+          publishImageTrace(labPoints);
+          setImageStatus('ok', t('image_lab_note', { n: _imageState.dedupedCount }));
+        } catch (e) {
+          setImageStatus('error', humaniseImageError((e && e.message) || 'image_decode_failed'));
+          clearImageTrace();
+        }
+        return;
+      }
+      const sel = document.getElementById('image-bind-slot');
+      const slot = sel ? sel.value : 'a';
+      const imgFamily = _imageState.colorSpace;
+      const slotInfo = slotFamily(slot);
+      if (!slotInfo) {
+        setImageStatus('error', `Dataset ${slot.toUpperCase()} is not loaded.`);
+        clearImageTrace();
+        return;
+      }
+      const imgChannels = familyChannelCount(imgFamily);
+      if (slotInfo.family !== imgFamily || slotInfo.channels !== imgChannels) {
+        setImageStatus('error', t('image_mismatch_msg', {
+          img: imgFamily, slot: slot.toUpperCase(), family: slotInfo.family
+        }));
+        clearImageTrace();
+        _imageState.boundSlot = null;
+        return;
+      }
+      try {
+        const labPoints = convertImageToLab(
+          { pixels: _imageState.devicePixels, count: _imageState.dedupedCount, channels: imgChannels },
+          imgFamily, slot
+        );
+        _imageState.boundSlot = slot;
+        _imageState.labPoints = labPoints;
+        publishImageTrace(labPoints);
+        const slotName = (state[slot] && state[slot].name) || ('Dataset ' + slot.toUpperCase());
+        setImageStatus('ok', t('image_bound_to', { name: slotName, n: _imageState.dedupedCount }));
+      } catch (e) {
+        setImageStatus('error', humaniseImageError((e && e.message) || 'image_decode_failed'));
+        clearImageTrace();
+      }
+    }
+
+    function publishImageTrace(labPoints) {
+      // _gamutState.img.cachedXYZ stores points in the same orientation as A/B traces:
+      //   x = a*, y = b*, z = L*  (renderPlot convention)
+      _gamutState.img.cachedXYZ = { x: labPoints.a, y: labPoints.b, z: labPoints.L };
+      if (typeof renderPlot === 'function' && state.a) renderPlot();
+      if (typeof renderSlicePlot === 'function') renderSlicePlot();
+    }
+
+    function clearImageTrace() {
+      _gamutState.img.cachedXYZ = null;
+      if (_imageState) { _imageState.labPoints = null; _imageState.boundSlot = null; }
+      if (typeof renderPlot === 'function' && state.a) renderPlot();
+      if (typeof renderSlicePlot === 'function') renderSlicePlot();
+    }
+
+    function removeImage() {
+      _imageState = null;
+      clearImageTrace();
+      renderImageInfo();
+      setImageStatus('', '');
+    }
+
+    function renderImageInfo() {
+      const infoEl = document.getElementById('image-info');
+      const removeBtn = document.getElementById('image-remove-btn');
+      const sel = document.getElementById('image-bind-slot');
+      if (!infoEl) return;
+      if (!_imageState) {
+        infoEl.style.display = 'none';
+        if (removeBtn) removeBtn.style.display = 'none';
+        if (sel) sel.disabled = false;
+        return;
+      }
+      infoEl.style.display = '';
+      if (removeBtn) removeBtn.style.display = '';
+      document.getElementById('image-name').textContent = _imageState.name;
+      const srcLabel = _imageState.spaceSource === 'icc' ? '(from embedded ICC)' :
+                       _imageState.spaceSource === 'tiff-photometric' ? '(TIFF Lab)' :
+                       '(inferred from channels)';
+      document.getElementById('image-cspace').textContent = t('image_colorspace', { cs: _imageState.colorSpace, src: srcLabel });
+      const ptsEl = document.getElementById('image-pts');
+      ptsEl.textContent = _imageState.dedupedCount ? (_imageState.dedupedCount + ' representative points after binning + dedupe') : '';
+      const thumb = document.getElementById('image-thumb');
+      if (_imageState.thumbDataUrl) { thumb.src = _imageState.thumbDataUrl; thumb.style.display = ''; }
+      else thumb.style.display = 'none';
+      if (sel) sel.disabled = !!_imageState.isLab;
+    }
+
+    function setImageStatus(kind, msg) {
+      const el = document.getElementById('image-status');
+      if (!el) return;
+      if (!msg) { el.textContent = ''; el.style.color = ''; return; }
+      el.textContent = msg;
+      el.style.color = kind === 'error' ? '#c0392b' : kind === 'ok' ? '#2a7a3a' : '#666';
+    }
+
+    // Initial visibility sync (in case the page loads in Compare mode already populated).
+    refreshImageSectionVisibility();
   </script>
 
   <div id="file-viewer-overlay" onclick="closeFileViewer()"

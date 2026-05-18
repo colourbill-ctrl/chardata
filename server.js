@@ -12,7 +12,7 @@ app.use(helmet({
       scriptSrc:       ["'self'", "'unsafe-inline'", "'wasm-unsafe-eval'",
                         "https://www.googletagmanager.com", "blob:"],
       styleSrc:        ["'self'", "'unsafe-inline'"],
-      imgSrc:          ["'self'", "data:"],
+      imgSrc:          ["'self'", "data:", "blob:"],
       connectSrc:      ["'self'", "blob:",
                         "https://www.google-analytics.com",
                         "https://region1.google-analytics.com"],

@@ -33,6 +33,7 @@ The suggested workflow is to load an entire directory of characterisation files 
    - [Compare table](#5-1-compare-table)
    - [3D Gamut plot (Compare)](#5-2-3d-gamut-plot-compare)
    - [Tone Value (Compare)](#5-3-tone-value-compare)
+   - [Image gamut](#5-4-image-gamut)
 6. [Mobile](#6-mobile)
 
 ---
@@ -412,6 +413,48 @@ The Tone Value section also appears in Compare mode, below the Comparison Table.
 The controls bar includes two additional checkboxes — **Show Dataset A** and **Show Dataset B** — to toggle all curves from either slot at once.
 
 All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work identically to [Explore mode](#4-6-tone-value). When either slot is an ICC profile, the chart auto-uses the CTV method for that slot; Murray-Davies traces from the ICC slot are skipped (no spectral data). The Y-axis range invalidates whenever a rendering intent changes so the curves stay correctly framed.
+
+### 5.4 Image gamut
+
+In Compare mode you can additionally load an image and plot its gamut alongside Datasets A and B. This is most useful for determining whether the colours used in a photograph or artwork fall inside or outside the gamut of a printing or display process represented by one of the loaded datasets.
+
+The **Image** section sits above the 3D plot in Compare mode (collapsed by default). It is hidden in Explore mode.
+
+#### Supported formats
+
+| Format | Colorimetry source |
+|---|---|
+| **PNG** | Channel count (Gray or RGB; embedded `iCCP` chunk is detected but not decompressed) |
+| **JPEG** | Embedded ICC profile (APP2 `ICC_PROFILE` segments) if present, otherwise channel count |
+| **TIFF** | Embedded ICC profile (tag 34675) if present, otherwise channel count; TIFF `PhotometricInterpretation` 8 / 9 (CIELAB / ICCLab) is auto-detected and treated as Lab |
+
+CMYK JPEGs cannot be decoded in the browser. Use TIFF for CMYK and N-colorant images.
+
+The 100 MB file-size cap protects against accidentally loading uncompressed scanner output.
+
+#### Binding to a dataset
+
+For **non-Lab** images, pick **Dataset A** or **Dataset B** from the dropdown. The image's device colorant space must match the bound dataset's colorant family (for example, an RGB image binds only to an RGB dataset; a CMYK image to a CMYK dataset; a 5-colorant TIFF to a 5-colorant CMYKOGV-style dataset). When the binding is valid, the image's device pixels are run through the dataset's estimate model (for characterisation datasets) or the A2B with Absolute Colorimetric rendering intent (for ICC profiles) to derive L\*a\*b\* coordinates.
+
+For **Lab** images (TIFF with `PhotometricInterpretation` 8 or 9), the dataset dropdown is greyed out — the image plots in its native L\*a\*b\* coordinates directly with no transformation.
+
+#### Where the trace appears
+
+The image trace is rendered as a point cloud (green by default) in:
+
+- The **3D plot** above
+- The **2D slice** below
+
+It does not appear in the Comparison Table, Tone Value chart, or Explore views.
+
+#### Processing pipeline
+
+Before plotting, the loaded image is downsampled to roughly 2,000 representative colour samples in two passes:
+
+1. **Spatial averaging** to a ~45×45 grid (aspect-preserved), so the result is broadly representative of the image's colour distribution rather than dominated by one region.
+2. **ΔE-radius deduplication** to remove near-identical samples, scaled by colorant family.
+
+This keeps the plot responsive on large images and matches the typical density of a characterisation dataset.
 
 ---
 
