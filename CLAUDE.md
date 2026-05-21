@@ -53,7 +53,7 @@ lcms2 expects 0..100 inputs for ink colour spaces (CMYK, CMY, NCLR 5..15ch — a
 
 A second, independent module wraps **IccProfLib** (from iccDEV at `/home/colour/code/iccdev`) for header + tag-directory display. It is **only loaded when the user clicks "Display File" on an ICC slot** — `chardata-gamut.wasm` keeps using lcms2 for transforms.
 
-- **Source**: `icc-viewer-wasm/wrapper.cpp` — lifted from `~/code/icctools/validator-wasm/wrapper.cpp` and kept in sync; same JSON shape so the icctools layout serves as a template
+- **Source**: `icc-viewer-wasm/wrapper.cpp` — lifted from `~/code/profiletool/validator-wasm/wrapper.cpp` and kept in sync; same JSON shape so the profiletool layout serves as a template
 - **Build**: `scripts/build-icc-viewer-wasm.sh` — separate from `build-wasm.sh`; compiles IccProfLib sources directly via Emscripten (bypasses iccDEV's top-level CMake so libxml2/tiff/png/jpeg `find_package` calls don't fire)
 - **Artifacts**: `public/wasm/icc-viewer.{mjs,wasm}` (~730 KB WASM + ~40 KB glue, both committed)
 - **JS wrapper**: `public/icc-viewer.js` — exposes `window.IccViewer.{validateProfile, describeTag}`; blob-URL dynamic import matches the `gamut.js` pattern
@@ -69,9 +69,9 @@ A second, independent module wraps **IccProfLib** (from iccDEV at `/home/colour/
 
 #### UI
 
-`showFile()` in `index.html` branches on `_rawFileData[slot].isIcc` and calls `openIccViewer(slot)` for ICC files (versus the existing text overlay for CSV/CGATS). The viewer is a modal overlay (`#icc-viewer-overlay`) mirroring the existing `#file-viewer-overlay` styling — Arial / blue accent, no icctools crimson. Tabs: **Header** (2-column key/value table) and **Tags** (7-column grid: `# / Name / ID / Type / Offset / Size / Pad`; click a row to expand inline). At viewports ≤720 px the modal goes full-screen and the tag rows reflow into stacked cards — no horizontal scroll.
+`showFile()` in `index.html` branches on `_rawFileData[slot].isIcc` and calls `openIccViewer(slot)` for ICC files (versus the existing text overlay for CSV/CGATS). The viewer is a modal overlay (`#icc-viewer-overlay`) mirroring the existing `#file-viewer-overlay` styling — Arial / blue accent, no profiletool crimson. Tabs: **Header** (2-column key/value table) and **Tags** (7-column grid: `# / Name / ID / Type / Offset / Size / Pad`; click a row to expand inline). At viewports ≤720 px the modal goes full-screen and the tag rows reflow into stacked cards — no horizontal scroll.
 
-The viewer title row also carries a **Launch editor** button that hands the profile bytes off to icctools in a new tab. `launchIccEditor()` opens `http://localhost:5173/?source=chardata` (dev) or `/profiletool/?source=chardata` (prod), waits for `{type:'icctools:ready'}` from `window.opener` via `postMessage`, and replies with `{type:'icctools:load', filename, bytes}`. The reply pins `targetOrigin` to the concrete icctools origin (`http://localhost:5173` in dev, `location.origin` in prod) — never `'*'` — so profile bytes can only reach the intended target even if the popup is navigated cross-origin before the handshake completes. The incoming `ready` is also `ev.origin`-checked against that same target. One-way — chardata never accepts edits back; the user saves from icctools directly. Same-origin in prod (icctools is served at chardata.colourbill.com/profiletool/); cross-origin in dev but `postMessage` is unaffected.
+The viewer title row also carries a **Launch editor** button that hands the profile bytes off to profiletool in a new tab. `launchIccEditor()` opens `http://localhost:5173/?source=chardata` (dev) or `/profiletool/?source=chardata` (prod), waits for `{type:'icctools:ready'}` from `window.opener` via `postMessage`, and replies with `{type:'icctools:load', filename, bytes}`. (The literal `icctools:` prefix on these wire-protocol messages predates the profiletool rename and must change in lockstep with the profiletool app — see also the postMessage call sites in `public/index.html`.) The reply pins `targetOrigin` to the concrete profiletool origin (`http://localhost:5173` in dev, `location.origin` in prod) — never `'*'` — so profile bytes can only reach the intended target even if the popup is navigated cross-origin before the handshake completes. The incoming `ready` is also `ev.origin`-checked against that same target. One-way — chardata never accepts edits back; the user saves from profiletool directly. Same-origin in prod (profiletool is served at chardata.colourbill.com/profiletool/); cross-origin in dev but `postMessage` is unaffected.
 
 For the dev-mode cross-origin popup to retain its `window.opener`, the helmet config in `server.js` sets `crossOriginOpenerPolicy: 'same-origin-allow-popups'` instead of helmet's default `same-origin`. See the inline comment in `server.js` — don't tighten this back without a same-origin alternative for dev.
 
@@ -127,6 +127,10 @@ Drift audit: `node scripts/check-translations.js` compares each xlsx column 0 ag
 `server.js` exposes two endpoints beyond the static middleware:
 - `GET /favicon.ico` → 204 (so the browser stops asking).
 - `GET /health` → 200 `text/plain` "ok". Used by UptimeRobot for outside-in monitoring; keep it cheap and dependency-free.
+
+### Subscribe form (release notifications)
+
+Footer link "✉ Subscribe" opens a modal that POSTs cross-origin to the WordPress plugin at `https://colourbill.com/wp-admin/admin-ajax.php?action=cb_subscribe`. There is **no chardata-side backend** for subscribers — the list, moderation UI, and release-send flow all live in the WP plugin. The CSP `connectSrc` includes `https://colourbill.com` to permit the POST. Submit handler is `submitSubscribe()` near the modal markup; the hidden `t0` input is stamped on modal open for the server's time-trap (rejects <1.5s submits). Full architecture: `~/colourbill_WP/wordpress/wp-content/plugins/colourbill-customizations/SUBSCRIBERS.md`.
 
 ### Help / MANUAL.md
 

@@ -15,7 +15,16 @@ app.use(helmet({
       imgSrc:          ["'self'", "data:", "blob:"],
       connectSrc:      ["'self'", "blob:",
                         "https://www.google-analytics.com",
-                        "https://region1.google-analytics.com"],
+                        "https://region1.google-analytics.com",
+                        // Subscribe form posts cross-origin to the WP plugin
+                        // hosted at colourbill.com (handles list management,
+                        // moderation, and release sends). The endpoint emits
+                        // the matching Access-Control-Allow-Origin response.
+                        "https://colourbill.com",
+                        // Dev: local Docker WP stack (see /tmp/wp-e2e). Harmless
+                        // in prod since the directive is enforced by the browser;
+                        // a prod page can't reach localhost anyway.
+                        "http://localhost:8000"],
       workerSrc:       ["'self'", "blob:"],
       scriptSrcAttr:   ["'unsafe-inline'"],
       objectSrc:       ["'none'"],
@@ -24,8 +33,8 @@ app.use(helmet({
   },
   crossOriginEmbedderPolicy: false, // WASM blob-URL loading requires relaxed COEP
   // helmet's default COOP is 'same-origin', which nulls out window.opener for
-  // cross-origin popups — that breaks the chardata → icctools launch hand-off
-  // in local dev (chardata:3001 opens icctools:5173). 'same-origin-allow-popups'
+  // cross-origin popups — that breaks the chardata → profiletool launch hand-off
+  // in local dev (chardata:3001 opens profiletool:5173). 'same-origin-allow-popups'
   // keeps the main page cross-origin-isolated but preserves the opener handle
   // for windows this page opens. Production is same-origin (/profiletool/
   // subpath) so this is a no-op there.

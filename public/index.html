@@ -256,6 +256,16 @@
       #kofi-group { right: 67px !important; transform: scale(0.85); transform-origin: top right; }
       #kofi-msg { right: 67px !important; }
       #seg-row { margin-top: 30px; }
+      /* Push the title row below the fixed kofi-group (top:12 + ~30px scaled = ~38px).
+         On real iPhones the h1 tail and on mobile-simulator widths the subtitle were
+         being covered. Keep mirrored adjustment on #seg-row above absorbed by this. */
+      #page-title { margin-top: 32px !important; }
+    }
+    /* Intermediate widths (mobile-simulator on desktop or small laptop windows) — the
+       kofi-group is still full-size here at top:12px, so the title row collides with
+       it horizontally. Push the title block down enough to clear the button's bottom. */
+    @media (min-width: 701px) and (max-width: 900px) {
+      #page-title { margin-top: 16px; }
     }
 
     .panel {
@@ -726,6 +736,32 @@
     body.dark #validate-result summary { color: #aaa !important; }
     body.dark #validate-result span[style*="color:#777"] { color: #999 !important; }
     body.dark #copyright-bar { color: rgba(255,255,255,0.35) !important; }
+    body.dark #copyright-bar a { color: #6aacf0 !important; }
+
+    /* Subscribe link in the copyright bar — keep compact on narrow screens. */
+    #subscribe-link { white-space: nowrap; }
+    @media (max-width: 480px) {
+      /* The copyright bar uses transform:translateX(-50%) and white-space:nowrap.
+         At very narrow widths the extra "✉ Subscribe" can push the bar off-screen.
+         Shorten the visible label to just the envelope glyph. */
+      #subscribe-link .subscribe-link-text { display: none; }
+      #subscribe-link { margin-left: 4px; font-size: 13px; }
+    }
+    body.dark #subscribe-overlay > div { background: #1f2226 !important; color: #e6e6e6 !important; }
+    body.dark #subscribe-overlay input[type=email],
+    body.dark #subscribe-overlay input[type=text] { background: #2a2d32 !important; color: #e6e6e6 !important; border-color: #444 !important; }
+    body.dark #subscribe-overlay label { color: #cfcfcf !important; }
+    /* Inline colors on the title, body copy, close-X and small print all need explicit dark overrides
+       because they were set with inline style="color:..." which outranks generic selectors. */
+    body.dark #subscribe-dialog #subscribe-title       { color: #f1f1f1 !important; }
+    body.dark #subscribe-dialog .subscribe-body-copy   { color: #cfcfcf !important; }
+    body.dark #subscribe-dialog .subscribe-close-x     { color: #cfcfcf !important; }
+    body.dark #subscribe-dialog .subscribe-mock-note,
+    body.dark #subscribe-dialog .subscribe-thanks-note { color: #9a9a9a !important; }
+    body.dark #subscribe-dialog .subscribe-thanks-title { color: #f1f1f1 !important; }
+    body.dark #subscribe-dialog .subscribe-thanks-body  { color: #cfcfcf !important; }
+    body.dark #subscribe-dialog .subscribe-divider     { border-color: #2f3338 !important; }
+    body.dark #subscribe-dialog .btn-secondary { background: #2a2d32 !important; color: #e6e6e6 !important; border-color: #444 !important; }
 
     /* ── ICC viewer overlay ─────────────────────────────────────────────── */
     .icc-tab-bar { display: flex; gap: 4px; padding: 0 16px; border-bottom: 1px solid #ddd;
@@ -1228,6 +1264,22 @@ or ICC profiles</span>
     // ── Internationalisation ───────────────────────────────────────────────
     const I18N = {
       en: {
+        sub_link:'Subscribe',
+        sub_link_title:'Get notified about new chardata releases',
+        sub_title:'Get notified about new releases',
+        sub_close:'Close',
+        sub_body:'We’ll email you when a new major or minor chardata release ships. Patch releases are skipped. Your address is reviewed manually before being added.',
+        sub_email_label:'Email address',
+        sub_email_ph:'you@example.com',
+        sub_note_label:'How will you use chardata?',
+        sub_optional:'(optional)',
+        sub_note_ph:'e.g. evaluating ICC profiles for press calibration',
+        sub_consent:'I agree to receive emails about chardata releases. I can unsubscribe at any time.',
+        sub_cancel:'Cancel',
+        sub_submit:'Subscribe',
+        sub_thanks_title:'Thanks — we’ll be in touch.',
+        sub_thanks_body:'Once approved you’ll receive a welcome email. After that, you’ll only hear from us when a new chardata release ships.',
+        sub_close_btn:'Close',
         settings:'Settings', de_method:'ΔE Method', filter_dups:'Filter Duplicates',
         filter_method:'Filter Method', spectral_lab:'Spectral \u2192 LAB',
         illuminant:'Illuminant', std_observer:'Standard Observer', m_condition:'M-Condition',
@@ -1389,6 +1441,22 @@ or ICC profiles</span>
         image_detail_fine:'Fine',
       },
       fr: {
+        sub_link:'S’abonner',
+        sub_link_title:'Être notifié des nouvelles versions de chardata',
+        sub_title:'Être notifié des nouvelles versions',
+        sub_close:'Fermer',
+        sub_body:'Nous vous enverrons un e-mail à chaque sortie d’une version majeure ou mineure de chardata. Les versions correctives sont exclues. Votre adresse est vérifiée manuellement avant d’être ajoutée.',
+        sub_email_label:'Adresse e-mail',
+        sub_email_ph:'vous@exemple.com',
+        sub_note_label:'Comment utiliserez-vous chardata ?',
+        sub_optional:'(facultatif)',
+        sub_note_ph:'p. ex. évaluer des profils ICC pour le calage presse',
+        sub_consent:'J’accepte de recevoir des e-mails à propos des versions de chardata. Je peux me désabonner à tout moment.',
+        sub_cancel:'Annuler',
+        sub_submit:'S’abonner',
+        sub_thanks_title:'Merci — nous reviendrons vers vous.',
+        sub_thanks_body:'Après validation, vous recevrez un e-mail de bienvenue. Ensuite, vous ne serez recontacté qu’à la sortie d’une nouvelle version de chardata.',
+        sub_close_btn:'Fermer',
         settings:'Paramètres', de_method:'Méthode ΔE', filter_dups:'Filtrer les doublons',
         filter_method:'Méthode de filtrage', spectral_lab:'Spectral \u2192 LAB',
         illuminant:'Illuminant', std_observer:'Observateur standard', m_condition:'Condition M',
@@ -1545,6 +1613,22 @@ or ICC profiles</span>
         image_detail_fine:'Fin',
       },
       de: {
+        sub_link:'Abonnieren',
+        sub_link_title:'Bei neuen chardata-Releases benachrichtigt werden',
+        sub_title:'Bei neuen Releases benachrichtigt werden',
+        sub_close:'Schließen',
+        sub_body:'Wir benachrichtigen Sie per E-Mail, sobald ein neues Major- oder Minor-Release von chardata erscheint. Patch-Releases werden übersprungen. Ihre Adresse wird manuell geprüft, bevor sie aufgenommen wird.',
+        sub_email_label:'E-Mail-Adresse',
+        sub_email_ph:'sie@example.com',
+        sub_note_label:'Wofür werden Sie chardata nutzen?',
+        sub_optional:'(optional)',
+        sub_note_ph:'z. B. ICC-Profile für Druckkalibrierung evaluieren',
+        sub_consent:'Ich willige ein, E-Mails über chardata-Releases zu erhalten. Ich kann mich jederzeit abmelden.',
+        sub_cancel:'Abbrechen',
+        sub_submit:'Abonnieren',
+        sub_thanks_title:'Danke — wir melden uns.',
+        sub_thanks_body:'Nach Freigabe erhalten Sie eine Willkommens-E-Mail. Danach hören Sie nur dann von uns, wenn ein neues chardata-Release erscheint.',
+        sub_close_btn:'Schließen',
         settings:'Einstellungen', de_method:'ΔE-Methode', filter_dups:'Duplikate filtern',
         filter_method:'Filtermethode', spectral_lab:'Spektral \u2192 LAB',
         illuminant:'Lichtart', std_observer:'Normalbeobachter', m_condition:'M-Bedingung',
@@ -1701,6 +1785,22 @@ or ICC profiles</span>
         image_detail_fine:'Fein',
       },
       it: {
+        sub_link:'Iscriviti',
+        sub_link_title:'Ricevi notifiche sulle nuove versioni di chardata',
+        sub_title:'Ricevi notifiche sulle nuove versioni',
+        sub_close:'Chiudi',
+        sub_body:'Ti invieremo un’e-mail quando esce una nuova versione maggiore o minore di chardata. Le versioni patch sono escluse. Il tuo indirizzo viene verificato manualmente prima di essere aggiunto.',
+        sub_email_label:'Indirizzo e-mail',
+        sub_email_ph:'tu@esempio.com',
+        sub_note_label:'Come utilizzerai chardata?',
+        sub_optional:'(opzionale)',
+        sub_note_ph:'p. es. valutare profili ICC per la calibrazione di stampa',
+        sub_consent:'Accetto di ricevere e-mail sulle versioni di chardata. Posso annullare l’iscrizione in qualsiasi momento.',
+        sub_cancel:'Annulla',
+        sub_submit:'Iscriviti',
+        sub_thanks_title:'Grazie — ti ricontatteremo.',
+        sub_thanks_body:'Una volta approvato, riceverai un’e-mail di benvenuto. In seguito, ti contatteremo solo quando uscirà una nuova versione di chardata.',
+        sub_close_btn:'Chiudi',
         settings:'Impostazioni', de_method:'Metodo ΔE', filter_dups:'Filtra duplicati',
         filter_method:'Metodo filtro', spectral_lab:'Spettrale \u2192 LAB',
         illuminant:'Illuminante', std_observer:'Osservatore standard', m_condition:'Condizione M',
@@ -1857,6 +1957,22 @@ or ICC profiles</span>
         image_detail_fine:'Fine',
       },
       es: {
+        sub_link:'Suscribirse',
+        sub_link_title:'Recibir notificaciones sobre nuevas versiones de chardata',
+        sub_title:'Recibir notificaciones sobre nuevas versiones',
+        sub_close:'Cerrar',
+        sub_body:'Le enviaremos un correo cuando se publique una nueva versión mayor o menor de chardata. Las versiones de parche se omiten. Su dirección se revisa manualmente antes de añadirse.',
+        sub_email_label:'Correo electrónico',
+        sub_email_ph:'usted@ejemplo.com',
+        sub_note_label:'¿Para qué usará chardata?',
+        sub_optional:'(opcional)',
+        sub_note_ph:'p. ej. evaluar perfiles ICC para calibración de prensa',
+        sub_consent:'Acepto recibir correos sobre las versiones de chardata. Puedo darme de baja en cualquier momento.',
+        sub_cancel:'Cancelar',
+        sub_submit:'Suscribirse',
+        sub_thanks_title:'Gracias — le contactaremos.',
+        sub_thanks_body:'Una vez aprobado, recibirá un correo de bienvenida. Después, solo le escribiremos cuando salga una nueva versión de chardata.',
+        sub_close_btn:'Cerrar',
         settings:'Configuración', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
         filter_method:'Método de filtro', spectral_lab:'Espectral \u2192 LAB',
         illuminant:'Iluminante', std_observer:'Observador estándar', m_condition:'Condición M',
@@ -2013,6 +2129,22 @@ or ICC profiles</span>
         image_detail_fine:'Fino',
       },
       'pt-PT': {
+        sub_link:'Subscrever',
+        sub_link_title:'Receber notificações sobre novas versões do chardata',
+        sub_title:'Receber notificações sobre novas versões',
+        sub_close:'Fechar',
+        sub_body:'Enviar-lhe-emos um e-mail quando for lançada uma nova versão principal ou secundária do chardata. As versões de correção são ignoradas. O seu endereço é revisto manualmente antes de ser adicionado.',
+        sub_email_label:'Endereço de e-mail',
+        sub_email_ph:'voce@exemplo.com',
+        sub_note_label:'Como vai utilizar o chardata?',
+        sub_optional:'(opcional)',
+        sub_note_ph:'p. ex. avaliar perfis ICC para calibração de impressão',
+        sub_consent:'Aceito receber e-mails sobre as versões do chardata. Posso cancelar a subscrição a qualquer momento.',
+        sub_cancel:'Cancelar',
+        sub_submit:'Subscrever',
+        sub_thanks_title:'Obrigado — entraremos em contacto.',
+        sub_thanks_body:'Após a aprovação, receberá um e-mail de boas-vindas. Depois disso, só receberá mensagens quando for lançada uma nova versão do chardata.',
+        sub_close_btn:'Fechar',
         settings:'Definições', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
         filter_method:'Método de filtro', spectral_lab:'Espectral \u2192 LAB',
         illuminant:'Iluminante', std_observer:'Observador padrão', m_condition:'Condição M',
@@ -2169,6 +2301,22 @@ or ICC profiles</span>
         image_detail_fine:'Fino',
       },
       'pt-BR': {
+        sub_link:'Inscrever-se',
+        sub_link_title:'Receber notificações sobre novas versões do chardata',
+        sub_title:'Receber notificações sobre novas versões',
+        sub_close:'Fechar',
+        sub_body:'Vamos enviar um e-mail quando uma nova versão principal ou secundária do chardata for lançada. Versões de correção são puladas. Seu endereço é revisado manualmente antes de ser adicionado.',
+        sub_email_label:'Endereço de e-mail',
+        sub_email_ph:'voce@exemplo.com',
+        sub_note_label:'Como você vai usar o chardata?',
+        sub_optional:'(opcional)',
+        sub_note_ph:'p. ex. avaliar perfis ICC para calibração de prensa',
+        sub_consent:'Concordo em receber e-mails sobre as versões do chardata. Posso cancelar a inscrição a qualquer momento.',
+        sub_cancel:'Cancelar',
+        sub_submit:'Inscrever-se',
+        sub_thanks_title:'Obrigado — entraremos em contato.',
+        sub_thanks_body:'Após a aprovação, você receberá um e-mail de boas-vindas. Depois, só receberá mensagens quando uma nova versão do chardata for lançada.',
+        sub_close_btn:'Fechar',
         settings:'Configurações', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
         filter_method:'Método de filtro', spectral_lab:'Espectral \u2192 LAB',
         illuminant:'Iluminante', std_observer:'Observador padrão', m_condition:'Condição M',
@@ -2325,6 +2473,22 @@ or ICC profiles</span>
         image_detail_fine:'Fino',
       },
       'zh-CN': {
+        sub_link:'订阅',
+        sub_link_title:'在 chardata 新版本发布时收到通知',
+        sub_title:'订阅新版本通知',
+        sub_close:'关闭',
+        sub_body:'当 chardata 发布新的主版本或次版本时，我们会通过邮件通知您。补丁版本不在此列。您的邮箱地址会经过人工审核后才会被加入。',
+        sub_email_label:'电子邮件地址',
+        sub_email_ph:'you@example.com',
+        sub_note_label:'您打算如何使用 chardata？',
+        sub_optional:'（选填）',
+        sub_note_ph:'例如：用于印刷校准的 ICC 配置文件评估',
+        sub_consent:'我同意接收关于 chardata 版本发布的邮件。我可以随时退订。',
+        sub_cancel:'取消',
+        sub_submit:'订阅',
+        sub_thanks_title:'谢谢 — 我们会再联系您。',
+        sub_thanks_body:'审核通过后，您将收到一封欢迎邮件。之后只有在 chardata 发布新版本时才会收到我们的邮件。',
+        sub_close_btn:'关闭',
         settings:'设置', de_method:'ΔE 方法', filter_dups:'过滤重复项',
         filter_method:'过滤方法', spectral_lab:'光谱 \u2192 LAB',
         illuminant:'光源', std_observer:'标准观察者', m_condition:'M 条件',
@@ -2481,6 +2645,22 @@ or ICC profiles</span>
         image_detail_fine:'精细',
       },
       'zh-TW': {
+        sub_link:'訂閱',
+        sub_link_title:'在 chardata 新版本發佈時收到通知',
+        sub_title:'訂閱新版本通知',
+        sub_close:'關閉',
+        sub_body:'當 chardata 發佈新的主版本或次版本時，我們會以郵件通知您。修補版本不在此列。您的郵件地址會經過人工審核後才會加入。',
+        sub_email_label:'電子郵件地址',
+        sub_email_ph:'you@example.com',
+        sub_note_label:'您打算如何使用 chardata？',
+        sub_optional:'（選填）',
+        sub_note_ph:'例如：用於印刷校準的 ICC 設定檔評估',
+        sub_consent:'我同意接收關於 chardata 版本發佈的郵件。我可以隨時取消訂閱。',
+        sub_cancel:'取消',
+        sub_submit:'訂閱',
+        sub_thanks_title:'感謝 — 我們會再聯絡您。',
+        sub_thanks_body:'審核通過後，您將收到歡迎郵件。之後只有在 chardata 發佈新版本時才會收到我們的訊息。',
+        sub_close_btn:'關閉',
         settings:'設定', de_method:'ΔE 方法', filter_dups:'過濾重複項',
         filter_method:'過濾方法', spectral_lab:'光譜 \u2192 LAB',
         illuminant:'光源', std_observer:'標準觀察者', m_condition:'M 條件',
@@ -2637,6 +2817,22 @@ or ICC profiles</span>
         image_detail_fine:'精細',
       },
       ja: {
+        sub_link:'通知を受け取る',
+        sub_link_title:'chardataの新リリース通知を受け取る',
+        sub_title:'新しいリリースの通知を受け取る',
+        sub_close:'閉じる',
+        sub_body:'chardataのメジャーまたはマイナーリリース時にメールでお知らせします。パッチリリースは対象外です。アドレスは追加前に手動で確認します。',
+        sub_email_label:'メールアドレス',
+        sub_email_ph:'you@example.com',
+        sub_note_label:'chardataをどのように使いますか？',
+        sub_optional:'（任意）',
+        sub_note_ph:'例：印刷校正のためのICCプロファイル評価',
+        sub_consent:'chardataのリリースに関するメールの受信に同意します。いつでも配信解除できます。',
+        sub_cancel:'キャンセル',
+        sub_submit:'登録',
+        sub_thanks_title:'ありがとうございます — ご連絡します。',
+        sub_thanks_body:'承認後、ウェルカムメールをお送りします。その後はchardataの新リリース時のみご連絡します。',
+        sub_close_btn:'閉じる',
         settings:'設定', de_method:'ΔE 方法', filter_dups:'重複フィルター',
         filter_method:'フィルター方法', spectral_lab:'分光 \u2192 LAB',
         illuminant:'光源', std_observer:'等色関数', m_condition:'M 条件',
@@ -2793,6 +2989,22 @@ or ICC profiles</span>
         image_detail_fine:'細かい',
       },
       ko: {
+        sub_link:'구독',
+        sub_link_title:'chardata 새 릴리스 알림 받기',
+        sub_title:'새 릴리스 알림 받기',
+        sub_close:'닫기',
+        sub_body:'chardata의 주요 또는 부수 릴리스가 출시되면 이메일로 알려드립니다. 패치 릴리스는 제외됩니다. 주소는 추가 전에 수동으로 검토됩니다.',
+        sub_email_label:'이메일 주소',
+        sub_email_ph:'you@example.com',
+        sub_note_label:'chardata를 어떻게 사용하실 건가요?',
+        sub_optional:'(선택)',
+        sub_note_ph:'예: 인쇄 보정용 ICC 프로파일 평가',
+        sub_consent:'chardata 릴리스에 대한 이메일 수신에 동의합니다. 언제든지 구독을 취소할 수 있습니다.',
+        sub_cancel:'취소',
+        sub_submit:'구독',
+        sub_thanks_title:'감사합니다 — 곧 연락드리겠습니다.',
+        sub_thanks_body:'승인되면 환영 이메일을 받게 됩니다. 이후에는 chardata 새 릴리스가 출시될 때만 알림을 받게 됩니다.',
+        sub_close_btn:'닫기',
         settings:'설정', de_method:'ΔE 방법', filter_dups:'중복 필터',
         filter_method:'필터 방법', spectral_lab:'분광 \u2192 LAB',
         illuminant:'광원', std_observer:'표준 관측자', m_condition:'M 조건',
@@ -2949,6 +3161,22 @@ or ICC profiles</span>
         image_detail_fine:'정밀',
       },
       sv: {
+        sub_link:'Prenumerera',
+        sub_link_title:'Få besked om nya chardata-releaser',
+        sub_title:'Få besked om nya releaser',
+        sub_close:'Stäng',
+        sub_body:'Vi mejlar dig när en ny större eller mindre chardata-release släpps. Patch-releaser hoppas över. Din adress granskas manuellt innan den läggs till.',
+        sub_email_label:'E-postadress',
+        sub_email_ph:'du@exempel.com',
+        sub_note_label:'Hur kommer du att använda chardata?',
+        sub_optional:'(valfritt)',
+        sub_note_ph:'t.ex. utvärdera ICC-profiler för tryckkalibrering',
+        sub_consent:'Jag godkänner att få e-post om chardata-releaser. Jag kan avsluta prenumerationen när som helst.',
+        sub_cancel:'Avbryt',
+        sub_submit:'Prenumerera',
+        sub_thanks_title:'Tack — vi hör av oss.',
+        sub_thanks_body:'När du har godkänts får du ett välkomstmeddelande. Sedan hör vi av oss endast när en ny chardata-release släpps.',
+        sub_close_btn:'Stäng',
         settings:'Inställningar', de_method:'ΔE-metod', filter_dups:'Filtrera dubbletter',
         filter_method:'Filtreringsmetod', spectral_lab:'Spektral \u2192 LAB',
         illuminant:'Ljuskälla', std_observer:'Standardobservatör', m_condition:'M-kondition',
@@ -4250,12 +4478,14 @@ or ICC profiles</span>
       document.getElementById('icc-viewer-overlay').style.display = 'none';
     }
 
-    // Open icctools in a new tab and hand it the profile bytes via postMessage.
-    // icctools posts {type:'icctools:ready'} on load; we reply with the bytes.
-    // No return channel — icctools owns the editing session from there.
+    // Open profiletool in a new tab and hand it the profile bytes via postMessage.
+    // profiletool posts {type:'icctools:ready'} on load; we reply with the bytes.
+    // (The literal 'icctools:' message-type prefix predates the rename and is wire
+    //  protocol — both sides must change in lockstep, so leaving as-is for now.)
+    // No return channel — profiletool owns the editing session from there.
     //
     // The listener stays active for a 15 s window and responds to every 'ready'
-    // — React StrictMode double-mounts icctools in dev, so we may see two
+    // — React StrictMode double-mounts profiletool in dev, so we may see two
     // 'ready' messages. Sending the bytes twice is harmless (idempotent
     // validation), missing the second one is not.
     function launchIccEditor() {
@@ -4263,7 +4493,7 @@ or ICC profiles</span>
       const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
       const url = isLocal ? 'http://localhost:5173/?source=chardata' : '/profiletool/?source=chardata';
       // Pin the targetOrigin so the bytes can only be delivered to the
-      // icctools origin we opened, even if the popup is later navigated
+      // profiletool origin we opened, even if the popup is later navigated
       // somewhere else.
       const targetOrigin = isLocal ? 'http://localhost:5173' : location.origin;
       const win = window.open(url, '_blank');
@@ -9805,7 +10035,195 @@ or ICC profiles</span>
               z-index:800;pointer-events:none;user-select:none;
               font-size:11px;color:rgba(0,0,0,0.22);white-space:nowrap;
               font-family:sans-serif;letter-spacing:0.02em;">
-    <a href="https://colourbill.com" target="_blank" rel="noopener" style="color:#0066cc;text-decoration:underline;pointer-events:auto;">https://colourbill.com</a> &nbsp;&copy;&nbsp; William Li 2026 &nbsp;<span id="app-version"></span>
+    <a href="https://colourbill.com" target="_blank" rel="noopener" style="color:#0066cc;text-decoration:underline;pointer-events:auto;">https://colourbill.com</a> &nbsp;&copy;&nbsp; William Li 2026 &nbsp;<span id="app-version"></span>&nbsp;
+    <a href="#" id="subscribe-link" onclick="openSubscribeModal(event)"
+       title="Get notified about new chardata releases" data-i18n-title="sub_link_title"
+       style="color:#0066cc;text-decoration:underline;pointer-events:auto;margin-left:6px;">
+      <span aria-hidden="true">&#9993;</span>
+      <span class="subscribe-link-text" data-i18n="sub_link">Subscribe</span>
+    </a>
   </div>
+
+  <!-- Subscribe modal (mockup — no backend yet) -->
+  <div id="subscribe-overlay" onclick="closeSubscribeModal()"
+    style="display:none;position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,0.45);">
+    <div id="subscribe-dialog" onclick="event.stopPropagation()"
+      style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+             width:min(92vw,440px);max-height:92vh;overflow:auto;
+             background:#fff;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,0.3);
+             font-family:Arial,Helvetica,sans-serif;color:#333;">
+      <div class="subscribe-divider" style="display:flex;align-items:center;justify-content:space-between;
+                  padding:14px 18px;border-bottom:1px solid #e4e4e4;">
+        <span id="subscribe-title" data-i18n="sub_title" style="font-size:15px;font-weight:bold;color:#333;">Get notified about new releases</span>
+        <button onclick="closeSubscribeModal()" class="subscribe-close-x"
+                aria-label="Close" data-i18n-aria="sub_close"
+                style="background:none;border:none;font-size:18px;color:#888;cursor:pointer;padding:2px 8px;line-height:1;">&#10005;</button>
+      </div>
+
+      <form id="subscribe-form" onsubmit="submitSubscribe(event)"
+            style="padding:18px;display:flex;flex-direction:column;gap:14px;">
+        <!-- Time-trap: form-load timestamp, validated server-side. Bots that
+             submit instantly are filtered out. -->
+        <input type="hidden" name="t0" id="subscribe-t0" value="0">
+        <input type="hidden" name="source" value="chardata">
+
+        <div class="subscribe-body-copy" data-i18n="sub_body"
+             style="font-size:13px;color:#555;line-height:1.45;">
+          We'll email you when a new major or minor chardata release ships.
+          Patch releases are skipped. Your address is reviewed manually before being added.
+        </div>
+
+        <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:#555;font-weight:600;">
+          <span data-i18n="sub_email_label">Email address</span>
+          <input type="email" required autocomplete="email" name="email"
+                 placeholder="you@example.com" data-i18n-ph="sub_email_ph"
+                 style="font-size:16px;padding:9px 11px;border:1px solid #bbb;border-radius:6px;
+                        background:#fff;color:#222;font-family:inherit;">
+        </label>
+
+        <label style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:#555;font-weight:600;">
+          <span data-i18n="sub_note_label">How will you use chardata?</span> <span style="font-weight:400;color:#888;" data-i18n="sub_optional">(optional)</span>
+          <input type="text" name="note" maxlength="120"
+                 placeholder="e.g. evaluating ICC profiles for press calibration"
+                 data-i18n-ph="sub_note_ph"
+                 style="font-size:16px;padding:9px 11px;border:1px solid #bbb;border-radius:6px;
+                        background:#fff;color:#222;font-family:inherit;">
+        </label>
+
+        <!-- Honeypot — real users never see/fill this; bots do. -->
+        <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
+          <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
+
+        <label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#444;line-height:1.4;cursor:pointer;">
+          <input type="checkbox" required name="consent" style="margin-top:3px;flex-shrink:0;">
+          <span data-i18n="sub_consent">I agree to receive emails about chardata releases. I can unsubscribe at any time.</span>
+        </label>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;flex-wrap:wrap;">
+          <button type="button" onclick="closeSubscribeModal()" class="btn-secondary" data-i18n="sub_cancel"
+                  style="padding:9px 16px;font-size:14px;background:#f4f5f7;border:1px solid #ccc;
+                         border-radius:6px;color:#444;cursor:pointer;font-family:inherit;">Cancel</button>
+          <button type="submit" data-i18n="sub_submit"
+                  style="padding:9px 18px;font-size:14px;background:linear-gradient(to bottom,#4a90e2,#2c6cb6);
+                         border:1px solid #2c6cb6;border-radius:6px;color:#fff;cursor:pointer;
+                         font-family:inherit;font-weight:600;">Subscribe</button>
+        </div>
+
+        <div id="subscribe-status" role="status" aria-live="polite"
+             style="display:none;font-size:13px;line-height:1.4;padding:8px 10px;border-radius:6px;"></div>
+      </form>
+
+      <div id="subscribe-thanks" style="display:none;padding:24px 22px;text-align:center;">
+        <div style="font-size:34px;color:#4a90e2;margin-bottom:8px;">&#10003;</div>
+        <div class="subscribe-thanks-title" data-i18n="sub_thanks_title"
+             style="font-size:15px;font-weight:600;color:#333;margin-bottom:8px;">Thanks &mdash; we'll be in touch.</div>
+        <p class="subscribe-thanks-body" data-i18n="sub_thanks_body"
+           style="font-size:13px;color:#666;line-height:1.5;margin:0 0 18px 0;">
+          Once approved you'll receive a welcome email. After that, you'll only hear from us when a new chardata release ships.
+        </p>
+        <button onclick="closeSubscribeModal()" class="btn-secondary" data-i18n="sub_close_btn"
+                style="padding:8px 18px;font-size:14px;background:#f4f5f7;border:1px solid #ccc;
+                       border-radius:6px;color:#444;cursor:pointer;font-family:inherit;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // POST endpoint: production WordPress at colourbill.com. In local dev the
+    // chardata server runs at :3001 while WP runs at localhost (WAMP / Bitnami).
+    // The server allow-lists both origins so this works either way.
+    function _subscribeEndpoint() {
+      const h = location.hostname;
+      if (h === 'localhost' || h === '127.0.0.1') {
+        // Local dev. The Docker WP stack at /tmp/wp-e2e binds WP to :8000;
+        // WAMP/Bitnami typically uses :80. Override with window.__cbSubEndpoint
+        // before opening the modal if you need a different port.
+        return window.__cbSubEndpoint || 'http://localhost:8000/wp-admin/admin-ajax.php';
+      }
+      return 'https://colourbill.com/wp-admin/admin-ajax.php';
+    }
+
+    function _setSubscribeStatus(msg, kind) {
+      const el = document.getElementById('subscribe-status');
+      if (!el) return;
+      if (!msg) { el.style.display = 'none'; el.textContent = ''; return; }
+      el.textContent = msg;
+      el.style.display = 'block';
+      if (kind === 'error') {
+        el.style.background = '#fef2f2';
+        el.style.color = '#b91c1c';
+        el.style.border = '1px solid #f6c4c4';
+      } else {
+        el.style.background = '#f0f9ff';
+        el.style.color = '#075985';
+        el.style.border = '1px solid #b9def0';
+      }
+    }
+
+    function openSubscribeModal(ev) {
+      if (ev) ev.preventDefault();
+      document.getElementById('subscribe-form').style.display = 'flex';
+      document.getElementById('subscribe-thanks').style.display = 'none';
+      document.getElementById('subscribe-overlay').style.display = 'block';
+      _setSubscribeStatus('', '');
+      // Stamp the form-load time for the server-side time-trap (rejects <1.5s submits).
+      const t0Input = document.getElementById('subscribe-t0');
+      if (t0Input) t0Input.value = String(Date.now());
+      // Defer focus so iOS doesn't fight the open animation.
+      setTimeout(() => {
+        const el = document.querySelector('#subscribe-form input[name="email"]');
+        if (el) el.focus();
+      }, 50);
+    }
+    function closeSubscribeModal() {
+      document.getElementById('subscribe-overlay').style.display = 'none';
+    }
+
+    async function submitSubscribe(ev) {
+      ev.preventDefault();
+      const form = document.getElementById('subscribe-form');
+      const submitBtn = form.querySelector('button[type="submit"]');
+      _setSubscribeStatus('', '');
+      if (submitBtn) submitBtn.disabled = true;
+
+      const data = new FormData(form);
+      data.append('action', 'cb_subscribe');
+
+      try {
+        const res = await fetch(_subscribeEndpoint(), {
+          method: 'POST',
+          body: data,
+          // Cross-origin to the WP host — no cookies needed (the endpoint is
+          // public). credentials:'omit' keeps the request CORS-safelisted.
+          credentials: 'omit',
+        });
+        let json = null;
+        try { json = await res.json(); } catch (_) { /* non-JSON response */ }
+
+        if (res.ok && json && json.success) {
+          // Switch to the thanks panel — server has accepted the request.
+          form.style.display = 'none';
+          document.getElementById('subscribe-thanks').style.display = 'block';
+        } else {
+          const msg = (json && json.data && json.data.message) ||
+                      (res.status === 429 ? 'Too many requests. Please try again later.' :
+                       res.status === 400 ? 'Please check the form and try again.' :
+                       'Could not send your request. Please try again.');
+          _setSubscribeStatus(msg, 'error');
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      } catch (_) {
+        _setSubscribeStatus('Network error. Please try again.', 'error');
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('subscribe-overlay').style.display === 'block') {
+        closeSubscribeModal();
+      }
+    });
+  </script>
 </body>
 </html>
