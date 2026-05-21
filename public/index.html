@@ -1373,6 +1373,8 @@ or ICC profiles</span>
         icc_summary_device_class:'Device class',
         icc_summary_colorants:'Colorants',
         icc_summary_rendering_intents:'Rendering intents',
+        est_icc_a2b_eval:'ICC A2B Evaluation',
+        est_icc_output:'ICC Output',
       },
       fr: {
         settings:'Paramètres', de_method:'Méthode ΔE', filter_dups:'Filtrer les doublons',
@@ -1523,6 +1525,8 @@ or ICC profiles</span>
         icc_summary_device_class:'Classe de périphérique',
         icc_summary_colorants:'Colorants',
         icc_summary_rendering_intents:'Intentions de rendu',
+        est_icc_a2b_eval:'Évaluation ICC A2B',
+        est_icc_output:'Sortie ICC',
       },
       de: {
         settings:'Einstellungen', de_method:'ΔE-Methode', filter_dups:'Duplikate filtern',
@@ -1673,6 +1677,8 @@ or ICC profiles</span>
         icc_summary_device_class:'Geräteklasse',
         icc_summary_colorants:'Farbmittel',
         icc_summary_rendering_intents:'Rendering-Intents',
+        est_icc_a2b_eval:'ICC-A2B-Auswertung',
+        est_icc_output:'ICC-Ausgabe',
       },
       it: {
         settings:'Impostazioni', de_method:'Metodo ΔE', filter_dups:'Filtra duplicati',
@@ -1823,6 +1829,8 @@ or ICC profiles</span>
         icc_summary_device_class:'Classe dispositivo',
         icc_summary_colorants:'Coloranti',
         icc_summary_rendering_intents:'Intenti di rendering',
+        est_icc_a2b_eval:'Valutazione ICC A2B',
+        est_icc_output:'Uscita ICC',
       },
       es: {
         settings:'Configuración', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -1973,6 +1981,8 @@ or ICC profiles</span>
         icc_summary_device_class:'Clase de dispositivo',
         icc_summary_colorants:'Colorantes',
         icc_summary_rendering_intents:'Propósitos de representación',
+        est_icc_a2b_eval:'Evaluación ICC A2B',
+        est_icc_output:'Salida ICC',
       },
       'pt-PT': {
         settings:'Definições', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -2123,6 +2133,8 @@ or ICC profiles</span>
         icc_summary_device_class:'Classe do dispositivo',
         icc_summary_colorants:'Colorantes',
         icc_summary_rendering_intents:'Intenções de processamento',
+        est_icc_a2b_eval:'Avaliação ICC A2B',
+        est_icc_output:'Saída ICC',
       },
       'pt-BR': {
         settings:'Configurações', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -2273,6 +2285,8 @@ or ICC profiles</span>
         icc_summary_device_class:'Classe do dispositivo',
         icc_summary_colorants:'Colorantes',
         icc_summary_rendering_intents:'Intenções de renderização',
+        est_icc_a2b_eval:'Avaliação ICC A2B',
+        est_icc_output:'Saída ICC',
       },
       'zh-CN': {
         settings:'设置', de_method:'ΔE 方法', filter_dups:'过滤重复项',
@@ -2423,6 +2437,8 @@ or ICC profiles</span>
         icc_summary_device_class:'设备类型',
         icc_summary_colorants:'色度',
         icc_summary_rendering_intents:'渲染意图',
+        est_icc_a2b_eval:'ICC A2B 评估',
+        est_icc_output:'ICC 输出',
       },
       'zh-TW': {
         settings:'設定', de_method:'ΔE 方法', filter_dups:'過濾重複項',
@@ -2573,6 +2589,8 @@ or ICC profiles</span>
         icc_summary_device_class:'裝置類型',
         icc_summary_colorants:'色度',
         icc_summary_rendering_intents:'渲染意圖',
+        est_icc_a2b_eval:'ICC A2B 評估',
+        est_icc_output:'ICC 輸出',
       },
       ja: {
         settings:'設定', de_method:'ΔE 方法', filter_dups:'重複フィルター',
@@ -2723,6 +2741,8 @@ or ICC profiles</span>
         icc_summary_device_class:'デバイスクラス',
         icc_summary_colorants:'色材',
         icc_summary_rendering_intents:'レンダリングインテント',
+        est_icc_a2b_eval:'ICC A2B 評価',
+        est_icc_output:'ICC 出力',
       },
       ko: {
         settings:'설정', de_method:'ΔE 방법', filter_dups:'중복 필터',
@@ -2873,6 +2893,8 @@ or ICC profiles</span>
         icc_summary_device_class:'장치 클래스',
         icc_summary_colorants:'컬러런트',
         icc_summary_rendering_intents:'렌더링 의도',
+        est_icc_a2b_eval:'ICC A2B 평가',
+        est_icc_output:'ICC 출력',
       },
       sv: {
         settings:'Inställningar', de_method:'ΔE-metod', filter_dups:'Filtrera dubbletter',
@@ -3028,6 +3050,8 @@ or ICC profiles</span>
         icc_summary_device_class:'Enhetsklass',
         icc_summary_colorants:'Färgmedel',
         icc_summary_rendering_intents:'Renderingsintentioner',
+        est_icc_a2b_eval:'ICC A2B-utvärdering',
+        est_icc_output:'ICC-utdata',
       },
     };
 
@@ -3169,6 +3193,9 @@ or ICC profiles</span>
       _lang = lang;
       localStorage.setItem('lang', lang);
       applyTranslations();
+      // "System default (…)" option text is set imperatively (the native locale name
+      // is interpolated), so applyTranslations() doesn't touch it. Re-derive here.
+      updateSysDefaultLabel();
       refreshPanelUI('a');
       refreshPanelUI('b');
       updateValidateFileLabel();
@@ -3183,7 +3210,10 @@ or ICC profiles</span>
       // legend "click to toggle" tooltip pick up the new language.
       renderSlicePlot();
       if (_mode === 'explore' && state.a) renderExplore();
-      else if (_mode === 'compare' && state.a && state.b && _cmpData) runCompare();
+      // Drop the _cmpData guard: runCompare may have rendered a no-match error
+      // straight into resultEl and returned without setting _cmpData. Those error
+      // strings live in the DOM in the old language until runCompare re-runs.
+      else if (_mode === 'compare' && state.a && state.b) runCompare();
     }
 
     // ── Spectral tables: 380–780 nm, 10 nm intervals (41 entries) ─────────────
@@ -7603,12 +7633,12 @@ or ICC profiles</span>
         ).join('');
 
         return `<div style="padding:12px 16px;">
-          <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">ICC A2B Evaluation</div>
+          <div style="font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">${t('est_icc_a2b_eval')}</div>
           <table style="border-collapse:collapse;margin-top:4px;">
             <tbody>
               ${colorantRows}
               <tr><td colspan="3" style="border-top:1px solid #eee;padding-top:4px;"></td></tr>
-              <tr><th></th><th style="${TH}padding-top:4px;">ICC Output</th><th></th></tr>
+              <tr><th></th><th style="${TH}padding-top:4px;">${t('est_icc_output')}</th><th></th></tr>
               ${labRows}
             </tbody>
           </table>
