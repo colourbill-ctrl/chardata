@@ -865,7 +865,7 @@
 
   <!-- Left file-select blade -->
   <div id="file-select-blade">
-    <button id="fs-sheet-handle" aria-label="Close file select"></button>
+    <button id="fs-sheet-handle" data-i18n-aria="close_file_select" aria-label="Close file select"></button>
     <div id="file-select-blade-content">
       <div id="file-select-add-btn-wrap" style="display:flex;align-items:flex-start;gap:6px;">
         <label class="file-label"
@@ -915,7 +915,7 @@ or ICC profiles</span>
         </div>
       </div>
     </div>
-    <div id="fs-resize-handle" title="Drag to resize"></div>
+    <div id="fs-resize-handle" data-i18n-title="drag_to_resize" title="Drag to resize"></div>
     <button id="fs-blade-toggle" data-i18n-title="fs_blade_tooltip" title="File Select: Drop or load files here to select."><span class="fs-icon"><svg width="13" height="16" viewBox="0 0 13 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1.5C1 1.22 1.22 1 1.5 1H8L12 5V14.5C12 14.78 11.78 15 11.5 15H1.5C1.22 15 1 14.78 1 14.5V1.5Z" fill="#a8d4f0" stroke="#6aabd8" stroke-width="1"/><path d="M8 1V5H12" fill="#c8e8f8" stroke="#6aabd8" stroke-width="1" stroke-linejoin="round"/></svg></span><span class="fs-arrow">&#8250;</span></button>
   </div>
 
@@ -945,13 +945,13 @@ or ICC profiles</span>
       <div class="validation" id="valid-a"></div>
       <div class="colorants" id="colorants-a"></div>
       <div id="icc-intent-row-a" style="display:none;margin-top:5px;font-size:12px;color:#555;">
-        Rendering intent:
+        <span data-i18n="rendering_intent_label">Rendering intent:</span>
         <select id="icc-intent-a" style="font-size:12px;padding:2px 6px;margin-left:4px;"
                 onchange="setRenderingIntent('a',+this.value)">
-          <option value="0">Perceptual</option>
-          <option value="1">Relative Colorimetric</option>
-          <option value="2">Saturation</option>
-          <option value="3" selected>Absolute Colorimetric</option>
+          <option value="0" data-i18n="intent_perceptual">Perceptual</option>
+          <option value="1" data-i18n="intent_relative_colorimetric">Relative Colorimetric</option>
+          <option value="2" data-i18n="intent_saturation">Saturation</option>
+          <option value="3" selected data-i18n="intent_absolute_colorimetric">Absolute Colorimetric</option>
         </select>
       </div>
       <div id="status-a" class="dataset-status"></div>
@@ -971,13 +971,13 @@ or ICC profiles</span>
       <div class="validation" id="valid-b"></div>
       <div class="colorants" id="colorants-b"></div>
       <div id="icc-intent-row-b" style="display:none;margin-top:5px;font-size:12px;color:#555;">
-        Rendering intent:
+        <span data-i18n="rendering_intent_label">Rendering intent:</span>
         <select id="icc-intent-b" style="font-size:12px;padding:2px 6px;margin-left:4px;"
                 onchange="setRenderingIntent('b',+this.value)">
-          <option value="0">Perceptual</option>
-          <option value="1">Relative Colorimetric</option>
-          <option value="2">Saturation</option>
-          <option value="3" selected>Absolute Colorimetric</option>
+          <option value="0" data-i18n="intent_perceptual">Perceptual</option>
+          <option value="1" data-i18n="intent_relative_colorimetric">Relative Colorimetric</option>
+          <option value="2" data-i18n="intent_saturation">Saturation</option>
+          <option value="3" selected data-i18n="intent_absolute_colorimetric">Absolute Colorimetric</option>
         </select>
       </div>
       <div id="status-b" class="dataset-status"></div>
@@ -1090,7 +1090,7 @@ or ICC profiles</span>
     <div id="blade-tab">
       <button id="blade-toggle" data-i18n-title="settings" title="Settings"><span class="blade-arrow">&#8250;</span><span class="blade-icon">&#9881;&#xFE0E;</span></button>
       <button id="blade-help-btn" data-i18n-title="help" title="Help" onclick="window.open('help.html','_blank')">?</button>
-      <button id="blade-contact-btn" title="Contact" onclick="window.open('https://www.colourbill.com/?contact=chardata','_blank')">&#9993;</button>
+      <button id="blade-contact-btn" data-i18n-title="contact_btn" title="Contact" onclick="window.open('https://www.colourbill.com/?contact=chardata','_blank')">&#9993;</button>
     </div>
     <div id="blade-content">
       <div style="font-size:15px;font-weight:bold;color:#333;" data-i18n="settings">Settings</div>
@@ -1201,7 +1201,7 @@ or ICC profiles</span>
 </button>
 <button id="mobile-hamburger" data-i18n-title="settings" title="Settings">&#9881;&#xFE0E;</button>
 <button id="mobile-help-btn" data-i18n-title="help" title="Help" onclick="window.open('help.html','_blank')">?</button>
-<button id="mobile-contact-btn" title="Contact" onclick="window.open('https://www.colourbill.com/?contact=chardata','_blank')">&#9993;</button>
+<button id="mobile-contact-btn" data-i18n-title="contact_btn" title="Contact" onclick="window.open('https://www.colourbill.com/?contact=chardata','_blank')">&#9993;</button>
 
   <div id="computing-badge" style="display:none;"><span data-i18n="computing_model">Computing…</span></div>
 
@@ -1355,6 +1355,24 @@ or ICC profiles</span>
         image_err_pdf_no_image:'No image found inside the PDF.',
         image_err_pdf_colorspace:'PDF colour space is not supported. Use Gray, RGB, CMYK, or an ICC-based profile.',
         image_err_pdf_filter:'PDF image filter is not supported. Re-save the PDF with JPEG or ZIP compression.',
+        close_file_select:'Close file select',
+        drag_to_resize:'Drag to resize',
+        contact_btn:'Contact',
+        remove_file_tip:'Remove file',
+        rendering_intent_label:'Rendering intent:',
+        intent_perceptual:'Perceptual',
+        intent_relative_colorimetric:'Relative Colorimetric',
+        intent_saturation:'Saturation',
+        intent_absolute_colorimetric:'Absolute Colorimetric',
+        system_default_lang:'System default ({lang})',
+        icc_load_error:'ICC load error: {msg}',
+        icc_parse_error:'Could not parse ICC profile: {msg}',
+        popup_blocked_editor:'Popup blocked — allow popups for this site to launch the editor.',
+        failed_to_load_file:'Failed to load {name}: {msg}',
+        icc_summary_color_space:'Color space',
+        icc_summary_device_class:'Device class',
+        icc_summary_colorants:'Colorants',
+        icc_summary_rendering_intents:'Rendering intents',
       },
       fr: {
         settings:'Paramètres', de_method:'Méthode ΔE', filter_dups:'Filtrer les doublons',
@@ -1487,6 +1505,24 @@ or ICC profiles</span>
         image_err_pdf_no_image:'Aucune image trouvée dans le PDF.',
         image_err_pdf_colorspace:'Espace colorimétrique PDF non pris en charge. Utilisez Gris, RVB, CMJN ou un profil ICC.',
         image_err_pdf_filter:'Filtre d’image PDF non pris en charge. Réenregistrez le PDF avec une compression JPEG ou ZIP.',
+        close_file_select:'Fermer la sélection de fichiers',
+        drag_to_resize:'Glisser pour redimensionner',
+        contact_btn:'Contact',
+        remove_file_tip:'Supprimer le fichier',
+        rendering_intent_label:'Intention de rendu :',
+        intent_perceptual:'Perceptif',
+        intent_relative_colorimetric:'Colorimétrique relatif',
+        intent_saturation:'Saturation',
+        intent_absolute_colorimetric:'Colorimétrique absolu',
+        system_default_lang:'Par défaut du système ({lang})',
+        icc_load_error:'Erreur de chargement ICC : {msg}',
+        icc_parse_error:'Impossible d’analyser le profil ICC : {msg}',
+        popup_blocked_editor:'Pop-up bloquée — autorisez les pop-ups pour ce site afin de lancer l’éditeur.',
+        failed_to_load_file:'Échec du chargement de {name} : {msg}',
+        icc_summary_color_space:'Espace colorimétrique',
+        icc_summary_device_class:'Classe de périphérique',
+        icc_summary_colorants:'Colorants',
+        icc_summary_rendering_intents:'Intentions de rendu',
       },
       de: {
         settings:'Einstellungen', de_method:'ΔE-Methode', filter_dups:'Duplikate filtern',
@@ -1619,6 +1655,24 @@ or ICC profiles</span>
         image_err_pdf_no_image:'Im PDF wurde kein Bild gefunden.',
         image_err_pdf_colorspace:'PDF-Farbraum nicht unterstützt. Verwenden Sie Grau, RGB, CMYK oder ein ICC-basiertes Profil.',
         image_err_pdf_filter:'PDF-Bildfilter nicht unterstützt. PDF mit JPEG- oder ZIP-Komprimierung erneut speichern.',
+        close_file_select:'Dateiauswahl schließen',
+        drag_to_resize:'Ziehen zum Ändern der Größe',
+        contact_btn:'Kontakt',
+        remove_file_tip:'Datei entfernen',
+        rendering_intent_label:'Rendering-Intent:',
+        intent_perceptual:'Perzeptiv',
+        intent_relative_colorimetric:'Relativ farbmetrisch',
+        intent_saturation:'Sättigung',
+        intent_absolute_colorimetric:'Absolut farbmetrisch',
+        system_default_lang:'Systemstandard ({lang})',
+        icc_load_error:'ICC-Ladefehler: {msg}',
+        icc_parse_error:'ICC-Profil konnte nicht analysiert werden: {msg}',
+        popup_blocked_editor:'Popup blockiert — bitte Popups für diese Seite zulassen, um den Editor zu starten.',
+        failed_to_load_file:'{name} konnte nicht geladen werden: {msg}',
+        icc_summary_color_space:'Farbraum',
+        icc_summary_device_class:'Geräteklasse',
+        icc_summary_colorants:'Farbmittel',
+        icc_summary_rendering_intents:'Rendering-Intents',
       },
       it: {
         settings:'Impostazioni', de_method:'Metodo ΔE', filter_dups:'Filtra duplicati',
@@ -1751,6 +1805,24 @@ or ICC profiles</span>
         image_err_pdf_no_image:'Nessuna immagine trovata nel PDF.',
         image_err_pdf_colorspace:'Spazio colore PDF non supportato. Usa Grigio, RGB, CMYK o un profilo ICC.',
         image_err_pdf_filter:'Filtro immagine PDF non supportato. Salva nuovamente il PDF con compressione JPEG o ZIP.',
+        close_file_select:'Chiudi selezione file',
+        drag_to_resize:'Trascina per ridimensionare',
+        contact_btn:'Contatto',
+        remove_file_tip:'Rimuovi file',
+        rendering_intent_label:'Intento di rendering:',
+        intent_perceptual:'Percettivo',
+        intent_relative_colorimetric:'Colorimetrico relativo',
+        intent_saturation:'Saturazione',
+        intent_absolute_colorimetric:'Colorimetrico assoluto',
+        system_default_lang:'Predefinito di sistema ({lang})',
+        icc_load_error:'Errore di caricamento ICC: {msg}',
+        icc_parse_error:'Impossibile analizzare il profilo ICC: {msg}',
+        popup_blocked_editor:'Popup bloccato — consenti i popup per questo sito per avviare l’editor.',
+        failed_to_load_file:'Caricamento di {name} non riuscito: {msg}',
+        icc_summary_color_space:'Spazio colore',
+        icc_summary_device_class:'Classe dispositivo',
+        icc_summary_colorants:'Coloranti',
+        icc_summary_rendering_intents:'Intenti di rendering',
       },
       es: {
         settings:'Configuración', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -1883,6 +1955,24 @@ or ICC profiles</span>
         image_err_pdf_no_image:'No se encontró ninguna imagen dentro del PDF.',
         image_err_pdf_colorspace:'Espacio de color del PDF no compatible. Use Gris, RGB, CMYK o un perfil ICC.',
         image_err_pdf_filter:'Filtro de imagen del PDF no compatible. Vuelva a guardar el PDF con compresión JPEG o ZIP.',
+        close_file_select:'Cerrar selección de archivos',
+        drag_to_resize:'Arrastrar para cambiar el tamaño',
+        contact_btn:'Contacto',
+        remove_file_tip:'Eliminar archivo',
+        rendering_intent_label:'Propósito de representación:',
+        intent_perceptual:'Perceptual',
+        intent_relative_colorimetric:'Colorimétrico relativo',
+        intent_saturation:'Saturación',
+        intent_absolute_colorimetric:'Colorimétrico absoluto',
+        system_default_lang:'Predeterminado del sistema ({lang})',
+        icc_load_error:'Error al cargar ICC: {msg}',
+        icc_parse_error:'No se pudo analizar el perfil ICC: {msg}',
+        popup_blocked_editor:'Ventana emergente bloqueada — permita las ventanas emergentes en este sitio para iniciar el editor.',
+        failed_to_load_file:'No se pudo cargar {name}: {msg}',
+        icc_summary_color_space:'Espacio de color',
+        icc_summary_device_class:'Clase de dispositivo',
+        icc_summary_colorants:'Colorantes',
+        icc_summary_rendering_intents:'Propósitos de representación',
       },
       'pt-PT': {
         settings:'Definições', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -2015,6 +2105,24 @@ or ICC profiles</span>
         image_err_pdf_no_image:'Não foi encontrada nenhuma imagem no PDF.',
         image_err_pdf_colorspace:'Espaço de cor do PDF não suportado. Use Cinza, RGB, CMYK ou um perfil ICC.',
         image_err_pdf_filter:'Filtro de imagem do PDF não suportado. Volte a guardar o PDF com compressão JPEG ou ZIP.',
+        close_file_select:'Fechar seleção de ficheiros',
+        drag_to_resize:'Arrastar para redimensionar',
+        contact_btn:'Contacto',
+        remove_file_tip:'Remover ficheiro',
+        rendering_intent_label:'Intenção de processamento:',
+        intent_perceptual:'Perceptual',
+        intent_relative_colorimetric:'Colorimétrico relativo',
+        intent_saturation:'Saturação',
+        intent_absolute_colorimetric:'Colorimétrico absoluto',
+        system_default_lang:'Predefinição do sistema ({lang})',
+        icc_load_error:'Erro ao carregar ICC: {msg}',
+        icc_parse_error:'Não foi possível analisar o perfil ICC: {msg}',
+        popup_blocked_editor:'Pop-up bloqueada — permita pop-ups deste site para abrir o editor.',
+        failed_to_load_file:'Falha ao carregar {name}: {msg}',
+        icc_summary_color_space:'Espaço de cor',
+        icc_summary_device_class:'Classe do dispositivo',
+        icc_summary_colorants:'Colorantes',
+        icc_summary_rendering_intents:'Intenções de processamento',
       },
       'pt-BR': {
         settings:'Configurações', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -2147,6 +2255,24 @@ or ICC profiles</span>
         image_err_pdf_no_image:'Nenhuma imagem encontrada dentro do PDF.',
         image_err_pdf_colorspace:'Espaço de cor do PDF não suportado. Use Cinza, RGB, CMYK ou um perfil ICC.',
         image_err_pdf_filter:'Filtro de imagem do PDF não suportado. Salve o PDF novamente com compressão JPEG ou ZIP.',
+        close_file_select:'Fechar seleção de arquivos',
+        drag_to_resize:'Arrastar para redimensionar',
+        contact_btn:'Contato',
+        remove_file_tip:'Remover arquivo',
+        rendering_intent_label:'Intenção de renderização:',
+        intent_perceptual:'Perceptiva',
+        intent_relative_colorimetric:'Colorimétrica relativa',
+        intent_saturation:'Saturação',
+        intent_absolute_colorimetric:'Colorimétrica absoluta',
+        system_default_lang:'Padrão do sistema ({lang})',
+        icc_load_error:'Erro ao carregar ICC: {msg}',
+        icc_parse_error:'Não foi possível analisar o perfil ICC: {msg}',
+        popup_blocked_editor:'Pop-up bloqueado — permita pop-ups deste site para abrir o editor.',
+        failed_to_load_file:'Falha ao carregar {name}: {msg}',
+        icc_summary_color_space:'Espaço de cor',
+        icc_summary_device_class:'Classe do dispositivo',
+        icc_summary_colorants:'Colorantes',
+        icc_summary_rendering_intents:'Intenções de renderização',
       },
       'zh-CN': {
         settings:'设置', de_method:'ΔE 方法', filter_dups:'过滤重复项',
@@ -2279,6 +2405,24 @@ or ICC profiles</span>
         image_err_pdf_no_image:'在 PDF 中找不到图像。',
         image_err_pdf_colorspace:'不支持的 PDF 色彩空间。请使用灰度、RGB、CMYK 或基于 ICC 的配置文件。',
         image_err_pdf_filter:'不支持的 PDF 图像过滤器。请使用 JPEG 或 ZIP 压缩重新保存 PDF。',
+        close_file_select:'关闭文件选择',
+        drag_to_resize:'拖动以调整大小',
+        contact_btn:'联系',
+        remove_file_tip:'删除文件',
+        rendering_intent_label:'渲染意图：',
+        intent_perceptual:'感知',
+        intent_relative_colorimetric:'相对比色',
+        intent_saturation:'饱和度',
+        intent_absolute_colorimetric:'绝对比色',
+        system_default_lang:'系统默认（{lang}）',
+        icc_load_error:'ICC 加载错误：{msg}',
+        icc_parse_error:'无法解析 ICC 配置文件：{msg}',
+        popup_blocked_editor:'弹出窗口已被拦截 — 请允许此站点的弹出窗口以启动编辑器。',
+        failed_to_load_file:'加载 {name} 失败：{msg}',
+        icc_summary_color_space:'色彩空间',
+        icc_summary_device_class:'设备类型',
+        icc_summary_colorants:'色度',
+        icc_summary_rendering_intents:'渲染意图',
       },
       'zh-TW': {
         settings:'設定', de_method:'ΔE 方法', filter_dups:'過濾重複項',
@@ -2411,6 +2555,24 @@ or ICC profiles</span>
         image_err_pdf_no_image:'在 PDF 中找不到影像。',
         image_err_pdf_colorspace:'不支援的 PDF 色彩空間。請使用灰階、RGB、CMYK 或基於 ICC 的描述檔。',
         image_err_pdf_filter:'不支援的 PDF 影像濾鏡。請使用 JPEG 或 ZIP 壓縮重新儲存 PDF。',
+        close_file_select:'關閉檔案選擇',
+        drag_to_resize:'拖曳以調整大小',
+        contact_btn:'聯絡',
+        remove_file_tip:'刪除檔案',
+        rendering_intent_label:'渲染意圖：',
+        intent_perceptual:'感知',
+        intent_relative_colorimetric:'相對比色',
+        intent_saturation:'飽和度',
+        intent_absolute_colorimetric:'絕對比色',
+        system_default_lang:'系統預設（{lang}）',
+        icc_load_error:'ICC 載入錯誤：{msg}',
+        icc_parse_error:'無法解析 ICC 描述檔：{msg}',
+        popup_blocked_editor:'彈出視窗已被封鎖 — 請允許此網站的彈出視窗以啟動編輯器。',
+        failed_to_load_file:'載入 {name} 失敗：{msg}',
+        icc_summary_color_space:'色彩空間',
+        icc_summary_device_class:'裝置類型',
+        icc_summary_colorants:'色度',
+        icc_summary_rendering_intents:'渲染意圖',
       },
       ja: {
         settings:'設定', de_method:'ΔE 方法', filter_dups:'重複フィルター',
@@ -2543,6 +2705,24 @@ or ICC profiles</span>
         image_err_pdf_no_image:'PDF 内に画像が見つかりませんでした。',
         image_err_pdf_colorspace:'PDF の色空間はサポートされていません。グレー、RGB、CMYK、または ICC ベースのプロファイルを使用してください。',
         image_err_pdf_filter:'PDF の画像フィルターはサポートされていません。JPEG または ZIP 圧縮で PDF を保存し直してください。',
+        close_file_select:'ファイル選択を閉じる',
+        drag_to_resize:'ドラッグしてサイズ変更',
+        contact_btn:'お問い合わせ',
+        remove_file_tip:'ファイルを削除',
+        rendering_intent_label:'レンダリングインテント：',
+        intent_perceptual:'知覚的',
+        intent_relative_colorimetric:'相対比色',
+        intent_saturation:'彩度',
+        intent_absolute_colorimetric:'絶対比色',
+        system_default_lang:'システム既定（{lang}）',
+        icc_load_error:'ICC 読み込みエラー：{msg}',
+        icc_parse_error:'ICC プロファイルを解析できませんでした：{msg}',
+        popup_blocked_editor:'ポップアップがブロックされました — エディターを起動するにはこのサイトのポップアップを許可してください。',
+        failed_to_load_file:'{name} の読み込みに失敗しました：{msg}',
+        icc_summary_color_space:'色空間',
+        icc_summary_device_class:'デバイスクラス',
+        icc_summary_colorants:'色材',
+        icc_summary_rendering_intents:'レンダリングインテント',
       },
       ko: {
         settings:'설정', de_method:'ΔE 방법', filter_dups:'중복 필터',
@@ -2675,6 +2855,24 @@ or ICC profiles</span>
         image_err_pdf_no_image:'PDF에서 이미지를 찾을 수 없습니다.',
         image_err_pdf_colorspace:'지원되지 않는 PDF 색 공간입니다. 회색, RGB, CMYK 또는 ICC 기반 프로필을 사용하세요.',
         image_err_pdf_filter:'지원되지 않는 PDF 이미지 필터입니다. JPEG 또는 ZIP 압축으로 PDF를 다시 저장하세요.',
+        close_file_select:'파일 선택 닫기',
+        drag_to_resize:'드래그하여 크기 조정',
+        contact_btn:'문의',
+        remove_file_tip:'파일 제거',
+        rendering_intent_label:'렌더링 의도:',
+        intent_perceptual:'지각적',
+        intent_relative_colorimetric:'상대 색도',
+        intent_saturation:'채도',
+        intent_absolute_colorimetric:'절대 색도',
+        system_default_lang:'시스템 기본값 ({lang})',
+        icc_load_error:'ICC 로드 오류: {msg}',
+        icc_parse_error:'ICC 프로필을 분석할 수 없습니다: {msg}',
+        popup_blocked_editor:'팝업이 차단되었습니다 — 편집기를 시작하려면 이 사이트의 팝업을 허용하세요.',
+        failed_to_load_file:'{name}을(를) 불러오지 못했습니다: {msg}',
+        icc_summary_color_space:'색공간',
+        icc_summary_device_class:'장치 클래스',
+        icc_summary_colorants:'컬러런트',
+        icc_summary_rendering_intents:'렌더링 의도',
       },
       sv: {
         settings:'Inställningar', de_method:'ΔE-metod', filter_dups:'Filtrera dubbletter',
@@ -2812,6 +3010,24 @@ or ICC profiles</span>
         image_err_pdf_no_image:'Ingen bild hittades i PDF:en.',
         image_err_pdf_colorspace:'PDF-färgrymden stöds inte. Använd Grå, RGB, CMYK eller en ICC-baserad profil.',
         image_err_pdf_filter:'PDF-bildfiltret stöds inte. Spara om PDF:en med JPEG- eller ZIP-komprimering.',
+        close_file_select:'Stäng filval',
+        drag_to_resize:'Dra för att ändra storlek',
+        contact_btn:'Kontakt',
+        remove_file_tip:'Ta bort fil',
+        rendering_intent_label:'Renderingsintention:',
+        intent_perceptual:'Perceptuell',
+        intent_relative_colorimetric:'Relativ kolorimetrisk',
+        intent_saturation:'Mättnad',
+        intent_absolute_colorimetric:'Absolut kolorimetrisk',
+        system_default_lang:'Systemstandard ({lang})',
+        icc_load_error:'ICC-laddningsfel: {msg}',
+        icc_parse_error:'Det gick inte att tolka ICC-profilen: {msg}',
+        popup_blocked_editor:'Popup blockerad — tillåt popup-fönster för den här webbplatsen för att starta redigeraren.',
+        failed_to_load_file:'Det gick inte att läsa in {name}: {msg}',
+        icc_summary_color_space:'Färgrymd',
+        icc_summary_device_class:'Enhetsklass',
+        icc_summary_colorants:'Färgmedel',
+        icc_summary_rendering_intents:'Renderingsintentioner',
       },
     };
 
@@ -2846,7 +3062,7 @@ or ICC profiles</span>
     // Update the "System default (…)" option text to reflect the current OS locale.
     function updateSysDefaultLabel() {
       const opt = document.getElementById('lang-opt-system');
-      if (opt) opt.textContent = 'System default (' + (_LANG_NATIVE[detectLang()] || 'English') + ')';
+      if (opt) opt.textContent = t('system_default_lang', { lang: _LANG_NATIVE[detectLang()] || 'English' });
     }
 
     function escapeHtml(s) {
@@ -2940,6 +3156,9 @@ or ICC profiles</span>
       });
       document.querySelectorAll('[data-i18n-ph]').forEach(el => {
         el.placeholder = t(el.dataset.i18nPh);
+      });
+      document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+        el.setAttribute('aria-label', t(el.dataset.i18nAria));
       });
       document.querySelectorAll('[data-i18n-slot]').forEach(el => {
         el.textContent = t('dataset_slot', {slot: el.dataset.i18nSlot});
@@ -3601,7 +3820,7 @@ or ICC profiles</span>
       try {
         iccInfo = await Gamut.loadIccProfile(buffer);
       } catch (err) {
-        document.getElementById('valid-' + slot).textContent = 'ICC load error: ' + (err.message || err);
+        document.getElementById('valid-' + slot).textContent = t('icc_load_error', { msg: err.message || String(err) });
         document.getElementById('valid-' + slot).className = 'validation invalid';
         state[slot] = null;
         document.getElementById('show-file-' + slot).disabled = true;
@@ -3936,7 +4155,7 @@ or ICC profiles</span>
         _setIccTab('header');
       } catch (e) {
         loading.style.display = 'none';
-        errBox.textContent = 'Could not parse ICC profile: ' + (e && e.message ? e.message : e);
+        errBox.textContent = t('icc_parse_error', { msg: e && e.message ? e.message : String(e) });
         errBox.style.display = '';
       }
     }
@@ -3963,7 +4182,7 @@ or ICC profiles</span>
       const targetOrigin = isLocal ? 'http://localhost:5173' : location.origin;
       const win = window.open(url, '_blank');
       if (!win) {
-        alert('Popup blocked — allow popups for this site to launch the editor.');
+        alert(t('popup_blocked_editor'));
         return;
       }
       const filename = (_rawFileData[_iccViewerState.slot] && _rawFileData[_iccViewerState.slot].fileName) || 'profile.icc';
@@ -4276,7 +4495,7 @@ or ICC profiles</span>
 
         const delBtn = document.createElement('button');
         delBtn.className = 'file-card-delete';
-        delBtn.title = 'Remove file';
+        delBtn.title = t('remove_file_tip');
         delBtn.innerHTML = '<svg width="11" height="13" viewBox="0 0 11 13" fill="currentColor"><rect x="1" y="2.5" width="9" height="1.2" rx="0.5"/><rect x="3.5" y="0.5" width="4" height="2" rx="0.5"/><path d="M2 4.2l.55 7.3h5.9l.55-7.3z"/></svg>';
         delBtn.addEventListener('click', e => { e.stopPropagation(); deleteFile(entry.id); });
         card.appendChild(delBtn);
@@ -4309,7 +4528,7 @@ or ICC profiles</span>
               const file = new File([text], stdFname, { type: 'text/plain', lastModified: 0 });
               addFileToList(file, slot);
             })
-            .catch(err => alert('Failed to load ' + stdFname + ': ' + err.message));
+            .catch(err => alert(t('failed_to_load_file', { name: stdFname, msg: err.message })));
           return;
         }
         // OS file dropped directly on panel — add to list and assign
@@ -4394,7 +4613,7 @@ or ICC profiles</span>
                    : (_cardAssignments.b === null ? 'b' : 'a');
         addFileToList(file, slot);
       } catch (err) {
-        alert('Failed to load ' + fname + ': ' + err.message);
+        alert(t('failed_to_load_file', { name: fname, msg: err.message }));
       } finally {
         row.classList.remove('loading');
       }
@@ -5843,7 +6062,7 @@ or ICC profiles</span>
       const resultEl = document.getElementById('result');
       const icc = _iccState.a;
       const info = icc.info || {};
-      const intentNames = ['Perceptual', 'Relative Colorimetric', 'Saturation', 'Absolute Colorimetric'];
+      const intentNames = [t('intent_perceptual'), t('intent_relative_colorimetric'), t('intent_saturation'), t('intent_absolute_colorimetric')];
       const intentsAvail = (info.intents || []).map(i => intentNames[i] || `Intent ${i}`).join(', ') || '—';
 
       const _openSections = new Set(['icc-patches-wrap', 'est-wrap'].filter(id => {
@@ -5892,10 +6111,10 @@ or ICC profiles</span>
         <div style="margin-top:16px;padding:12px 14px;background:#f8f9fa;border:1px solid #ddd;border-radius:6px;font-size:13px;">
           <div style="font-weight:bold;font-size:14px;margin-bottom:8px;color:#333;">${escapeHtml(a.name)}</div>
           <table style="border-collapse:collapse;font-size:12px;color:#555;">
-            <tr><td style="padding:2px 16px 2px 0;color:#888;">Color space</td><td style="padding:2px 0;">${info.colorSpace || '—'}</td></tr>
-            <tr><td style="padding:2px 16px 2px 0;color:#888;">Device class</td><td style="padding:2px 0;">${info.deviceClass || '—'}</td></tr>
-            <tr><td style="padding:2px 16px 2px 0;color:#888;">Colorants</td><td style="padding:2px 0;">${a.colorants.map(escapeHtml).join(', ')}</td></tr>
-            <tr><td style="padding:2px 16px 2px 0;color:#888;">Rendering intents</td><td style="padding:2px 0;">${intentsAvail}</td></tr>
+            <tr><td style="padding:2px 16px 2px 0;color:#888;">${t('icc_summary_color_space')}</td><td style="padding:2px 0;">${info.colorSpace || '—'}</td></tr>
+            <tr><td style="padding:2px 16px 2px 0;color:#888;">${t('icc_summary_device_class')}</td><td style="padding:2px 0;">${info.deviceClass || '—'}</td></tr>
+            <tr><td style="padding:2px 16px 2px 0;color:#888;">${t('icc_summary_colorants')}</td><td style="padding:2px 0;">${a.colorants.map(escapeHtml).join(', ')}</td></tr>
+            <tr><td style="padding:2px 16px 2px 0;color:#888;">${t('icc_summary_rendering_intents')}</td><td style="padding:2px 0;">${intentsAvail}</td></tr>
           </table>
         </div>
         ${patchTableHTML}
