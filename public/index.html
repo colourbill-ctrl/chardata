@@ -1001,6 +1001,14 @@ or ICC profiles</span>
           </select>
         </div>
         <div>
+          <div style="font-size:11px;color:#666;margin-bottom:3px;" data-i18n="image_detail_label">Image detail</div>
+          <select id="image-detail-select" style="font-size:13px;padding:3px 6px;" onchange="onImageDetailChange(this.value)">
+            <option value="coarse" data-i18n="image_detail_coarse">Coarse</option>
+            <option value="standard" data-i18n="image_detail_standard" selected>Standard</option>
+            <option value="fine" data-i18n="image_detail_fine">Fine</option>
+          </select>
+        </div>
+        <div>
           <button id="image-load-btn" onclick="document.getElementById('image-file-input').click()"
                   style="padding:6px 12px;font-size:13px;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;cursor:pointer;color:#333;" data-i18n="load_image_btn">Load Image</button>
           <input type="file" id="image-file-input" accept="image/png,image/jpeg,image/tiff,image/bmp,image/gif,application/pdf,.tif,.tiff,.bmp,.gif,.pdf" style="display:none;" onchange="onImageFileSelected(this.files && this.files[0])">
@@ -1375,6 +1383,10 @@ or ICC profiles</span>
         icc_summary_rendering_intents:'Rendering intents',
         est_icc_a2b_eval:'ICC A2B Evaluation',
         est_icc_output:'ICC Output',
+        image_detail_label:'Image detail',
+        image_detail_coarse:'Coarse',
+        image_detail_standard:'Standard',
+        image_detail_fine:'Fine',
       },
       fr: {
         settings:'Paramètres', de_method:'Méthode ΔE', filter_dups:'Filtrer les doublons',
@@ -1527,6 +1539,10 @@ or ICC profiles</span>
         icc_summary_rendering_intents:'Intentions de rendu',
         est_icc_a2b_eval:'Évaluation ICC A2B',
         est_icc_output:'Sortie ICC',
+        image_detail_label:'Détail de l’image',
+        image_detail_coarse:'Grossier',
+        image_detail_standard:'Standard',
+        image_detail_fine:'Fin',
       },
       de: {
         settings:'Einstellungen', de_method:'ΔE-Methode', filter_dups:'Duplikate filtern',
@@ -1679,6 +1695,10 @@ or ICC profiles</span>
         icc_summary_rendering_intents:'Rendering-Intents',
         est_icc_a2b_eval:'ICC-A2B-Auswertung',
         est_icc_output:'ICC-Ausgabe',
+        image_detail_label:'Bilddetailgrad',
+        image_detail_coarse:'Grob',
+        image_detail_standard:'Standard',
+        image_detail_fine:'Fein',
       },
       it: {
         settings:'Impostazioni', de_method:'Metodo ΔE', filter_dups:'Filtra duplicati',
@@ -1831,6 +1851,10 @@ or ICC profiles</span>
         icc_summary_rendering_intents:'Intenti di rendering',
         est_icc_a2b_eval:'Valutazione ICC A2B',
         est_icc_output:'Uscita ICC',
+        image_detail_label:'Dettaglio immagine',
+        image_detail_coarse:'Grossolano',
+        image_detail_standard:'Standard',
+        image_detail_fine:'Fine',
       },
       es: {
         settings:'Configuración', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -1983,6 +2007,10 @@ or ICC profiles</span>
         icc_summary_rendering_intents:'Propósitos de representación',
         est_icc_a2b_eval:'Evaluación ICC A2B',
         est_icc_output:'Salida ICC',
+        image_detail_label:'Detalle de imagen',
+        image_detail_coarse:'Grueso',
+        image_detail_standard:'Estándar',
+        image_detail_fine:'Fino',
       },
       'pt-PT': {
         settings:'Definições', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -2135,6 +2163,10 @@ or ICC profiles</span>
         icc_summary_rendering_intents:'Intenções de processamento',
         est_icc_a2b_eval:'Avaliação ICC A2B',
         est_icc_output:'Saída ICC',
+        image_detail_label:'Detalhe da imagem',
+        image_detail_coarse:'Grosseiro',
+        image_detail_standard:'Padrão',
+        image_detail_fine:'Fino',
       },
       'pt-BR': {
         settings:'Configurações', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -2287,6 +2319,10 @@ or ICC profiles</span>
         icc_summary_rendering_intents:'Intenções de renderização',
         est_icc_a2b_eval:'Avaliação ICC A2B',
         est_icc_output:'Saída ICC',
+        image_detail_label:'Detalhe da imagem',
+        image_detail_coarse:'Grosso',
+        image_detail_standard:'Padrão',
+        image_detail_fine:'Fino',
       },
       'zh-CN': {
         settings:'设置', de_method:'ΔE 方法', filter_dups:'过滤重复项',
@@ -2439,6 +2475,10 @@ or ICC profiles</span>
         icc_summary_rendering_intents:'渲染意图',
         est_icc_a2b_eval:'ICC A2B 评估',
         est_icc_output:'ICC 输出',
+        image_detail_label:'图像精度',
+        image_detail_coarse:'粗',
+        image_detail_standard:'标准',
+        image_detail_fine:'精细',
       },
       'zh-TW': {
         settings:'設定', de_method:'ΔE 方法', filter_dups:'過濾重複項',
@@ -2591,6 +2631,10 @@ or ICC profiles</span>
         icc_summary_rendering_intents:'渲染意圖',
         est_icc_a2b_eval:'ICC A2B 評估',
         est_icc_output:'ICC 輸出',
+        image_detail_label:'影像精度',
+        image_detail_coarse:'粗',
+        image_detail_standard:'標準',
+        image_detail_fine:'精細',
       },
       ja: {
         settings:'設定', de_method:'ΔE 方法', filter_dups:'重複フィルター',
@@ -2743,6 +2787,10 @@ or ICC profiles</span>
         icc_summary_rendering_intents:'レンダリングインテント',
         est_icc_a2b_eval:'ICC A2B 評価',
         est_icc_output:'ICC 出力',
+        image_detail_label:'画像の精度',
+        image_detail_coarse:'粗い',
+        image_detail_standard:'標準',
+        image_detail_fine:'細かい',
       },
       ko: {
         settings:'설정', de_method:'ΔE 방법', filter_dups:'중복 필터',
@@ -2895,6 +2943,10 @@ or ICC profiles</span>
         icc_summary_rendering_intents:'렌더링 의도',
         est_icc_a2b_eval:'ICC A2B 평가',
         est_icc_output:'ICC 출력',
+        image_detail_label:'이미지 정밀도',
+        image_detail_coarse:'거침',
+        image_detail_standard:'표준',
+        image_detail_fine:'정밀',
       },
       sv: {
         settings:'Inställningar', de_method:'ΔE-metod', filter_dups:'Filtrera dubbletter',
@@ -3052,6 +3104,10 @@ or ICC profiles</span>
         icc_summary_rendering_intents:'Renderingsintentioner',
         est_icc_a2b_eval:'ICC A2B-utvärdering',
         est_icc_output:'ICC-utdata',
+        image_detail_label:'Bilddetalj',
+        image_detail_coarse:'Grov',
+        image_detail_standard:'Standard',
+        image_detail_fine:'Fin',
       },
     };
 
@@ -8246,8 +8302,17 @@ or ICC profiles</span>
     // as a third trace in the 3D plot and 2D slicer (Compare mode only).
 
     const IMAGE_MAX_FILE_BYTES = 100 * 1024 * 1024;   // 100 MB hard cap
-    const IMAGE_TARGET_CELLS   = 2025;                // ≤45×45 bins
-    const IMAGE_DEDUPE_RADIUS  = 1.0;                 // device-units; ink=0..100, scaled per family
+    // Image-detail presets. `cells` is the target output-grid cell count for the
+    // spatial averaging pass (binImage); `radius` is the dedupe distance in device
+    // units (ink 0..100, scaled per family). The user picks one via the Image tab's
+    // "Image detail" dropdown; the choice is persisted in localStorage.
+    const IMAGE_DETAIL_PRESETS = {
+      coarse:   { cells: 900,  radius: 2.0 },   // ~30×30 grid, looser dedupe
+      standard: { cells: 2025, radius: 1.0 },   // ~45×45 grid, default
+      fine:     { cells: 5000, radius: 0.5 },   // ~70×70 grid, tighter dedupe
+    };
+    let _imageDetail = localStorage.getItem('imageDetail');
+    if (!(_imageDetail in IMAGE_DETAIL_PRESETS)) _imageDetail = 'standard';
     const IMAGE_TRACE_COLOR    = '#3a9a3a';           // green — distinct from A (blue) / B (red)
 
     function toggleImageSection() {
@@ -9209,8 +9274,8 @@ or ICC profiles</span>
     // ── Bin + dedupe ───────────────────────────────────────────────────────────
     function binImage(decoded) {
       const { rawPixels, width: w, height: h, channels, isLab } = decoded;
-      // Target a roughly square output grid with up to IMAGE_TARGET_CELLS cells.
-      const side = Math.ceil(Math.sqrt(IMAGE_TARGET_CELLS));
+      // Target a roughly square output grid sized from the current Image-detail preset.
+      const side = Math.ceil(Math.sqrt(IMAGE_DETAIL_PRESETS[_imageDetail].cells));
       let outW, outH;
       if (w >= h) { outW = Math.min(side, w); outH = Math.max(1, Math.round(outW * h / w)); }
       else        { outH = Math.min(side, h); outW = Math.max(1, Math.round(outH * w / h)); }
@@ -9237,15 +9302,13 @@ or ICC profiles</span>
     }
 
     function dedupeRadial(binned, family) {
-      // Naive O(N²) dedupe — fine for N ≤ ~2025.
+      // Naive O(N²) dedupe — fine for N up to a few thousand.
       const { pixels, count, channels, isLab } = binned;
-      // Radius is in device-units appropriate for the family:
-      //   Ink (0..100):  IMAGE_DEDUPE_RADIUS = 1.0
-      //   Non-ink (0..1): scale to 0..1 space → radius * 0.01
-      //   Lab:           1.0 ΔE in raw Lab units
-      const radius = isLab
-        ? IMAGE_DEDUPE_RADIUS
-        : familyIsInkSpace(family) ? IMAGE_DEDUPE_RADIUS / 100.0 : IMAGE_DEDUPE_RADIUS / 100.0;
+      // Radius is in device-units appropriate for the family. The base value comes
+      // from the current Image-detail preset (Coarse/Standard/Fine).
+      //   Lab: raw ΔE units; Non-Lab: scale to 0..1 device units → preset / 100
+      const base = IMAGE_DETAIL_PRESETS[_imageDetail].radius;
+      const radius = isLab ? base : base / 100.0;
       const r2 = radius * radius;
       const kept = [];   // Array of Float32Array snapshots
       for (let i = 0; i < count; i++) {
@@ -9352,11 +9415,13 @@ or ICC profiles</span>
         // Stage state before decode so the UI can paint colour-space line immediately.
         _imageState = {
           name: file.name,
-          fileBytes,
           sourceFormat: sniff.format,
           colorSpace: isLab ? 'Lab' : imageFamily,
           spaceSource: sniff.labFlag ? 'tiff-photometric' : (sniff.iccSig ? 'icc' : 'channels'),
           channels: isLab ? 3 : sniff.channels,
+          decoded: null,        // full-resolution pixels cached so detail-level changes
+                                 // can rebin without re-decoding the source file.
+          familyHint: isLab ? 'Lab' : imageFamily,
           devicePixels: null,
           thumbDataUrl: null,
           boundSlot: null,
@@ -9386,6 +9451,9 @@ or ICC profiles</span>
         }
 
         const decoded = await decodeImage(file, sniff, fileBytes);
+        // Cache decoded pixels so subsequent Image-detail changes can rebin without
+        // re-decoding the source file.
+        _imageState.decoded = decoded;
         const binned = binImage(decoded);
         const family = isLab ? 'Lab' : imageFamily;
         const deduped = dedupeRadial(binned, family);
@@ -9497,6 +9565,26 @@ or ICC profiles</span>
     }
 
     function onImageBindSlotChange() {
+      bindImageToCurrentSelection();
+    }
+
+    function onImageDetailChange(level) {
+      if (!(level in IMAGE_DETAIL_PRESETS)) return;
+      _imageDetail = level;
+      localStorage.setItem('imageDetail', level);
+      rebuildImageSamples();
+    }
+
+    function rebuildImageSamples() {
+      // Re-run binImage + dedupeRadial on the cached full-resolution pixels using
+      // the current detail-level preset. Cheap (just box-averaging + O(N²) dedupe);
+      // no source-file re-decode involved. Triggered by the Image-detail dropdown.
+      if (!_imageState || !_imageState.decoded) return;
+      const binned = binImage(_imageState.decoded);
+      const deduped = dedupeRadial(binned, _imageState.familyHint);
+      _imageState.devicePixels = deduped.pixels;
+      _imageState.dedupedCount = deduped.count;
+      renderImageInfo();
       bindImageToCurrentSelection();
     }
 
@@ -9640,6 +9728,11 @@ or ICC profiles</span>
 
     // Initial visibility sync (in case the page loads in Compare mode already populated).
     refreshImageSectionVisibility();
+    // Sync the Image-detail dropdown with the persisted preference.
+    (function syncImageDetailSelect() {
+      const sel = document.getElementById('image-detail-select');
+      if (sel) sel.value = _imageDetail;
+    })();
   </script>
 
   <div id="file-viewer-overlay" onclick="closeFileViewer()"

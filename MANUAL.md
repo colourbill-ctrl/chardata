@@ -2,7 +2,7 @@
 
 CharData is a browser-based tool for loading, exploring, and comparing colour characterisation datasets — the kind produced by measuring a printed test chart (e.g. IT8, P2P, ECI2002) on a spectrophotometer.
 
-**CharData** is a browser-based tool for exploring and comparing colour characterisation datasets and ICC profiles. It runs entirely in your browser with no installation required — all data stays local to the browser, with no upload to any server — and works on both desktop and mobile.
+**CharData** is a browser-based tool for exploring and comparing colour characterisation datasets and ICC profiles. It runs entirely in your browser with no installation required — all data stays local to the browser, with no upload to any server — and works on both desktop and mobile. CharData pairs with **icctools**, a companion in-browser ICC profile inspector and editor: when an ICC profile slot is open, the **Launch editor** button hands the loaded profile directly to icctools in a new tab for header / tag inspection or full editing — same browser session, no upload.
 
 A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L\*a\*b\* colorimetry and, optionally, spectral reflectance. CharData accepts these files in **CGATS/IT8** and **CSV** formats. CharData also accepts **ICC profiles** (output, input, and display classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.
 
@@ -465,12 +465,24 @@ It does not appear in the Comparison Table, Tone Value chart, or Explore views.
 
 #### Processing pipeline
 
-Before plotting, the loaded image is downsampled to roughly 2,000 representative colour samples in two passes:
+Before plotting, the loaded image is downsampled to a few hundred to a few thousand representative colour samples in two passes:
 
-1. **Spatial averaging** to a ~45×45 grid (aspect-preserved), so the result is broadly representative of the image's colour distribution rather than dominated by one region.
+1. **Spatial averaging** to an aspect-preserved grid, so the result is broadly representative of the image's colour distribution rather than dominated by one region.
 2. **ΔE-radius deduplication** to remove near-identical samples, scaled by colorant family.
 
 This keeps the plot responsive on large images and matches the typical density of a characterisation dataset.
+
+#### Image detail
+
+The **Image detail** dropdown (next to **Bind image to dataset**) selects how aggressively the loaded image is downsampled before plotting. Changing the setting rebins the cached pixels in place — no re-decode of the source file — so the trace updates immediately.
+
+| Setting | Bin grid | Dedupe radius | Typical point cloud |
+|---|---|---|---|
+| **Coarse** | ≤30 × 30 cells | 2.0 device units | a few hundred points |
+| **Standard** *(default)* | ≤45 × 45 cells | 1.0 device unit | up to ~2,000 points |
+| **Fine** | ≤70 × 70 cells | 0.5 device units | up to ~5,000 points |
+
+Coarse renders fastest and is sufficient for checking whether an image's gamut roughly fits a process. Fine surfaces more of the image's colour variety at the cost of a slower 3D plot and a denser cloud that may obscure the gamut shell. The choice is remembered across sessions.
 
 ---
 
