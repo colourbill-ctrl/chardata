@@ -429,7 +429,7 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <tr><td>Value</td><td>Position of the slice along the chosen axis (0–100)</td></tr>
 <tr><td>Thickness</td><td>Half-width of the projection window along the chosen axis (0–128). Points whose axis value lies within ±Thickness of Value are orthogonally projected onto the slice plane</td></tr>
 <tr><td>Fall-off</td><td><strong>Hard</strong> — every projected point is drawn at full opacity. <strong>Soft</strong> — opacity falls linearly from 100 % at Value to 0 % at the window edge. Points within ±0.5 of Value are always at full opacity in either mode</td></tr>
-<tr><td>Show data points</td><td>When on, draws each visible dataset's patch cloud (CSV measurements or, for ICC profiles, the sampled patch lattice) projected onto the slice. Points within ±0.5 of Value (in-plane) render as 7 px dots in a 30 %-brightened version of the dataset colour; points farther out render as 3 px dots in the dataset's solid colour</td></tr>
+<tr><td>Show data points</td><td>On by default. Draws each visible dataset's patch cloud (CSV measurements or, for ICC profiles, the sampled patch lattice) projected onto the slice. Points within ±0.5 of Value (in-plane) render as 7 px dots in a 30 %-brightened version of the dataset colour; points farther out render as 3 px dots in the dataset's solid colour</td></tr>
 </tbody></table>
 <p>The slice updates live as you adjust the controls.</p>
 <h3 id="4-5-estimate-section">4.5 Estimate section</h3>
@@ -629,8 +629,8 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <p>The controls bar includes two additional checkboxes — <strong>Show Dataset A</strong> and <strong>Show Dataset B</strong> — to toggle all curves from either slot at once.</p>
 <p>All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work identically to <a href="#4-6-tone-value">Explore mode</a>. When either slot is an ICC profile, the chart auto-uses the CTV method for that slot; Murray-Davies traces from the ICC slot are skipped (no spectral data). The Y-axis range invalidates whenever a rendering intent changes so the curves stay correctly framed.</p>
 <h3 id="5-4-image-gamut">5.4 Image gamut</h3>
-<p>In Compare mode you can additionally load an image and plot its gamut alongside Datasets A and B. This is most useful for determining whether the colours used in a photograph or artwork fall inside or outside the gamut of a printing or display process represented by one of the loaded datasets.</p>
-<p>The <strong>Image</strong> section sits above the 3D plot in Compare mode (collapsed by default). It is hidden in Explore mode.</p>
+<p>You can load an image and plot its gamut alongside any loaded datasets in either Explore or Compare mode. This is most useful for determining whether the colours used in a photograph or artwork fall inside or outside the gamut of a printing or display process represented by one of the loaded datasets — or, when the image carries an embedded ICC profile (or is a Lab TIFF), for viewing the image's gamut on its own with no dataset loaded at all.</p>
+<p>The <strong>Image</strong> section sits above the 3D plot and is always visible. It works the same way in Explore and Compare; the only difference is that Compare mode adds Dataset B to the bind dropdown.</p>
 <h4>Supported formats</h4>
 <table><thead>
 <tr><th>Format</th><th>Colorimetry source</th></tr></thead><tbody>
@@ -654,8 +654,16 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <p>The 100 MB file-size cap protects against accidentally loading uncompressed scanner output.</p>
 <h4>Binding to a dataset</h4>
 <p>If the image carries an <strong>embedded ICC profile</strong> (JPEG APP2 / TIFF tag 34675), a first dropdown entry *<em>Embedded: </em>profile name**<em> is added and selected by default. Picking this entry converts the image's device pixels straight through its own embedded profile (A2B, Absolute Colorimetric) to L*a*b* — no dataset binding is involved and no family check applies, since the embedded profile </em>is* the image's colour space.</p>
-<p>For <strong>non-Lab</strong> images, you can also bind to <strong>Dataset A</strong> or <strong>Dataset B</strong> from the dropdown. The image's device colorant space must match the bound dataset's colorant family (for example, an RGB image binds only to an RGB dataset; a CMYK image to a CMYK dataset; a 5-colorant TIFF to a 5-colorant CMYKOGV-style dataset). When the binding is valid, the image's device pixels are run through the dataset's estimate model (for characterisation datasets) or the A2B with Absolute Colorimetric rendering intent (for ICC profiles) to derive L*a*b* coordinates.</p>
+<p>For <strong>non-Lab</strong> images, you can also bind to <strong>Dataset A</strong> (Explore or Compare) or <strong>Dataset B</strong> (Compare only) from the dropdown. The image's device colorant space must match the bound dataset's colorant family (for example, an RGB image binds only to an RGB dataset; a CMYK image to a CMYK dataset; a 5-colorant TIFF to a 5-colorant CMYKOGV-style dataset). When the binding is valid, the image's device pixels are run through the dataset's estimate model (for characterisation datasets) or the A2B with Absolute Colorimetric rendering intent (for ICC profiles) to derive L*a*b* coordinates.</p>
 <p>For <strong>Lab</strong> images (TIFF with <code>PhotometricInterpretation</code> 8 or 9), the dataset dropdown is greyed out — the image plots in its native L*a*b* coordinates directly with no transformation.</p>
+<p>The bind dropdown adapts to what's available:</p>
+<ul>
+<li>If the image has an <strong>embedded ICC profile</strong>, empty dataset slots are omitted entirely — only the embedded entry and any <em>loaded</em> datasets are listed.</li>
+<li>If the image has <strong>no embedded profile</strong> but at least one dataset is loaded, empty slots appear with a placeholder <code>-</code> so the dropdown still shows the slot positions.</li>
+<li>If the image has <strong>no embedded profile and no datasets</strong> are loaded, the dropdown is empty and disabled. (If the image is also not a Lab TIFF, the trace cannot be plotted — load a compatible dataset, or use an image with an embedded profile.)</li>
+</ul>
+<h4>Plotting an image with no datasets loaded</h4>
+<p>When the image carries an embedded ICC profile (or is a Lab TIFF), no dataset is required — the <strong>3D plot</strong> and <strong>2D slice</strong> appear with the image trace alone. Removing the image (or unloading the dataset, if it was the only data source) hides both sections again.</p>
 <h4>Where the trace appears</h4>
 <p>The image trace is rendered as a point cloud (green by default) in:</p>
 <ul>

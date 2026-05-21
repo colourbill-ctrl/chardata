@@ -269,7 +269,7 @@ Below the 3D plot, the **Gamut Slice (2D)** section shows a cross-section of the
 | Value | Position of the slice along the chosen axis (0–100) |
 | Thickness | Half-width of the projection window along the chosen axis (0–128). Points whose axis value lies within ±Thickness of Value are orthogonally projected onto the slice plane |
 | Fall-off | **Hard** — every projected point is drawn at full opacity. **Soft** — opacity falls linearly from 100 % at Value to 0 % at the window edge. Points within ±0.5 of Value are always at full opacity in either mode |
-| Show data points | When on, draws each visible dataset's patch cloud (CSV measurements or, for ICC profiles, the sampled patch lattice) projected onto the slice. Points within ±0.5 of Value (in-plane) render as 7 px dots in a 30 %-brightened version of the dataset colour; points farther out render as 3 px dots in the dataset's solid colour |
+| Show data points | On by default. Draws each visible dataset's patch cloud (CSV measurements or, for ICC profiles, the sampled patch lattice) projected onto the slice. Points within ±0.5 of Value (in-plane) render as 7 px dots in a 30 %-brightened version of the dataset colour; points farther out render as 3 px dots in the dataset's solid colour |
 
 The slice updates live as you adjust the controls.
 
@@ -416,9 +416,9 @@ All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work i
 
 ### 5.4 Image gamut
 
-In Compare mode you can additionally load an image and plot its gamut alongside Datasets A and B. This is most useful for determining whether the colours used in a photograph or artwork fall inside or outside the gamut of a printing or display process represented by one of the loaded datasets.
+You can load an image and plot its gamut alongside any loaded datasets in either Explore or Compare mode. This is most useful for determining whether the colours used in a photograph or artwork fall inside or outside the gamut of a printing or display process represented by one of the loaded datasets — or, when the image carries an embedded ICC profile (or is a Lab TIFF), for viewing the image's gamut on its own with no dataset loaded at all.
 
-The **Image** section sits above the 3D plot in Compare mode (collapsed by default). It is hidden in Explore mode.
+The **Image** section sits above the 3D plot and is always visible. It works the same way in Explore and Compare; the only difference is that Compare mode adds Dataset B to the bind dropdown.
 
 #### Supported formats
 
@@ -450,9 +450,19 @@ The 100 MB file-size cap protects against accidentally loading uncompressed scan
 
 If the image carries an **embedded ICC profile** (JPEG APP2 / TIFF tag 34675), a first dropdown entry **Embedded: *profile name*** is added and selected by default. Picking this entry converts the image's device pixels straight through its own embedded profile (A2B, Absolute Colorimetric) to L\*a\*b\* — no dataset binding is involved and no family check applies, since the embedded profile *is* the image's colour space.
 
-For **non-Lab** images, you can also bind to **Dataset A** or **Dataset B** from the dropdown. The image's device colorant space must match the bound dataset's colorant family (for example, an RGB image binds only to an RGB dataset; a CMYK image to a CMYK dataset; a 5-colorant TIFF to a 5-colorant CMYKOGV-style dataset). When the binding is valid, the image's device pixels are run through the dataset's estimate model (for characterisation datasets) or the A2B with Absolute Colorimetric rendering intent (for ICC profiles) to derive L\*a\*b\* coordinates.
+For **non-Lab** images, you can also bind to **Dataset A** (Explore or Compare) or **Dataset B** (Compare only) from the dropdown. The image's device colorant space must match the bound dataset's colorant family (for example, an RGB image binds only to an RGB dataset; a CMYK image to a CMYK dataset; a 5-colorant TIFF to a 5-colorant CMYKOGV-style dataset). When the binding is valid, the image's device pixels are run through the dataset's estimate model (for characterisation datasets) or the A2B with Absolute Colorimetric rendering intent (for ICC profiles) to derive L\*a\*b\* coordinates.
 
 For **Lab** images (TIFF with `PhotometricInterpretation` 8 or 9), the dataset dropdown is greyed out — the image plots in its native L\*a\*b\* coordinates directly with no transformation.
+
+The bind dropdown adapts to what's available:
+
+- If the image has an **embedded ICC profile**, empty dataset slots are omitted entirely — only the embedded entry and any *loaded* datasets are listed.
+- If the image has **no embedded profile** but at least one dataset is loaded, empty slots appear with a placeholder `-` so the dropdown still shows the slot positions.
+- If the image has **no embedded profile and no datasets** are loaded, the dropdown is empty and disabled. (If the image is also not a Lab TIFF, the trace cannot be plotted — load a compatible dataset, or use an image with an embedded profile.)
+
+#### Plotting an image with no datasets loaded
+
+When the image carries an embedded ICC profile (or is a Lab TIFF), no dataset is required — the **3D plot** and **2D slice** appear with the image trace alone. Removing the image (or unloading the dataset, if it was the only data source) hides both sections again.
 
 #### Where the trace appears
 

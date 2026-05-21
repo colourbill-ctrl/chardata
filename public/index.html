@@ -1022,8 +1022,8 @@ or ICC profiles</span>
 
   <div id="result"></div>
 
-  <!-- Image gamut tab (Compare mode only; visible once Datasets A and B are loaded) -->
-  <div id="image-section" style="margin-top:24px;display:none;">
+  <!-- Image gamut tab (always visible; works in Explore and Compare). -->
+  <div id="image-section" style="margin-top:24px;">
     <div onclick="toggleImageSection()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;display:flex;justify-content:space-between;align-items:center;user-select:none;">
       <span data-i18n="image_tab">Image</span><span id="image-arrow">&#9660;</span>
     </div>
@@ -1121,7 +1121,7 @@ or ICC profiles</span>
         <span style="margin-left:8px;font-weight:bold;" data-i18n="fall_off">Fall-off:</span>
         <label><input type="radio" name="slice-falloff" value="hard" onchange="setSliceFalloff('hard')"> <span data-i18n="hard">Hard</span></label>
         <label><input type="radio" name="slice-falloff" value="soft" checked onchange="setSliceFalloff('soft')"> <span data-i18n="soft">Soft</span></label>
-        <label style="margin-left:8px;"><input type="checkbox" id="slice-show-pts" onchange="setSliceShowPoints(this.checked)"> <span data-i18n="show_data_points">Show data points</span></label>
+        <label style="margin-left:8px;"><input type="checkbox" id="slice-show-pts" checked onchange="setSliceShowPoints(this.checked)"> <span data-i18n="show_data_points">Show data points</span></label>
       </div>
       <div id="slice-plot" style="width:100%;height:420px;"></div>
     </div>
@@ -1403,7 +1403,7 @@ or ICC profiles</span>
         image_err_tiff_lib:'TIFF decoder library failed to load.',
         image_err_slot_model:'Selected dataset model is still loading — try again in a moment.',
         image_err_decode:'Image decode failed.',
-        image_err_dataset_not_loaded:'Dataset {slot} is not loaded.',
+        image_err_dataset_not_loaded:'No color dataset loaded.',
         image_err_embedded_gone:'Embedded profile is no longer available.',
         image_src_icc:'(from embedded ICC)',
         image_src_tiff_lab:'(TIFF Lab)',
@@ -1576,7 +1576,7 @@ or ICC profiles</span>
         image_err_tiff_lib:'Échec du chargement de la bibliothèque de décodage TIFF.',
         image_err_slot_model:'Le modèle du jeu de données sélectionné est encore en cours de chargement — réessayez dans un instant.',
         image_err_decode:'Échec du décodage de l’image.',
-        image_err_dataset_not_loaded:'Le Dataset {slot} n’est pas chargé.',
+        image_err_dataset_not_loaded:'Aucun jeu de données colorimétriques chargé.',
         image_err_embedded_gone:'Le profil intégré n’est plus disponible.',
         image_src_icc:'(d’après l’ICC intégré)',
         image_src_tiff_lab:'(TIFF Lab)',
@@ -1749,7 +1749,7 @@ or ICC profiles</span>
         image_err_tiff_lib:'TIFF-Decoder-Bibliothek konnte nicht geladen werden.',
         image_err_slot_model:'Das Modell des gewählten Datensatzes wird noch geladen — bitte gleich erneut versuchen.',
         image_err_decode:'Bilddekodierung fehlgeschlagen.',
-        image_err_dataset_not_loaded:'Datensatz {slot} ist nicht geladen.',
+        image_err_dataset_not_loaded:'Kein Farbdatensatz geladen.',
         image_err_embedded_gone:'Eingebettetes Profil ist nicht mehr verfügbar.',
         image_src_icc:'(aus eingebettetem ICC)',
         image_src_tiff_lab:'(TIFF Lab)',
@@ -1922,7 +1922,7 @@ or ICC profiles</span>
         image_err_tiff_lib:'Caricamento della libreria di decodifica TIFF non riuscito.',
         image_err_slot_model:'Il modello del dataset selezionato è ancora in caricamento — riprova tra un istante.',
         image_err_decode:'Decodifica immagine non riuscita.',
-        image_err_dataset_not_loaded:'Il Dataset {slot} non è caricato.',
+        image_err_dataset_not_loaded:'Nessun set di dati colorimetrici caricato.',
         image_err_embedded_gone:'Il profilo incorporato non è più disponibile.',
         image_src_icc:'(dall’ICC incorporato)',
         image_src_tiff_lab:'(TIFF Lab)',
@@ -2095,7 +2095,7 @@ or ICC profiles</span>
         image_err_tiff_lib:'No se pudo cargar la biblioteca de decodificación TIFF.',
         image_err_slot_model:'El modelo del conjunto de datos seleccionado aún se está cargando — inténtelo de nuevo en un momento.',
         image_err_decode:'Error al decodificar la imagen.',
-        image_err_dataset_not_loaded:'El Dataset {slot} no está cargado.',
+        image_err_dataset_not_loaded:'No se ha cargado ningún conjunto de datos de color.',
         image_err_embedded_gone:'El perfil incrustado ya no está disponible.',
         image_src_icc:'(del ICC incrustado)',
         image_src_tiff_lab:'(TIFF Lab)',
@@ -2268,7 +2268,7 @@ or ICC profiles</span>
         image_err_tiff_lib:'Não foi possível carregar a biblioteca de descodificação TIFF.',
         image_err_slot_model:'O modelo do conjunto de dados selecionado ainda está a carregar — tente novamente daqui a um momento.',
         image_err_decode:'Falha ao descodificar a imagem.',
-        image_err_dataset_not_loaded:'O Dataset {slot} não está carregado.',
+        image_err_dataset_not_loaded:'Nenhum conjunto de dados de cor carregado.',
         image_err_embedded_gone:'O perfil incorporado já não está disponível.',
         image_src_icc:'(do ICC incorporado)',
         image_src_tiff_lab:'(TIFF Lab)',
@@ -2441,7 +2441,7 @@ or ICC profiles</span>
         image_err_tiff_lib:'Falha ao carregar a biblioteca de decodificação TIFF.',
         image_err_slot_model:'O modelo do conjunto de dados selecionado ainda está sendo carregado — tente novamente em instantes.',
         image_err_decode:'Falha ao decodificar a imagem.',
-        image_err_dataset_not_loaded:'O Dataset {slot} não está carregado.',
+        image_err_dataset_not_loaded:'Nenhum conjunto de dados de cor carregado.',
         image_err_embedded_gone:'O perfil incorporado não está mais disponível.',
         image_src_icc:'(do ICC incorporado)',
         image_src_tiff_lab:'(TIFF Lab)',
@@ -2614,7 +2614,7 @@ or ICC profiles</span>
         image_err_tiff_lib:'TIFF 解码库加载失败。',
         image_err_slot_model:'所选数据集模型仍在加载中 — 请稍后再试。',
         image_err_decode:'图像解码失败。',
-        image_err_dataset_not_loaded:'数据集 {slot} 未加载。',
+        image_err_dataset_not_loaded:'未加载颜色数据集。',
         image_err_embedded_gone:'嵌入的配置文件不再可用。',
         image_src_icc:'（来自嵌入的 ICC）',
         image_src_tiff_lab:'（TIFF Lab）',
@@ -2787,7 +2787,7 @@ or ICC profiles</span>
         image_err_tiff_lib:'TIFF 解碼程式庫載入失敗。',
         image_err_slot_model:'所選資料集模型仍在載入中 — 請稍後再試。',
         image_err_decode:'影像解碼失敗。',
-        image_err_dataset_not_loaded:'資料集 {slot} 未載入。',
+        image_err_dataset_not_loaded:'未載入色彩資料集。',
         image_err_embedded_gone:'嵌入的描述檔不再可用。',
         image_src_icc:'（來自嵌入的 ICC）',
         image_src_tiff_lab:'（TIFF Lab）',
@@ -2960,7 +2960,7 @@ or ICC profiles</span>
         image_err_tiff_lib:'TIFF デコーダーライブラリの読み込みに失敗しました。',
         image_err_slot_model:'選択したデータセットのモデルを読み込み中です — 少し待ってから再試行してください。',
         image_err_decode:'画像のデコードに失敗しました。',
-        image_err_dataset_not_loaded:'Dataset {slot} は読み込まれていません。',
+        image_err_dataset_not_loaded:'カラーデータセットが読み込まれていません。',
         image_err_embedded_gone:'埋め込みプロファイルは利用できなくなりました。',
         image_src_icc:'（埋め込み ICC より）',
         image_src_tiff_lab:'（TIFF Lab）',
@@ -3133,7 +3133,7 @@ or ICC profiles</span>
         image_err_tiff_lib:'TIFF 디코더 라이브러리를 불러오지 못했습니다.',
         image_err_slot_model:'선택한 데이터셋 모델을 아직 불러오는 중입니다 — 잠시 후 다시 시도하세요.',
         image_err_decode:'이미지 디코딩에 실패했습니다.',
-        image_err_dataset_not_loaded:'Dataset {slot}이(가) 불러와지지 않았습니다.',
+        image_err_dataset_not_loaded:'색상 데이터 세트가 로드되지 않았습니다.',
         image_err_embedded_gone:'내장된 프로필을 더 이상 사용할 수 없습니다.',
         image_src_icc:'(내장 ICC에서)',
         image_src_tiff_lab:'(TIFF Lab)',
@@ -3311,7 +3311,7 @@ or ICC profiles</span>
         image_err_tiff_lib:'TIFF-avkodningsbiblioteket kunde inte läsas in.',
         image_err_slot_model:'Det valda dataset-modellen läses fortfarande in — försök igen om en stund.',
         image_err_decode:'Bildavkodningen misslyckades.',
-        image_err_dataset_not_loaded:'Dataset {slot} är inte inläst.',
+        image_err_dataset_not_loaded:'Inget färgdataset har lästs in.',
         image_err_embedded_gone:'Den inbäddade profilen är inte längre tillgänglig.',
         image_src_icc:'(från inbäddad ICC)',
         image_src_tiff_lab:'(TIFF Lab)',
@@ -3595,14 +3595,14 @@ or ICC profiles</span>
     let _plotColors  = [];       // per-trace dot color, set during renderPlot
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
     let _nSpecs = 0;             // number of datasets; shell traces at 0.._nSpecs-1, scatter at _nSpecs..2*_nSpecs-1
-    const _sliceState = { axis: 'L', value: 50, thickness: 1, falloff: 'soft', showPoints: false };
+    const _sliceState = { axis: 'L', value: 50, thickness: 1, falloff: 'soft', showPoints: true };
     const _sliceVisible = { a: true, b: true };
     const _gamutState = {
       a: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
       b: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
-      // Image-derived gamut (Compare mode only). Reuses cachedXYZ for the point cloud; no shell/model.
+      // Image-derived gamut. Reuses cachedXYZ for the point cloud; no shell/model.
       // `lighting` and `meshDensity` are inert for img (the shell trace is always invisible) but the
       // shared shell-trace builder reads them unconditionally — keep the shape parallel to a/b.
       img: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null,
@@ -3688,7 +3688,8 @@ or ICC profiles</span>
 
     function _applyDark(dark) {
       document.body.classList.toggle('dark', dark);
-      if (state.a || state.b) {
+      const hasImg = !!(_gamutState.img && _gamutState.img.cachedXYZ && _gamutState.img.cachedXYZ.x.length);
+      if (state.a || state.b || hasImg) {
         renderPlot(true);
         renderSlicePlot();
         renderTvChart();
@@ -3750,7 +3751,6 @@ or ICC profiles</span>
       document.getElementById('panel-b').style.display = isExplore ? 'none' : '';
       document.querySelector('#panel-a h2').textContent = t('dataset_slot', {slot:'A'});
       document.getElementById('result').innerHTML = '';
-      document.getElementById('plot-section').style.display = 'none';
       refreshImageSectionVisibility();
 
       renderFileList();
@@ -3761,7 +3761,7 @@ or ICC profiles</span>
       if (isExplore && state.a) {
         renderExplore();
         if (!_estimateModel) generateEstimateModel();
-      } else if (!(!isExplore && state.a && state.b)) renderSlicePlot();
+      } else if (!(!isExplore && state.a && state.b)) renderPlot();
     }
 
     // Blade toggle
@@ -4292,8 +4292,7 @@ or ICC profiles</span>
         document.getElementById('show-file-' + slot).disabled = false;
         updateCompareBtn();
         document.getElementById('result').innerHTML = '';
-        document.getElementById('plot-section').style.display = 'none';
-        renderSlicePlot();
+        renderPlot();
         return;
       }
 
@@ -4309,8 +4308,7 @@ or ICC profiles</span>
           document.getElementById('show-file-' + slot).disabled = false;
           updateCompareBtn();
           document.getElementById('result').innerHTML = '';
-          document.getElementById('plot-section').style.display = 'none';
-          renderSlicePlot();
+          renderPlot();
           return;
         }
         if (cgats.warnings.length > 0) {
@@ -4408,8 +4406,7 @@ or ICC profiles</span>
       updateValidateFileLabel();
       if (!state[slot]) {
         document.getElementById('result').innerHTML = '';
-        document.getElementById('plot-section').style.display = 'none';
-        renderSlicePlot();
+        renderPlot();
       } else if (_mode === 'explore' && slot === 'a') {
         setDatasetStatus('a', t('status_rendering'));
         setTimeout(() => {
@@ -4755,8 +4752,7 @@ or ICC profiles</span>
           document.getElementById('colorants-' + slot).textContent = '';
           document.getElementById('show-file-' + slot).disabled = true;
           document.getElementById('result').innerHTML = '';
-          document.getElementById('plot-section').style.display = 'none';
-          renderSlicePlot();
+          renderPlot();
         }
       });
       updateCompareBtn();
@@ -7276,14 +7272,32 @@ or ICC profiles</span>
 
     function renderPlot(skipSlice = false) {
       const { a, b } = state;
-      document.getElementById('plot-section').style.display = '';
+      const hasImg = !!(_gamutState.img && _gamutState.img.cachedXYZ && _gamutState.img.cachedXYZ.x.length);
+      const plotSection = document.getElementById('plot-section');
+
+      // Build the trace list up front so we can decide section visibility from it.
+      const traceSpecs = [];
+      if (a) traceSpecs.push({ data: a, name: a.name, color: '#4a90e2', slot: 'a' });
+      if (_mode === 'compare' && b) traceSpecs.push({ data: b, name: b.name, color: '#e24a4a', slot: 'b' });
+      if (hasImg) {
+        const imgName = (typeof _imageState === 'object' && _imageState && _imageState.name) ? _imageState.name : 'Image';
+        traceSpecs.push({ data: { dataType: 'image' }, name: imgName, color: IMAGE_TRACE_COLOR, slot: 'img' });
+      }
+
+      if (traceSpecs.length === 0) {
+        if (plotSection) plotSection.style.display = 'none';
+        if (!skipSlice) renderSlicePlot();
+        return;
+      }
+      if (plotSection) plotSection.style.display = '';
+
       document.getElementById('plot-tab-label').textContent =
-        _mode === 'explore' ? '3D Plot: ' + a.name : '3D Plot';
+        _mode === 'explore' ? '3D Plot: ' + traceSpecs[0].name : '3D Plot';
       const plotEl = document.getElementById('plot');
 
 
       // Show spectral checkbox only when at least one active dataset has spectral data
-      const hasAnySpectral = a.hasSpectral || (_mode === 'compare' && b && b.hasSpectral);
+      const hasAnySpectral = (a && a.hasSpectral) || (_mode === 'compare' && b && b.hasSpectral);
       const spectralOptLabel = document.getElementById('plot-opt-spectral-label');
       if (spectralOptLabel) {
         spectralOptLabel.style.display = hasAnySpectral ? '' : 'none';
@@ -7329,13 +7343,7 @@ or ICC profiles</span>
         };
       };
 
-      // Build traces, preserving per-trace visibility across re-renders
-      const traceSpecs = [{ data: a, name: a.name, color: '#4a90e2', slot: 'a' }];
-      if (_mode === 'compare' && b) traceSpecs.push({ data: b, name: b.name, color: '#e24a4a', slot: 'b' });
-      if (_mode === 'compare' && _gamutState.img && _gamutState.img.cachedXYZ && _gamutState.img.cachedXYZ.x.length) {
-        const imgName = (typeof _imageState === 'object' && _imageState && _imageState.name) ? _imageState.name : 'Image';
-        traceSpecs.push({ data: { dataType: 'image' }, name: imgName, color: IMAGE_TRACE_COLOR, slot: 'img' });
-      }
+      // Preserve per-trace visibility across re-renders
       _nSpecs = traceSpecs.length;
       if (_plotVisible.length !== _nSpecs) _plotVisible = Array(_nSpecs).fill(true);
       _plotSlots  = traceSpecs.map(s => s.slot);
@@ -7526,7 +7534,7 @@ or ICC profiles</span>
         customLegendEl.style.cssText = 'position:absolute;top:38px;left:12px;z-index:10;display:flex;flex-direction:column;gap:4px;max-width:60%;';
         document.getElementById('plot-wrap').appendChild(customLegendEl);
       }
-      if (_mode === 'compare' && b) {
+      if (traceSpecs.length > 1) {
         customLegendEl.innerHTML =
           `<div style="font-size:11px;color:#555;padding:2px 4px 4px 4px;user-select:none;" data-i18n="select_toggle">Select to toggle file visibility:</div>`
           + traceSpecs.map((spec, i) => legendItemHTML(spec, i, true)).join('');
@@ -8348,12 +8356,13 @@ or ICC profiles</span>
       const allSpecs = [];
       if (_gamutState.a.cachedXYZ) allSpecs.push({ slot: 'a', color: '#4a90e2', name: a ? a.name : 'Dataset A' });
       if (_mode === 'compare' && _gamutState.b.cachedXYZ) allSpecs.push({ slot: 'b', color: '#e24a4a', name: b ? b.name : 'Dataset B' });
-      if (_mode === 'compare' && _gamutState.img && _gamutState.img.cachedXYZ && _gamutState.img.cachedXYZ.x.length) {
+      if (_gamutState.img && _gamutState.img.cachedXYZ && _gamutState.img.cachedXYZ.x.length) {
         const imgName = (typeof _imageState === 'object' && _imageState && _imageState.name) ? _imageState.name : 'Image';
         allSpecs.push({ slot: 'img', color: IMAGE_TRACE_COLOR, name: imgName });
       }
 
-      if (sectionEl) sectionEl.style.display = (state.a || state.b) ? '' : 'none';
+      const hasImgForSlice = !!(_gamutState.img && _gamutState.img.cachedXYZ && _gamutState.img.cachedXYZ.x.length);
+      if (sectionEl) sectionEl.style.display = (state.a || state.b || hasImgForSlice) ? '' : 'none';
 
       if (allSpecs.length === 0) {
         if (tabLabel) tabLabel.textContent = t('gamut_slice');
@@ -8477,8 +8486,8 @@ or ICC profiles</span>
       // time so switching modes gives correctly-sized bounds for that mode.
       // WASM polygon coords: L-slice→(a*,b*), a-slice→(L*,b*), b-slice→(L*,a*)
       let xLo = Infinity, xHi = -Infinity, yLo = Infinity, yHi = -Infinity;
-      ['a', 'b'].forEach(slot => {
-        const c = _gamutState[slot].cachedXYZ;
+      ['a', 'b', 'img'].forEach(slot => {
+        const c = _gamutState[slot] && _gamutState[slot].cachedXYZ;
         if (!c) return;
         const xArr = (axis === 'L') ? c.x : c.z;   // a* for L-slice, L* otherwise
         const yArr = (axis === 'b') ? c.x : c.y;   // a* for b-slice, b* otherwise
@@ -8533,13 +8542,13 @@ or ICC profiles</span>
     });
 
     // ────────────────────────────────────────────────────────────────────────────
-    // Image gamut (1.7.0)
+    // Image gamut (1.7.0; extended to both modes in 1.7.2)
     // ────────────────────────────────────────────────────────────────────────────
     // Decodes PNG / JPEG / TIFF, extracts the device colorant space, bins the
     // pixels down to ~2000 representative points, dedupes near-duplicates in
     // device space, then converts to Lab via either the slot's ICC A2B3 transform
     // or the slot's fitted polynomial model. The resulting Lab cloud is rendered
-    // as a third trace in the 3D plot and 2D slicer (Compare mode only).
+    // as a third trace in the 3D plot and 2D slicer in both Explore and Compare.
 
     const IMAGE_MAX_FILE_BYTES = 100 * 1024 * 1024;   // 100 MB hard cap
     // Image-detail presets. `cells` is the target output-grid cell count for the
@@ -8567,14 +8576,15 @@ or ICC profiles</span>
     function refreshImageSectionVisibility() {
       const sec = document.getElementById('image-section');
       if (!sec) return;
-      const show = _mode === 'compare' && state.a && state.b;
-      sec.style.display = show ? '' : 'none';
-      if (show) repopulateImageBindDropdown();
-      // If image is loaded but mode left Compare, drop its trace from the plot.
-      if (!show && _gamutState.img && _gamutState.img.cachedXYZ) {
-        // Keep _imageState (so user can resume) but hide the trace.
-        if (typeof renderPlot === 'function' && state.a) renderPlot();
-        if (typeof renderSlicePlot === 'function') renderSlicePlot();
+      sec.style.display = '';
+      const sel = document.getElementById('image-bind-slot');
+      const prevValue = sel ? sel.value : null;
+      repopulateImageBindDropdown();
+      // If repopulating dropped the previously-bound option (e.g. user was bound
+      // to 'b' and just switched to Explore), re-bind to the new selection so
+      // the trace doesn't drift out of sync with the visible binding.
+      if (sel && prevValue && sel.value !== prevValue && _imageState && _imageState.devicePixels) {
+        bindImageToCurrentSelection();
       }
     }
 
@@ -8582,8 +8592,6 @@ or ICC profiles</span>
       const sel = document.getElementById('image-bind-slot');
       if (!sel) return;
       const prev = sel.value;
-      const aName = (state.a && state.a.name) || 'Dataset A';
-      const bName = (state.b && state.b.name) || 'Dataset B';
       sel.innerHTML = '';
       // If the loaded image carries an embedded ICC profile, offer it as the first
       // (default) option. Use the profile description from lcms2 as the visible name.
@@ -8594,15 +8602,32 @@ or ICC profiles</span>
         optE.textContent = t('image_embedded_option', { name: _imageState.embeddedIcc.description });
         sel.appendChild(optE);
       }
-      const optA = document.createElement('option');
-      optA.value = 'a'; optA.textContent = aName;
-      const optB = document.createElement('option');
-      optB.value = 'b'; optB.textContent = bName;
-      sel.appendChild(optA); sel.appendChild(optB);
+      // Dataset slots: show the real name when loaded. When the slot is empty,
+      // only show a '-' placeholder if there's at least one other usable binding
+      // target (embedded ICC, or the other slot in Compare). With no embedded
+      // and no datasets at all, the dropdown stays empty and is disabled below.
+      const aLoaded = !!state.a;
+      const bLoaded = !!state.b;
+      const anyDataset = aLoaded || (_mode === 'compare' && bLoaded);
+      const showEmptySlots = !hasEmbedded && anyDataset;
+      if (aLoaded || showEmptySlots) {
+        const optA = document.createElement('option');
+        optA.value = 'a';
+        optA.textContent = aLoaded ? state.a.name : '-';
+        sel.appendChild(optA);
+      }
+      if (_mode === 'compare' && (bLoaded || showEmptySlots)) {
+        const optB = document.createElement('option');
+        optB.value = 'b';
+        optB.textContent = bLoaded ? state.b.name : '-';
+        sel.appendChild(optB);
+      }
       if (hasEmbedded) sel.value = 'embedded';
-      else if (prev === 'a' || prev === 'b') sel.value = prev;
-      // Ghost when Lab image is loaded (binding not applicable).
-      sel.disabled = !!(_imageState && _imageState.colorSpace === 'Lab');
+      else if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+      // Disable when: Lab image (binding not applicable), or nothing usable to
+      // bind to at all (no embedded, no datasets).
+      const isLab = !!(_imageState && _imageState.colorSpace === 'Lab');
+      sel.disabled = isLab || (!hasEmbedded && !anyDataset);
     }
 
     function freeEmbeddedIcc() {
@@ -9881,7 +9906,7 @@ or ICC profiles</span>
 
       const slotInfo = slotFamily(slot);
       if (!slotInfo) {
-        setImageStatus('error', t('image_err_dataset_not_loaded', { slot: slot.toUpperCase() }));
+        setImageStatus('error', t('image_err_dataset_not_loaded'));
         clearImageTrace();
         return;
       }
@@ -9913,14 +9938,14 @@ or ICC profiles</span>
       // _gamutState.img.cachedXYZ stores points in the same orientation as A/B traces:
       //   x = a*, y = b*, z = L*  (renderPlot convention)
       _gamutState.img.cachedXYZ = { x: labPoints.a, y: labPoints.b, z: labPoints.L };
-      if (typeof renderPlot === 'function' && state.a) renderPlot();
+      if (typeof renderPlot === 'function') renderPlot();
       if (typeof renderSlicePlot === 'function') renderSlicePlot();
     }
 
     function clearImageTrace() {
       _gamutState.img.cachedXYZ = null;
       if (_imageState) { _imageState.labPoints = null; _imageState.boundSlot = null; }
-      if (typeof renderPlot === 'function' && state.a) renderPlot();
+      if (typeof renderPlot === 'function') renderPlot();
       if (typeof renderSlicePlot === 'function') renderSlicePlot();
     }
 
