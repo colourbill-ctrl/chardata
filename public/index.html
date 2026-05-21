@@ -667,8 +667,33 @@
     body.dark #kofi-msg { background: #1e1a14; border-color: #7a5030; color: #c88050; }
     /* Section accordion headers — inline bg:#f0f2f5 overridden */
     body.dark #plot-section > div:first-child,
-    body.dark #slice-section > div:first-child { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
+    body.dark #slice-section > div:first-child,
+    body.dark #image-section > div:first-child { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
     body.dark #plot-wrap { border-color: #38393e !important; }
+
+    /* Image tab — status text colours (light + dark) */
+    .image-status { font-size: 12px; margin-top: 6px; }
+    .image-status-info { color: #666; }
+    .image-status-ok   { color: #2a7a3a; }
+    .image-status-error{ color: #c0392b; }
+    body.dark .image-status-info  { color: #888; }
+    body.dark .image-status-ok    { color: #6ec27d; }
+    body.dark .image-status-error { color: #e57568; }
+
+    /* Image tab — dark-mode overrides for inline-styled wrapper, panel and controls */
+    body.dark #image-wrap { border-color: #38393e !important; color: #bbb !important; }
+    body.dark #image-wrap div[data-i18n="bind_to_dataset"] { color: #888 !important; }
+    body.dark #image-info { background: #1e1f22 !important; border-color: #38393e !important; }
+    body.dark #image-thumb { border-color: #38393e !important; background: #2a2b2e !important; }
+    body.dark #image-name { color: #e0e0e0 !important; }
+    body.dark #image-cspace { color: #bbb !important; }
+    body.dark #image-pts { color: #888 !important; }
+    body.dark #image-bind-slot { background: #2a2b2e !important; color: #ccc !important; border: 1px solid #555 !important; border-bottom: 2px solid #444 !important; }
+    body.dark #image-bind-slot option { background: #232427; color: #f0f0f0; }
+    body.dark #image-load-btn { background: linear-gradient(to bottom,#2e2f33,#262729) !important; color: #ccc !important; border-color: #444 !important; border-bottom-color: #555 !important; }
+    body.dark #image-load-btn:hover { background: linear-gradient(to bottom,#363739,#2e2f32) !important; }
+    body.dark #image-remove-btn { background: #2a2b2e !important; border-color: #444 !important; color: #888 !important; }
+    body.dark #image-remove-btn:hover { background: #34353a !important; color: #ccc !important; }
     body.dark #plot-controls-body > div[style*="border-top"] { border-color: #38393e !important; }
     #est-wrap input[type=number]::-webkit-inner-spin-button,
     #est-wrap input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -978,21 +1003,23 @@ or ICC profiles</span>
         <div>
           <button id="image-load-btn" onclick="document.getElementById('image-file-input').click()"
                   style="padding:6px 12px;font-size:13px;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;cursor:pointer;color:#333;" data-i18n="load_image_btn">Load Image</button>
-          <input type="file" id="image-file-input" accept="image/png,image/jpeg,image/tiff,.tif,.tiff" style="display:none;" onchange="onImageFileSelected(this.files && this.files[0])">
+          <input type="file" id="image-file-input" accept="image/png,image/jpeg,image/tiff,image/bmp,image/gif,application/pdf,.tif,.tiff,.bmp,.gif,.pdf" style="display:none;" onchange="onImageFileSelected(this.files && this.files[0])">
         </div>
         <div>
           <button id="image-remove-btn" onclick="removeImage()" style="display:none;padding:6px 10px;font-size:12px;background:#fff;border:1px solid #ccc;border-radius:6px;cursor:pointer;color:#666;" data-i18n="remove_image">Remove image</button>
         </div>
       </div>
-      <div id="image-info" style="display:none;margin-top:14px;padding:10px;background:#fafbfc;border:1px solid #eee;border-radius:6px;display:flex;gap:14px;align-items:flex-start;">
+      <div id="image-info" style="display:none;margin-top:14px;padding:10px;background:#fafbfc;border:1px solid #eee;border-radius:6px;gap:14px;align-items:flex-start;">
         <img id="image-thumb" alt="" style="display:block;max-width:96px;max-height:96px;border:1px solid #ddd;background:#fff;">
         <div style="flex:1;min-width:0;">
           <div id="image-name" style="font-weight:bold;color:#333;word-break:break-all;"></div>
           <div id="image-cspace" style="font-size:12px;color:#555;margin-top:3px;"></div>
           <div id="image-pts" style="font-size:11px;color:#888;margin-top:3px;"></div>
-          <div id="image-status" style="font-size:12px;margin-top:6px;"></div>
         </div>
       </div>
+      <!-- Status lives outside #image-info so errors thrown before a successful decode
+           (e.g. unsupported format, PDF rejected) are still visible. -->
+      <div id="image-status" style="margin-top:10px;"></div>
     </div>
   </div>
 
@@ -1307,8 +1334,27 @@ or ICC profiles</span>
         image_bound_to:'Bound to {name} — {n} points',
         image_lab_note:'Lab image — {n} points',
         image_mismatch_msg:'Cannot bind: image is {img} but Dataset {slot} is {family}.',
-        image_format_unsupported:'Unsupported image format. Use PNG, JPEG, or TIFF.',
+        image_format_unsupported:'Unsupported image format. Use PNG, JPEG, TIFF, BMP, GIF, or PDF.',
         image_too_large:'“{name}” is too large ({mb} MB). Maximum image size is {max} MB.',
+        image_embedded_option:'Embedded: {name}',
+        image_decoding:'Decoding image…',
+        image_err_too_small:'Image file is too small or corrupt.',
+        image_err_tiff_lib:'TIFF decoder library failed to load.',
+        image_err_slot_model:'Selected dataset model is still loading — try again in a moment.',
+        image_err_decode:'Image decode failed.',
+        image_err_dataset_not_loaded:'Dataset {slot} is not loaded.',
+        image_err_embedded_gone:'Embedded profile is no longer available.',
+        image_src_icc:'(from embedded ICC)',
+        image_src_tiff_lab:'(TIFF Lab)',
+        image_src_channels:'(inferred from channels)',
+        image_points_summary:'{n} representative points after binning + dedupe',
+        image_err_pdf_not_photoshop:'PDF support is limited to single-image Photoshop PDFs. Save as TIFF, JPEG, PNG, BMP, or GIF for other PDF content.',
+        image_err_pdf_encrypted:'Encrypted PDFs are not supported.',
+        image_err_pdf_multi_page:'Only single-page Photoshop PDFs are supported.',
+        image_err_pdf_corrupt:'PDF structure could not be parsed.',
+        image_err_pdf_no_image:'No image found inside the PDF.',
+        image_err_pdf_colorspace:'PDF colour space is not supported. Use Gray, RGB, CMYK, or an ICC-based profile.',
+        image_err_pdf_filter:'PDF image filter is not supported. Re-save the PDF with JPEG or ZIP compression.',
       },
       fr: {
         settings:'Paramètres', de_method:'Méthode ΔE', filter_dups:'Filtrer les doublons',
@@ -1420,8 +1466,27 @@ or ICC profiles</span>
         image_bound_to:'Lié à {name} — {n} points',
         image_lab_note:'Image Lab — {n} points',
         image_mismatch_msg:'Liaison impossible : l’image est {img} mais le Dataset {slot} est {family}.',
-        image_format_unsupported:'Format d’image non pris en charge. Utilisez PNG, JPEG ou TIFF.',
+        image_format_unsupported:'Format d’image non pris en charge. Utilisez PNG, JPEG, TIFF, BMP, GIF ou PDF.',
         image_too_large:'« {name} » est trop volumineuse ({mb} Mo). Taille maximale : {max} Mo.',
+        image_embedded_option:'Intégré : {name}',
+        image_decoding:'Décodage de l’image…',
+        image_err_too_small:'Le fichier image est trop petit ou corrompu.',
+        image_err_tiff_lib:'Échec du chargement de la bibliothèque de décodage TIFF.',
+        image_err_slot_model:'Le modèle du jeu de données sélectionné est encore en cours de chargement — réessayez dans un instant.',
+        image_err_decode:'Échec du décodage de l’image.',
+        image_err_dataset_not_loaded:'Le Dataset {slot} n’est pas chargé.',
+        image_err_embedded_gone:'Le profil intégré n’est plus disponible.',
+        image_src_icc:'(d’après l’ICC intégré)',
+        image_src_tiff_lab:'(TIFF Lab)',
+        image_src_channels:'(déduit des canaux)',
+        image_points_summary:'{n} points représentatifs après binning + dédoublonnage',
+        image_err_pdf_not_photoshop:'La prise en charge des PDF est limitée aux PDF Photoshop à image unique. Enregistrez en TIFF, JPEG, PNG, BMP ou GIF pour les autres contenus PDF.',
+        image_err_pdf_encrypted:'Les PDF chiffrés ne sont pas pris en charge.',
+        image_err_pdf_multi_page:'Seuls les PDF Photoshop d’une seule page sont pris en charge.',
+        image_err_pdf_corrupt:'Impossible d’analyser la structure du PDF.',
+        image_err_pdf_no_image:'Aucune image trouvée dans le PDF.',
+        image_err_pdf_colorspace:'Espace colorimétrique PDF non pris en charge. Utilisez Gris, RVB, CMJN ou un profil ICC.',
+        image_err_pdf_filter:'Filtre d’image PDF non pris en charge. Réenregistrez le PDF avec une compression JPEG ou ZIP.',
       },
       de: {
         settings:'Einstellungen', de_method:'ΔE-Methode', filter_dups:'Duplikate filtern',
@@ -1533,8 +1598,27 @@ or ICC profiles</span>
         image_bound_to:'Verknüpft mit {name} — {n} Punkte',
         image_lab_note:'Lab-Bild — {n} Punkte',
         image_mismatch_msg:'Verknüpfung nicht möglich: Bild ist {img}, aber Datensatz {slot} ist {family}.',
-        image_format_unsupported:'Bildformat nicht unterstützt. Bitte PNG, JPEG oder TIFF verwenden.',
+        image_format_unsupported:'Bildformat nicht unterstützt. Bitte PNG, JPEG, TIFF, BMP, GIF oder PDF verwenden.',
         image_too_large:'„{name}“ ist zu groß ({mb} MB). Maximale Bildgröße: {max} MB.',
+        image_embedded_option:'Eingebettet: {name}',
+        image_decoding:'Bild wird dekodiert …',
+        image_err_too_small:'Bilddatei ist zu klein oder beschädigt.',
+        image_err_tiff_lib:'TIFF-Decoder-Bibliothek konnte nicht geladen werden.',
+        image_err_slot_model:'Das Modell des gewählten Datensatzes wird noch geladen — bitte gleich erneut versuchen.',
+        image_err_decode:'Bilddekodierung fehlgeschlagen.',
+        image_err_dataset_not_loaded:'Datensatz {slot} ist nicht geladen.',
+        image_err_embedded_gone:'Eingebettetes Profil ist nicht mehr verfügbar.',
+        image_src_icc:'(aus eingebettetem ICC)',
+        image_src_tiff_lab:'(TIFF Lab)',
+        image_src_channels:'(aus Kanälen abgeleitet)',
+        image_points_summary:'{n} repräsentative Punkte nach Binning + Deduplizierung',
+        image_err_pdf_not_photoshop:'PDF-Unterstützung beschränkt sich auf Einzelbild-Photoshop-PDFs. Für andere PDF-Inhalte als TIFF, JPEG, PNG, BMP oder GIF speichern.',
+        image_err_pdf_encrypted:'Verschlüsselte PDFs werden nicht unterstützt.',
+        image_err_pdf_multi_page:'Nur einseitige Photoshop-PDFs werden unterstützt.',
+        image_err_pdf_corrupt:'PDF-Struktur konnte nicht gelesen werden.',
+        image_err_pdf_no_image:'Im PDF wurde kein Bild gefunden.',
+        image_err_pdf_colorspace:'PDF-Farbraum nicht unterstützt. Verwenden Sie Grau, RGB, CMYK oder ein ICC-basiertes Profil.',
+        image_err_pdf_filter:'PDF-Bildfilter nicht unterstützt. PDF mit JPEG- oder ZIP-Komprimierung erneut speichern.',
       },
       it: {
         settings:'Impostazioni', de_method:'Metodo ΔE', filter_dups:'Filtra duplicati',
@@ -1646,8 +1730,27 @@ or ICC profiles</span>
         image_bound_to:'Associato a {name} — {n} punti',
         image_lab_note:'Immagine Lab — {n} punti',
         image_mismatch_msg:'Associazione impossibile: l’immagine è {img} ma il Dataset {slot} è {family}.',
-        image_format_unsupported:'Formato immagine non supportato. Usa PNG, JPEG o TIFF.',
+        image_format_unsupported:'Formato immagine non supportato. Usa PNG, JPEG, TIFF, BMP, GIF o PDF.',
         image_too_large:'“{name}” è troppo grande ({mb} MB). Dimensione massima: {max} MB.',
+        image_embedded_option:'Incorporato: {name}',
+        image_decoding:'Decodifica immagine in corso…',
+        image_err_too_small:'Il file immagine è troppo piccolo o danneggiato.',
+        image_err_tiff_lib:'Caricamento della libreria di decodifica TIFF non riuscito.',
+        image_err_slot_model:'Il modello del dataset selezionato è ancora in caricamento — riprova tra un istante.',
+        image_err_decode:'Decodifica immagine non riuscita.',
+        image_err_dataset_not_loaded:'Il Dataset {slot} non è caricato.',
+        image_err_embedded_gone:'Il profilo incorporato non è più disponibile.',
+        image_src_icc:'(dall’ICC incorporato)',
+        image_src_tiff_lab:'(TIFF Lab)',
+        image_src_channels:'(dedotto dai canali)',
+        image_points_summary:'{n} punti rappresentativi dopo binning + deduplica',
+        image_err_pdf_not_photoshop:'Il supporto PDF è limitato ai PDF Photoshop con una sola immagine. Salva come TIFF, JPEG, PNG, BMP o GIF per altri contenuti PDF.',
+        image_err_pdf_encrypted:'I PDF crittografati non sono supportati.',
+        image_err_pdf_multi_page:'Sono supportati solo i PDF Photoshop di una sola pagina.',
+        image_err_pdf_corrupt:'Impossibile analizzare la struttura del PDF.',
+        image_err_pdf_no_image:'Nessuna immagine trovata nel PDF.',
+        image_err_pdf_colorspace:'Spazio colore PDF non supportato. Usa Grigio, RGB, CMYK o un profilo ICC.',
+        image_err_pdf_filter:'Filtro immagine PDF non supportato. Salva nuovamente il PDF con compressione JPEG o ZIP.',
       },
       es: {
         settings:'Configuración', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -1759,8 +1862,27 @@ or ICC profiles</span>
         image_bound_to:'Vinculada a {name} — {n} puntos',
         image_lab_note:'Imagen Lab — {n} puntos',
         image_mismatch_msg:'No se puede vincular: la imagen es {img} pero el Dataset {slot} es {family}.',
-        image_format_unsupported:'Formato de imagen no compatible. Use PNG, JPEG o TIFF.',
+        image_format_unsupported:'Formato de imagen no compatible. Use PNG, JPEG, TIFF, BMP, GIF o PDF.',
         image_too_large:'«{name}» es demasiado grande ({mb} MB). Tamaño máximo: {max} MB.',
+        image_embedded_option:'Incrustado: {name}',
+        image_decoding:'Decodificando imagen…',
+        image_err_too_small:'El archivo de imagen es demasiado pequeño o está dañado.',
+        image_err_tiff_lib:'No se pudo cargar la biblioteca de decodificación TIFF.',
+        image_err_slot_model:'El modelo del conjunto de datos seleccionado aún se está cargando — inténtelo de nuevo en un momento.',
+        image_err_decode:'Error al decodificar la imagen.',
+        image_err_dataset_not_loaded:'El Dataset {slot} no está cargado.',
+        image_err_embedded_gone:'El perfil incrustado ya no está disponible.',
+        image_src_icc:'(del ICC incrustado)',
+        image_src_tiff_lab:'(TIFF Lab)',
+        image_src_channels:'(inferido de los canales)',
+        image_points_summary:'{n} puntos representativos tras agrupado + deduplicación',
+        image_err_pdf_not_photoshop:'La compatibilidad con PDF se limita a PDF de Photoshop con una sola imagen. Guarde como TIFF, JPEG, PNG, BMP o GIF para otro contenido PDF.',
+        image_err_pdf_encrypted:'Los PDF cifrados no son compatibles.',
+        image_err_pdf_multi_page:'Solo se admiten PDF de Photoshop de una sola página.',
+        image_err_pdf_corrupt:'No se pudo analizar la estructura del PDF.',
+        image_err_pdf_no_image:'No se encontró ninguna imagen dentro del PDF.',
+        image_err_pdf_colorspace:'Espacio de color del PDF no compatible. Use Gris, RGB, CMYK o un perfil ICC.',
+        image_err_pdf_filter:'Filtro de imagen del PDF no compatible. Vuelva a guardar el PDF con compresión JPEG o ZIP.',
       },
       'pt-PT': {
         settings:'Definições', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -1872,8 +1994,27 @@ or ICC profiles</span>
         image_bound_to:'Associada a {name} — {n} pontos',
         image_lab_note:'Imagem Lab — {n} pontos',
         image_mismatch_msg:'Não é possível associar: imagem é {img} mas o Dataset {slot} é {family}.',
-        image_format_unsupported:'Formato de imagem não suportado. Use PNG, JPEG ou TIFF.',
+        image_format_unsupported:'Formato de imagem não suportado. Use PNG, JPEG, TIFF, BMP, GIF ou PDF.',
         image_too_large:'“{name}” é demasiado grande ({mb} MB). Tamanho máximo: {max} MB.',
+        image_embedded_option:'Incorporado: {name}',
+        image_decoding:'A descodificar imagem…',
+        image_err_too_small:'O ficheiro de imagem é demasiado pequeno ou está corrompido.',
+        image_err_tiff_lib:'Não foi possível carregar a biblioteca de descodificação TIFF.',
+        image_err_slot_model:'O modelo do conjunto de dados selecionado ainda está a carregar — tente novamente daqui a um momento.',
+        image_err_decode:'Falha ao descodificar a imagem.',
+        image_err_dataset_not_loaded:'O Dataset {slot} não está carregado.',
+        image_err_embedded_gone:'O perfil incorporado já não está disponível.',
+        image_src_icc:'(do ICC incorporado)',
+        image_src_tiff_lab:'(TIFF Lab)',
+        image_src_channels:'(inferido dos canais)',
+        image_points_summary:'{n} pontos representativos após binning + desduplicação',
+        image_err_pdf_not_photoshop:'O suporte de PDF está limitado a PDF do Photoshop com uma única imagem. Guarde como TIFF, JPEG, PNG, BMP ou GIF para outros conteúdos PDF.',
+        image_err_pdf_encrypted:'Os PDF encriptados não são suportados.',
+        image_err_pdf_multi_page:'Só são suportados PDF do Photoshop de uma única página.',
+        image_err_pdf_corrupt:'Não foi possível analisar a estrutura do PDF.',
+        image_err_pdf_no_image:'Não foi encontrada nenhuma imagem no PDF.',
+        image_err_pdf_colorspace:'Espaço de cor do PDF não suportado. Use Cinza, RGB, CMYK ou um perfil ICC.',
+        image_err_pdf_filter:'Filtro de imagem do PDF não suportado. Volte a guardar o PDF com compressão JPEG ou ZIP.',
       },
       'pt-BR': {
         settings:'Configurações', de_method:'Método ΔE', filter_dups:'Filtrar duplicados',
@@ -1985,8 +2126,27 @@ or ICC profiles</span>
         image_bound_to:'Vinculada a {name} — {n} pontos',
         image_lab_note:'Imagem Lab — {n} pontos',
         image_mismatch_msg:'Não é possível vincular: imagem é {img} mas o Dataset {slot} é {family}.',
-        image_format_unsupported:'Formato de imagem não suportado. Use PNG, JPEG ou TIFF.',
+        image_format_unsupported:'Formato de imagem não suportado. Use PNG, JPEG, TIFF, BMP, GIF ou PDF.',
         image_too_large:'“{name}” é grande demais ({mb} MB). Tamanho máximo: {max} MB.',
+        image_embedded_option:'Incorporado: {name}',
+        image_decoding:'Decodificando imagem…',
+        image_err_too_small:'O arquivo de imagem é pequeno demais ou está corrompido.',
+        image_err_tiff_lib:'Falha ao carregar a biblioteca de decodificação TIFF.',
+        image_err_slot_model:'O modelo do conjunto de dados selecionado ainda está sendo carregado — tente novamente em instantes.',
+        image_err_decode:'Falha ao decodificar a imagem.',
+        image_err_dataset_not_loaded:'O Dataset {slot} não está carregado.',
+        image_err_embedded_gone:'O perfil incorporado não está mais disponível.',
+        image_src_icc:'(do ICC incorporado)',
+        image_src_tiff_lab:'(TIFF Lab)',
+        image_src_channels:'(inferido dos canais)',
+        image_points_summary:'{n} pontos representativos após binning + desduplicação',
+        image_err_pdf_not_photoshop:'O suporte a PDF é limitado a PDFs do Photoshop com uma única imagem. Salve como TIFF, JPEG, PNG, BMP ou GIF para outros conteúdos PDF.',
+        image_err_pdf_encrypted:'PDFs criptografados não são suportados.',
+        image_err_pdf_multi_page:'Apenas PDFs do Photoshop de página única são suportados.',
+        image_err_pdf_corrupt:'Não foi possível analisar a estrutura do PDF.',
+        image_err_pdf_no_image:'Nenhuma imagem encontrada dentro do PDF.',
+        image_err_pdf_colorspace:'Espaço de cor do PDF não suportado. Use Cinza, RGB, CMYK ou um perfil ICC.',
+        image_err_pdf_filter:'Filtro de imagem do PDF não suportado. Salve o PDF novamente com compressão JPEG ou ZIP.',
       },
       'zh-CN': {
         settings:'设置', de_method:'ΔE 方法', filter_dups:'过滤重复项',
@@ -2098,8 +2258,27 @@ or ICC profiles</span>
         image_bound_to:'已绑定 {name} — {n} 个点',
         image_lab_note:'Lab 图像 — {n} 个点',
         image_mismatch_msg:'无法绑定：图像为 {img}，但数据集 {slot} 为 {family}。',
-        image_format_unsupported:'不支持的图像格式。请使用 PNG、JPEG 或 TIFF。',
+        image_format_unsupported:'不支持的图像格式。请使用 PNG、JPEG、TIFF、BMP、GIF 或 PDF。',
         image_too_large:'“{name}”太大（{mb} MB）。最大图像大小为 {max} MB。',
+        image_embedded_option:'嵌入：{name}',
+        image_decoding:'正在解码图像…',
+        image_err_too_small:'图像文件过小或已损坏。',
+        image_err_tiff_lib:'TIFF 解码库加载失败。',
+        image_err_slot_model:'所选数据集模型仍在加载中 — 请稍后再试。',
+        image_err_decode:'图像解码失败。',
+        image_err_dataset_not_loaded:'数据集 {slot} 未加载。',
+        image_err_embedded_gone:'嵌入的配置文件不再可用。',
+        image_src_icc:'（来自嵌入的 ICC）',
+        image_src_tiff_lab:'（TIFF Lab）',
+        image_src_channels:'（根据通道推断）',
+        image_points_summary:'分箱与去重后保留 {n} 个代表性点',
+        image_err_pdf_not_photoshop:'PDF 支持仅限于单图像 Photoshop PDF。其他 PDF 内容请另存为 TIFF、JPEG、PNG、BMP 或 GIF。',
+        image_err_pdf_encrypted:'不支持加密的 PDF。',
+        image_err_pdf_multi_page:'仅支持单页 Photoshop PDF。',
+        image_err_pdf_corrupt:'无法解析 PDF 结构。',
+        image_err_pdf_no_image:'在 PDF 中找不到图像。',
+        image_err_pdf_colorspace:'不支持的 PDF 色彩空间。请使用灰度、RGB、CMYK 或基于 ICC 的配置文件。',
+        image_err_pdf_filter:'不支持的 PDF 图像过滤器。请使用 JPEG 或 ZIP 压缩重新保存 PDF。',
       },
       'zh-TW': {
         settings:'設定', de_method:'ΔE 方法', filter_dups:'過濾重複項',
@@ -2211,8 +2390,27 @@ or ICC profiles</span>
         image_bound_to:'已綁定 {name} — {n} 個點',
         image_lab_note:'Lab 影像 — {n} 個點',
         image_mismatch_msg:'無法綁定：影像為 {img}，但資料集 {slot} 為 {family}。',
-        image_format_unsupported:'不支援的影像格式。請使用 PNG、JPEG 或 TIFF。',
+        image_format_unsupported:'不支援的影像格式。請使用 PNG、JPEG、TIFF、BMP、GIF 或 PDF。',
         image_too_large:'「{name}」太大（{mb} MB）。最大影像大小為 {max} MB。',
+        image_embedded_option:'嵌入：{name}',
+        image_decoding:'正在解碼影像…',
+        image_err_too_small:'影像檔案太小或已損毀。',
+        image_err_tiff_lib:'TIFF 解碼程式庫載入失敗。',
+        image_err_slot_model:'所選資料集模型仍在載入中 — 請稍後再試。',
+        image_err_decode:'影像解碼失敗。',
+        image_err_dataset_not_loaded:'資料集 {slot} 未載入。',
+        image_err_embedded_gone:'嵌入的描述檔不再可用。',
+        image_src_icc:'（來自嵌入的 ICC）',
+        image_src_tiff_lab:'（TIFF Lab）',
+        image_src_channels:'（依通道推斷）',
+        image_points_summary:'分箱與去重後保留 {n} 個代表性點',
+        image_err_pdf_not_photoshop:'PDF 支援僅限於單一影像的 Photoshop PDF。其他 PDF 內容請另存為 TIFF、JPEG、PNG、BMP 或 GIF。',
+        image_err_pdf_encrypted:'不支援加密的 PDF。',
+        image_err_pdf_multi_page:'僅支援單頁 Photoshop PDF。',
+        image_err_pdf_corrupt:'無法解析 PDF 結構。',
+        image_err_pdf_no_image:'在 PDF 中找不到影像。',
+        image_err_pdf_colorspace:'不支援的 PDF 色彩空間。請使用灰階、RGB、CMYK 或基於 ICC 的描述檔。',
+        image_err_pdf_filter:'不支援的 PDF 影像濾鏡。請使用 JPEG 或 ZIP 壓縮重新儲存 PDF。',
       },
       ja: {
         settings:'設定', de_method:'ΔE 方法', filter_dups:'重複フィルター',
@@ -2324,8 +2522,27 @@ or ICC profiles</span>
         image_bound_to:'{name} に関連付け済み — {n} 点',
         image_lab_note:'Lab 画像 — {n} 点',
         image_mismatch_msg:'関連付けできません：画像は {img} ですが、データセット {slot} は {family} です。',
-        image_format_unsupported:'対応していない画像形式です。PNG、JPEG、または TIFF を使用してください。',
+        image_format_unsupported:'対応していない画像形式です。PNG、JPEG、TIFF、BMP、GIF、または PDF を使用してください。',
         image_too_large:'「{name}」が大きすぎます（{mb} MB）。最大画像サイズは {max} MB です。',
+        image_embedded_option:'埋め込み: {name}',
+        image_decoding:'画像をデコード中…',
+        image_err_too_small:'画像ファイルが小さすぎるか破損しています。',
+        image_err_tiff_lib:'TIFF デコーダーライブラリの読み込みに失敗しました。',
+        image_err_slot_model:'選択したデータセットのモデルを読み込み中です — 少し待ってから再試行してください。',
+        image_err_decode:'画像のデコードに失敗しました。',
+        image_err_dataset_not_loaded:'Dataset {slot} は読み込まれていません。',
+        image_err_embedded_gone:'埋め込みプロファイルは利用できなくなりました。',
+        image_src_icc:'（埋め込み ICC より）',
+        image_src_tiff_lab:'（TIFF Lab）',
+        image_src_channels:'（チャネルから推定）',
+        image_points_summary:'ビニングと重複除去の後、{n} 個の代表点',
+        image_err_pdf_not_photoshop:'PDF のサポートは単一画像の Photoshop PDF に限定されます。他の PDF コンテンツは TIFF、JPEG、PNG、BMP、または GIF として保存してください。',
+        image_err_pdf_encrypted:'暗号化された PDF はサポートされていません。',
+        image_err_pdf_multi_page:'単一ページの Photoshop PDF のみサポートされます。',
+        image_err_pdf_corrupt:'PDF の構造を解析できませんでした。',
+        image_err_pdf_no_image:'PDF 内に画像が見つかりませんでした。',
+        image_err_pdf_colorspace:'PDF の色空間はサポートされていません。グレー、RGB、CMYK、または ICC ベースのプロファイルを使用してください。',
+        image_err_pdf_filter:'PDF の画像フィルターはサポートされていません。JPEG または ZIP 圧縮で PDF を保存し直してください。',
       },
       ko: {
         settings:'설정', de_method:'ΔE 방법', filter_dups:'중복 필터',
@@ -2437,8 +2654,27 @@ or ICC profiles</span>
         image_bound_to:'{name}에 연결됨 — {n}개 포인트',
         image_lab_note:'Lab 이미지 — {n}개 포인트',
         image_mismatch_msg:'연결할 수 없습니다: 이미지는 {img}이지만 데이터셋 {slot}은 {family}입니다.',
-        image_format_unsupported:'지원되지 않는 이미지 형식입니다. PNG, JPEG 또는 TIFF를 사용하세요.',
+        image_format_unsupported:'지원되지 않는 이미지 형식입니다. PNG, JPEG, TIFF, BMP, GIF 또는 PDF를 사용하세요.',
         image_too_large:'“{name}”이(가) 너무 큽니다 ({mb} MB). 최대 이미지 크기는 {max} MB입니다.',
+        image_embedded_option:'내장: {name}',
+        image_decoding:'이미지 디코딩 중…',
+        image_err_too_small:'이미지 파일이 너무 작거나 손상되었습니다.',
+        image_err_tiff_lib:'TIFF 디코더 라이브러리를 불러오지 못했습니다.',
+        image_err_slot_model:'선택한 데이터셋 모델을 아직 불러오는 중입니다 — 잠시 후 다시 시도하세요.',
+        image_err_decode:'이미지 디코딩에 실패했습니다.',
+        image_err_dataset_not_loaded:'Dataset {slot}이(가) 불러와지지 않았습니다.',
+        image_err_embedded_gone:'내장된 프로필을 더 이상 사용할 수 없습니다.',
+        image_src_icc:'(내장 ICC에서)',
+        image_src_tiff_lab:'(TIFF Lab)',
+        image_src_channels:'(채널에서 추정)',
+        image_points_summary:'비닝 및 중복 제거 후 대표 점 {n}개',
+        image_err_pdf_not_photoshop:'PDF 지원은 단일 이미지 Photoshop PDF로 제한됩니다. 다른 PDF 콘텐츠는 TIFF, JPEG, PNG, BMP 또는 GIF로 저장하세요.',
+        image_err_pdf_encrypted:'암호화된 PDF는 지원되지 않습니다.',
+        image_err_pdf_multi_page:'단일 페이지 Photoshop PDF만 지원됩니다.',
+        image_err_pdf_corrupt:'PDF 구조를 분석할 수 없습니다.',
+        image_err_pdf_no_image:'PDF에서 이미지를 찾을 수 없습니다.',
+        image_err_pdf_colorspace:'지원되지 않는 PDF 색 공간입니다. 회색, RGB, CMYK 또는 ICC 기반 프로필을 사용하세요.',
+        image_err_pdf_filter:'지원되지 않는 PDF 이미지 필터입니다. JPEG 또는 ZIP 압축으로 PDF를 다시 저장하세요.',
       },
       sv: {
         settings:'Inställningar', de_method:'ΔE-metod', filter_dups:'Filtrera dubbletter',
@@ -2555,8 +2791,27 @@ or ICC profiles</span>
         image_bound_to:'Kopplad till {name} — {n} punkter',
         image_lab_note:'Lab-bild — {n} punkter',
         image_mismatch_msg:'Kan inte koppla: bilden är {img} men dataset {slot} är {family}.',
-        image_format_unsupported:'Bildformatet stöds inte. Använd PNG, JPEG eller TIFF.',
+        image_format_unsupported:'Bildformatet stöds inte. Använd PNG, JPEG, TIFF, BMP, GIF eller PDF.',
         image_too_large:'”{name}” är för stor ({mb} MB). Maximal bildstorlek: {max} MB.',
+        image_embedded_option:'Inbäddad: {name}',
+        image_decoding:'Avkodar bild…',
+        image_err_too_small:'Bildfilen är för liten eller skadad.',
+        image_err_tiff_lib:'TIFF-avkodningsbiblioteket kunde inte läsas in.',
+        image_err_slot_model:'Det valda dataset-modellen läses fortfarande in — försök igen om en stund.',
+        image_err_decode:'Bildavkodningen misslyckades.',
+        image_err_dataset_not_loaded:'Dataset {slot} är inte inläst.',
+        image_err_embedded_gone:'Den inbäddade profilen är inte längre tillgänglig.',
+        image_src_icc:'(från inbäddad ICC)',
+        image_src_tiff_lab:'(TIFF Lab)',
+        image_src_channels:'(härlett från kanaler)',
+        image_points_summary:'{n} representativa punkter efter binning + deduplicering',
+        image_err_pdf_not_photoshop:'PDF-stöd är begränsat till Photoshop-PDF med en enda bild. Spara som TIFF, JPEG, PNG, BMP eller GIF för annat PDF-innehåll.',
+        image_err_pdf_encrypted:'Krypterade PDF:er stöds inte.',
+        image_err_pdf_multi_page:'Endast ensidiga Photoshop-PDF:er stöds.',
+        image_err_pdf_corrupt:'PDF-strukturen kunde inte tolkas.',
+        image_err_pdf_no_image:'Ingen bild hittades i PDF:en.',
+        image_err_pdf_colorspace:'PDF-färgrymden stöds inte. Använd Grå, RGB, CMYK eller en ICC-baserad profil.',
+        image_err_pdf_filter:'PDF-bildfiltret stöds inte. Spara om PDF:en med JPEG- eller ZIP-komprimering.',
       },
     };
 
@@ -7769,14 +8024,31 @@ or ICC profiles</span>
       const aName = (state.a && state.a.name) || 'Dataset A';
       const bName = (state.b && state.b.name) || 'Dataset B';
       sel.innerHTML = '';
+      // If the loaded image carries an embedded ICC profile, offer it as the first
+      // (default) option. Use the profile description from lcms2 as the visible name.
+      const hasEmbedded = !!(_imageState && _imageState.embeddedIcc);
+      if (hasEmbedded) {
+        const optE = document.createElement('option');
+        optE.value = 'embedded';
+        optE.textContent = t('image_embedded_option', { name: _imageState.embeddedIcc.description });
+        sel.appendChild(optE);
+      }
       const optA = document.createElement('option');
       optA.value = 'a'; optA.textContent = aName;
       const optB = document.createElement('option');
       optB.value = 'b'; optB.textContent = bName;
       sel.appendChild(optA); sel.appendChild(optB);
-      if (prev === 'a' || prev === 'b') sel.value = prev;
+      if (hasEmbedded) sel.value = 'embedded';
+      else if (prev === 'a' || prev === 'b') sel.value = prev;
       // Ghost when Lab image is loaded (binding not applicable).
       sel.disabled = !!(_imageState && _imageState.colorSpace === 'Lab');
+    }
+
+    function freeEmbeddedIcc() {
+      if (_imageState && _imageState.embeddedIcc && typeof _imageState.embeddedIcc.handleId === 'number') {
+        try { Gamut.freeIccProfile(_imageState.embeddedIcc.handleId); } catch (_) { /* best effort */ }
+        _imageState.embeddedIcc = null;
+      }
     }
 
     // ── Slot family / colorant-canonicalisation helpers ────────────────────────
@@ -7863,7 +8135,421 @@ or ICC profiles</span>
           (u[0] === 0x4D && u[1] === 0x4D && u[2] === 0x00 && u[3] === 0x2A)) {
         return sniffTiff(u);
       }
+      // BMP signature: 'BM' (0x42 0x4D)
+      if (u[0] === 0x42 && u[1] === 0x4D) {
+        return sniffBmp(u);
+      }
+      // GIF signature: 'GIF8' (0x47 0x49 0x46 0x38) — covers both GIF87a and GIF89a
+      if (u[0] === 0x47 && u[1] === 0x49 && u[2] === 0x46 && u[3] === 0x38) {
+        return sniffGif(u);
+      }
+      // PDF signature: '%PDF-' (0x25 0x50 0x44 0x46 0x2D)
+      if (u[0] === 0x25 && u[1] === 0x50 && u[2] === 0x44 && u[3] === 0x46 && u[4] === 0x2D) {
+        return sniffPdf(u);
+      }
       throw new Error('image_format_unsupported');
+    }
+
+    function sniffBmp(u) {
+      // BMP V5 (BITMAPV5HEADER) can carry an embedded ICC profile, but it is rare and
+      // adds non-trivial parsing for limited real-world benefit — defer.
+      // Canvas expands indexed / 16-bit / 24-bit / 32-bit BMPs to RGBA on draw, so we
+      // treat every BMP as 3-channel RGB for the gamut pipeline.
+      return { format: 'bmp', channels: 3, iccBytes: null, iccSig: null };
+    }
+
+    function sniffGif(u) {
+      // GIF is always palette-indexed; no embedded ICC support in the format.
+      // For animated GIFs we capture only the first frame (the initial frame drawn by
+      // the browser when the <img> element loads).
+      return { format: 'gif', channels: 3, iccBytes: null, iccSig: null };
+    }
+
+    // ── Minimal PDF parser (Photoshop-PDF subset only) ─────────────────────────
+    // We accept only PDFs whose /Info Producer or Creator string begins with
+    // "Adobe Photoshop". Everything else is rejected with image_pdf_not_photoshop so
+    // we never partially-decode a generic document PDF. The parser supports the PDF
+    // structures Photoshop actually emits: classic xref tables (not xref streams),
+    // unencrypted, single-page, with one image XObject whose colour space is one of
+    // DeviceGray / DeviceRGB / DeviceCMYK / ICCBased and whose filter is DCTDecode or
+    // FlateDecode (with optional PNG-style Predictor in DecodeParms).
+
+    function pdfSkipWS(u, i) {
+      while (i < u.length) {
+        const c = u[i];
+        if (c === 0x20 || c === 0x09 || c === 0x0A || c === 0x0C || c === 0x0D || c === 0x00) { i++; continue; }
+        if (c === 0x25) { while (i < u.length && u[i] !== 0x0A && u[i] !== 0x0D) i++; continue; }
+        break;
+      }
+      return i;
+    }
+
+    function pdfFindLast(u, pat, windowBytes) {
+      // Search the last `windowBytes` of u for the last occurrence of pat (ASCII string).
+      const pb = new Uint8Array(pat.length);
+      for (let k = 0; k < pat.length; k++) pb[k] = pat.charCodeAt(k);
+      const lo = Math.max(0, u.length - (windowBytes || 4096));
+      for (let i = u.length - pb.length; i >= lo; i--) {
+        let ok = true;
+        for (let j = 0; j < pb.length; j++) if (u[i + j] !== pb[j]) { ok = false; break; }
+        if (ok) return i;
+      }
+      return -1;
+    }
+
+    function pdfReadInt(u, i) {
+      const start = i;
+      while (i < u.length && u[i] >= 0x30 && u[i] <= 0x39) i++;
+      if (i === start) throw new Error('image_pdf_corrupt');
+      return [parseInt(String.fromCharCode.apply(null, u.subarray(start, i)), 10), i];
+    }
+
+    function pdfReadValue(u, i) {
+      i = pdfSkipWS(u, i);
+      if (i >= u.length) throw new Error('image_pdf_corrupt');
+      const c = u[i];
+      if (c === 0x3C) {  // < — dict <<...>> or hex string <...>
+        if (u[i+1] === 0x3C) return pdfReadDict(u, i);
+        return pdfReadHexStr(u, i);
+      }
+      if (c === 0x28) return pdfReadLitStr(u, i);  // ( — literal string
+      if (c === 0x2F) {  // / — name
+        let j = i + 1;
+        let n = '';
+        while (j < u.length) {
+          const cc = u[j];
+          if (cc <= 0x20 || cc === 0x2F || cc === 0x3C || cc === 0x3E || cc === 0x5B || cc === 0x5D || cc === 0x28 || cc === 0x29 || cc === 0x25) break;
+          if (cc === 0x23 && j + 2 < u.length) {  // #XX escape
+            n += String.fromCharCode(parseInt(String.fromCharCode(u[j+1], u[j+2]), 16));
+            j += 3;
+            continue;
+          }
+          n += String.fromCharCode(cc);
+          j++;
+        }
+        return [{ name: n }, j];
+      }
+      if (c === 0x5B) return pdfReadArray(u, i);  // [ — array
+      // null / true / false
+      if (c === 0x6E && u[i+1] === 0x75 && u[i+2] === 0x6C && u[i+3] === 0x6C) return [null, i + 4];
+      if (c === 0x74 && u[i+1] === 0x72 && u[i+2] === 0x75 && u[i+3] === 0x65) return [true, i + 4];
+      if (c === 0x66 && u[i+1] === 0x61 && u[i+2] === 0x6C && u[i+3] === 0x73 && u[i+4] === 0x65) return [false, i + 5];
+      // Number, possibly followed by " G R" for indirect reference.
+      let numStart = i;
+      let j = i;
+      if (u[j] === 0x2B || u[j] === 0x2D) j++;
+      while (j < u.length) {
+        const cc = u[j];
+        if ((cc >= 0x30 && cc <= 0x39) || cc === 0x2E) j++;
+        else break;
+      }
+      if (j === numStart) throw new Error('image_pdf_corrupt');
+      const num1 = parseFloat(String.fromCharCode.apply(null, u.subarray(numStart, j)));
+      // Look ahead for "<int> R".
+      let p = pdfSkipWS(u, j);
+      if (p < u.length && u[p] >= 0x30 && u[p] <= 0x39) {
+        const gStart = p;
+        while (p < u.length && u[p] >= 0x30 && u[p] <= 0x39) p++;
+        const gen = parseInt(String.fromCharCode.apply(null, u.subarray(gStart, p)), 10);
+        let q = pdfSkipWS(u, p);
+        if (u[q] === 0x52 /* R */) return [{ ref: [num1 | 0, gen] }, q + 1];
+      }
+      return [num1, j];
+    }
+
+    function pdfReadDict(u, i) {
+      if (u[i] !== 0x3C || u[i+1] !== 0x3C) throw new Error('image_pdf_corrupt');
+      i += 2;
+      const d = {};
+      while (true) {
+        i = pdfSkipWS(u, i);
+        if (i + 1 < u.length && u[i] === 0x3E && u[i+1] === 0x3E) return [d, i + 2];
+        if (u[i] !== 0x2F) throw new Error('image_pdf_corrupt');
+        const [k, ni] = pdfReadValue(u, i);
+        i = ni;
+        const [v, ni2] = pdfReadValue(u, i);
+        d[k.name] = v;
+        i = ni2;
+      }
+    }
+
+    function pdfReadArray(u, i) {
+      i++;  // skip [
+      const arr = [];
+      while (true) {
+        i = pdfSkipWS(u, i);
+        if (u[i] === 0x5D) return [arr, i + 1];
+        const [v, ni] = pdfReadValue(u, i);
+        arr.push(v); i = ni;
+      }
+    }
+
+    function pdfReadLitStr(u, i) {
+      i++;  // skip (
+      let s = '';
+      let depth = 1;
+      while (i < u.length) {
+        const c = u[i];
+        if (c === 0x5C) {  // backslash escape
+          const n = u[i+1];
+          if (n === 0x6E) { s += '\n'; i += 2; continue; }
+          if (n === 0x72) { s += '\r'; i += 2; continue; }
+          if (n === 0x74) { s += '\t'; i += 2; continue; }
+          if (n === 0x62) { s += '\b'; i += 2; continue; }
+          if (n === 0x66) { s += '\f'; i += 2; continue; }
+          if (n === 0x28 || n === 0x29 || n === 0x5C) { s += String.fromCharCode(n); i += 2; continue; }
+          if (n >= 0x30 && n <= 0x37) {
+            let oct = '', k = i + 1;
+            while (k < u.length && oct.length < 3 && u[k] >= 0x30 && u[k] <= 0x37) { oct += String.fromCharCode(u[k]); k++; }
+            s += String.fromCharCode(parseInt(oct, 8));
+            i = k; continue;
+          }
+          i += 2; continue;
+        }
+        if (c === 0x28) { depth++; s += '('; i++; continue; }
+        if (c === 0x29) {
+          depth--;
+          if (depth === 0) return [{ s }, i + 1];
+          s += ')'; i++; continue;
+        }
+        s += String.fromCharCode(c); i++;
+      }
+      throw new Error('image_pdf_corrupt');
+    }
+
+    function pdfReadHexStr(u, i) {
+      i++;  // skip <
+      let hex = '';
+      while (i < u.length && u[i] !== 0x3E) {
+        const c = u[i];
+        if (c > 0x20) hex += String.fromCharCode(c);
+        i++;
+      }
+      if (hex.length & 1) hex += '0';
+      let s = '';
+      for (let k = 0; k < hex.length; k += 2) s += String.fromCharCode(parseInt(hex.substr(k, 2), 16));
+      return [{ s }, i + 1];
+    }
+
+    function pdfParseXrefAt(u, off) {
+      // Classic xref table at byte `off`. Returns { map, trailerStart } where
+      // trailerStart is the byte index of the 't' beginning "trailer" that follows
+      // the entries.
+      if (u[off] !== 0x78 || u[off+1] !== 0x72 || u[off+2] !== 0x65 || u[off+3] !== 0x66) {
+        throw new Error('image_pdf_corrupt');
+      }
+      const map = new Map();
+      let i = off + 4;
+      while (true) {
+        i = pdfSkipWS(u, i);
+        if (u[i] === 0x74) return { map, trailerStart: i };  // 'trailer'
+        const [first, i1] = pdfReadInt(u, i);
+        i = pdfSkipWS(u, i1);
+        const [count, i2] = pdfReadInt(u, i);
+        i = i2;
+        if (u[i] === 0x0D) i++;
+        if (u[i] === 0x0A) i++;
+        for (let k = 0; k < count; k++) {
+          const offStr = String.fromCharCode.apply(null, u.subarray(i, i + 10));
+          if (u[i + 17] === 0x6E /* n */) map.set(first + k, parseInt(offStr, 10));
+          i += 20;
+        }
+      }
+    }
+
+    function pdfParseXrefChain(u, startOff) {
+      // Follow the /Prev chain across xref tables (linearized PDFs split their xref
+      // across a main table and an auxiliary one). Returns { map, trailer } where
+      // trailer is the first (most-recent) trailer dict; xref entries from earlier
+      // tables fill in object numbers missing from later tables.
+      const map = new Map();
+      let firstTrailer = null;
+      const visited = new Set();
+      let off = startOff;
+      let depth = 0;
+      while (off !== undefined && !visited.has(off) && depth < 16) {
+        visited.add(off);
+        const { map: subMap, trailerStart } = pdfParseXrefAt(u, off);
+        for (const [k, v] of subMap) {
+          if (!map.has(k)) map.set(k, v);  // more-recent xref wins on conflict
+        }
+        const [tr] = pdfReadValue(u, pdfSkipWS(u, trailerStart + 7));
+        if (depth === 0) firstTrailer = tr;
+        off = (typeof tr.Prev === 'number') ? tr.Prev : undefined;
+        depth++;
+      }
+      if (!firstTrailer) throw new Error('image_pdf_corrupt');
+      return { map, trailer: firstTrailer };
+    }
+
+    function pdfResolve(parser, v) {
+      // Resolve any indirect reference one level deep; pass-through for direct values.
+      if (!v || typeof v !== 'object' || !Array.isArray(v.ref)) return v;
+      const n = v.ref[0];
+      if (parser.cache.has(n)) return parser.cache.get(n);
+      const off = parser.xref.get(n);
+      if (off === undefined) throw new Error('image_pdf_corrupt');
+      // Expect "N G obj <value>"
+      let i = pdfSkipWS(parser.u, off);
+      i = pdfReadInt(parser.u, i)[1];
+      i = pdfSkipWS(parser.u, i);
+      i = pdfReadInt(parser.u, i)[1];
+      i = pdfSkipWS(parser.u, i);
+      i += 3;  // "obj"
+      const [val, ni] = pdfReadValue(parser.u, i);
+      // If it's a dict and a stream follows, attach stream offset + length.
+      if (pdfIsDict(val)) {
+        let j = pdfSkipWS(parser.u, ni);
+        if (parser.u[j] === 0x73 && parser.u[j+1] === 0x74 && parser.u[j+2] === 0x72 &&
+            parser.u[j+3] === 0x65 && parser.u[j+4] === 0x61 && parser.u[j+5] === 0x6D) {
+          j += 6;
+          if (parser.u[j] === 0x0D) j++;
+          if (parser.u[j] === 0x0A) j++;
+          let length = val.Length;
+          if (length && length.ref) length = pdfResolve(parser, length);
+          if (typeof length !== 'number') throw new Error('image_pdf_corrupt');
+          val.__streamOff = j;
+          val.__streamLen = length;
+        }
+      }
+      parser.cache.set(n, val);
+      return val;
+    }
+
+    function pdfIsDict(v) {
+      return v && typeof v === 'object' && !Array.isArray(v) &&
+             !Array.isArray(v.ref) && typeof v.s !== 'string' && typeof v.name !== 'string';
+    }
+
+    function pdfFirstPage(parser, pagesNode) {
+      // Recursively descend a /Pages tree until we find the first /Page leaf.
+      if (!Array.isArray(pagesNode.Kids)) throw new Error('image_pdf_corrupt');
+      if (pagesNode.Kids.length !== 1) throw new Error('image_pdf_multi_page');
+      const k = pdfResolve(parser, pagesNode.Kids[0]);
+      const t = k.Type;
+      if (t && t.name === 'Pages') return pdfFirstPage(parser, k);
+      return k;
+    }
+
+    function pdfFilterChain(filterVal) {
+      if (!filterVal) return [];
+      if (Array.isArray(filterVal)) return filterVal.map(f => (f && f.name) || String(f));
+      if (filterVal.name) return [filterVal.name];
+      return [];
+    }
+
+    function sniffPdf(u) {
+      // 1. Locate trailing startxref → walk xref chain (linearized PDFs split xref
+      // entries across multiple tables joined by /Prev).
+      const sxIdx = pdfFindLast(u, 'startxref', 1024);
+      if (sxIdx === -1) throw new Error('image_pdf_corrupt');
+      const [xrefOff] = pdfReadInt(u, pdfSkipWS(u, sxIdx + 9));
+      const { map: xrefMap, trailer } = pdfParseXrefChain(u, xrefOff);
+      const parser = { u, xref: xrefMap, cache: new Map() };
+
+      if (trailer.Encrypt) throw new Error('image_pdf_encrypted');
+
+      // 2. Strict Photoshop check via /Info Producer or Creator.
+      const info = pdfResolve(parser, trailer.Info);
+      const producer = (info && info.Producer && info.Producer.s) || '';
+      const creator  = (info && info.Creator  && info.Creator.s)  || '';
+      if (producer.indexOf('Adobe Photoshop') !== 0 && creator.indexOf('Adobe Photoshop') !== 0) {
+        throw new Error('image_pdf_not_photoshop');
+      }
+
+      // 3. Walk Root → Pages → first leaf Page.
+      const root = pdfResolve(parser, trailer.Root);
+      const pages = pdfResolve(parser, root.Pages);
+      const page = pdfFirstPage(parser, pages);
+
+      // 4. Find first image XObject.
+      const resources = pdfResolve(parser, page.Resources);
+      const xobjects = pdfResolve(parser, resources && resources.XObject);
+      if (!xobjects) throw new Error('image_pdf_no_image');
+      let imgDict = null;
+      for (const k of Object.keys(xobjects)) {
+        const xo = pdfResolve(parser, xobjects[k]);
+        if (xo && xo.Subtype && xo.Subtype.name === 'Image') { imgDict = xo; break; }
+      }
+      if (!imgDict) throw new Error('image_pdf_no_image');
+
+      const width  = imgDict.Width;
+      const height = imgDict.Height;
+      const bpc    = imgDict.BitsPerComponent || 8;
+
+      // 5. ColorSpace → channels + (for /ICCBased) embedded ICC compressed bytes.
+      // Photoshop typically tags the image with a Device* colour space, then defines
+      // /DefaultGray /DefaultRGB /DefaultCMYK in the page's /Resources /ColorSpace as
+      // an [/ICCBased <ref>] override. PDF spec §8.6.5.6 says Device* colour spaces
+      // must use the matching /Default* override when present, so we substitute here.
+      let cs = imgDict.ColorSpace;
+      if (cs && cs.ref) cs = pdfResolve(parser, cs);
+      if (cs && cs.name && (cs.name === 'DeviceGray' || cs.name === 'DeviceRGB' || cs.name === 'DeviceCMYK')) {
+        const rcs = pdfResolve(parser, resources && resources.ColorSpace);
+        if (rcs && pdfIsDict(rcs)) {
+          const dflKey = cs.name === 'DeviceGray' ? 'DefaultGray' :
+                         cs.name === 'DeviceRGB'  ? 'DefaultRGB'  : 'DefaultCMYK';
+          let dfl = rcs[dflKey];
+          if (dfl && dfl.ref) dfl = pdfResolve(parser, dfl);
+          if (dfl) cs = dfl;
+        }
+      }
+      let channels;
+      let iccCompressed = null;
+      let csName;
+      if (cs && cs.name) {
+        csName = cs.name;
+        if      (cs.name === 'DeviceGray') channels = 1;
+        else if (cs.name === 'DeviceRGB')  channels = 3;
+        else if (cs.name === 'DeviceCMYK') channels = 4;
+        else throw new Error('image_pdf_colorspace_unsupported');
+      } else if (Array.isArray(cs) && cs.length >= 2 && cs[0] && cs[0].name === 'ICCBased') {
+        csName = 'ICCBased';
+        const iccObj = pdfResolve(parser, cs[1]);
+        channels = iccObj.N;
+        if (!iccObj.__streamOff) throw new Error('image_pdf_corrupt');
+        iccCompressed = u.subarray(iccObj.__streamOff, iccObj.__streamOff + iccObj.__streamLen);
+      } else {
+        throw new Error('image_pdf_colorspace_unsupported');
+      }
+
+      // 6. Filter chain — only DCTDecode or FlateDecode in v1.
+      const filters = pdfFilterChain(imgDict.Filter);
+      if (filters.length === 0 || (filters[0] !== 'DCTDecode' && filters[0] !== 'FlateDecode')) {
+        throw new Error('image_pdf_filter_unsupported');
+      }
+
+      // 7. DecodeParms — used by FlateDecode predictor unfilter.
+      let decodeParms = imgDict.DecodeParms;
+      if (decodeParms && decodeParms.ref) decodeParms = pdfResolve(parser, decodeParms);
+      const dp = {};
+      if (decodeParms) {
+        const v = (k) => {
+          let val = decodeParms[k];
+          if (val && val.ref) val = pdfResolve(parser, val);
+          return typeof val === 'number' ? val : null;
+        };
+        dp.Predictor = v('Predictor');
+        dp.Columns   = v('Columns');
+        dp.Colors    = v('Colors');
+        dp.BitsPerComponent = v('BitsPerComponent');
+      }
+
+      return {
+        format: 'pdf',
+        channels,
+        iccBytes: null,        // populated after async inflate
+        iccCompressed,
+        iccSig: null,
+        pdf: {
+          width, height, bpc,
+          filter: filters[0],
+          decodeParms: dp,
+          streamOff: imgDict.__streamOff,
+          streamLen: imgDict.__streamLen,
+          colorspace: csName,
+        }
+      };
     }
 
     function sniffPng(u) {
@@ -7879,8 +8565,9 @@ or ICC profiles</span>
       else if (colorType === 6) channels = 3;                     // RGBA → 3ch
       else throw new Error('image_format_unsupported');
 
-      // Walk chunks looking for iCCP.
-      let iccBytes = null;
+      // Walk chunks looking for iCCP. The compressed bytes are captured and inflated
+      // asynchronously by the file handler (DecompressionStream is async).
+      let iccCompressed = null;
       let off = 8;
       while (off + 8 <= u.length) {
         const len = (u[off] << 24) | (u[off+1] << 16) | (u[off+2] << 8) | u[off+3];
@@ -7891,13 +8578,11 @@ or ICC profiles</span>
           let p = off + 8;
           while (p < off + 8 + len && u[p] !== 0) p++;
           p += 2; // skip null + compression-method byte
-          const compressed = u.subarray(p, off + 8 + len);
-          iccBytes = inflateDeflate(compressed);
+          iccCompressed = u.subarray(p, off + 8 + len);
         }
         off += 8 + len + 4; // length + type + data + crc
       }
-      const iccSig = iccBytes ? iccColorSpaceSig(iccBytes) : null;
-      return { format: 'png', channels, iccBytes, iccSig };
+      return { format: 'png', channels, iccBytes: null, iccCompressed, iccSig: null };
     }
 
     function sniffJpeg(u) {
@@ -7975,19 +8660,24 @@ or ICC profiles</span>
       return String.fromCharCode(iccBytes[16], iccBytes[17], iccBytes[18], iccBytes[19]);
     }
 
-    // Inflate a zlib-wrapped deflate stream (used for PNG iCCP).
-    function inflateDeflate(compressed) {
-      // PNG iCCP uses zlib (DEFLATE wrapped in 2-byte zlib header + 4-byte Adler32 tail).
-      // Modern browsers expose DecompressionStream('deflate') which accepts zlib.
-      // We need a sync result here but DecompressionStream is async — return null and let the caller
-      // request decompression asynchronously. For now we'll inline a tiny zlib inflater.
-      try {
-        // Try the synchronous fallback first via pako if it ever ships; otherwise return null.
-        if (typeof pako !== 'undefined' && pako.inflate) return pako.inflate(compressed);
-      } catch (_) { /* fall through */ }
-      // No sync inflater available — return null so we treat the profile as "no embedded ICC".
-      // (Channel-count inference still gives us a usable family.)
-      return null;
+    // Inflate a zlib-wrapped deflate stream. Used by PNG iCCP and PDF /FlateDecode.
+    // DecompressionStream('deflate') accepts the zlib wrapper (2-byte header + Adler32).
+    async function inflateAsync(compressed) {
+      const ds = new DecompressionStream('deflate');
+      const blob = new Blob([compressed]);
+      const stream = blob.stream().pipeThrough(ds);
+      const reader = stream.getReader();
+      const chunks = [];
+      let total = 0;
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        chunks.push(value); total += value.length;
+      }
+      const out = new Uint8Array(total);
+      let p = 0;
+      for (const c of chunks) { out.set(c, p); p += c.length; }
+      return out;
     }
 
     // ── Decode pipeline ────────────────────────────────────────────────────────
@@ -7997,14 +8687,170 @@ or ICC profiles</span>
       if (sniff.format === 'tiff') {
         return decodeTiff(fileBytes, sniff);
       }
-      // PNG or JPEG → use HTMLImageElement + Canvas. CMYK JPEG isn't supported by Canvas — error out.
-      if (sniff.format === 'jpeg' && sniff.channels === 4) {
-        throw new Error('image_cmyk_jpeg_unsupported');
+      if (sniff.format === 'pdf') {
+        return decodePdf(fileBytes, sniff);
       }
-      return decodePngOrJpegViaCanvas(file, sniff);
+      // PNG, JPEG, BMP, GIF → use HTMLImageElement + Canvas. CMYK JPEG isn't supported
+      // by Canvas (no API to read back raw 4-channel samples), so we route those through
+      // UTIF's bundled JpegDecoder which handles Adobe YCCK and raw CMYK. For animated
+      // GIFs we capture the first frame: drawImage is called immediately on img.onload,
+      // before the browser advances the animation.
+      if (sniff.format === 'jpeg' && sniff.channels === 4) {
+        return decodeCmykJpegViaUtif(fileBytes);
+      }
+      return decodeViaCanvas(file, sniff);
     }
 
-    function decodePngOrJpegViaCanvas(file, sniff) {
+    async function decodePdf(fileBytes, sniff) {
+      const { width, height, bpc, filter, decodeParms, streamOff, streamLen } = sniff.pdf;
+      const u = fileBytes;
+      const channels = sniff.channels;
+
+      if (filter === 'DCTDecode') {
+        // The stream is a stand-alone JPEG. Canvas can decode Gray/RGB JPEG but not
+        // CMYK — for CMYK we use UTIF's bundled JpegDecoder, same as standalone
+        // CMYK .jpg files.
+        const jpegBytes = u.slice(streamOff, streamOff + streamLen);
+        if (channels === 4) return decodeCmykJpegViaUtif(jpegBytes);
+        const blob = new Blob([jpegBytes], { type: 'image/jpeg' });
+        return decodeViaCanvas(blob, { channels });
+      }
+
+      if (filter === 'FlateDecode') {
+        const compressed = u.subarray(streamOff, streamOff + streamLen);
+        const inflated = await inflateAsync(compressed);
+        const predictor = decodeParms.Predictor || 1;
+        const columns   = decodeParms.Columns   || width;
+        const colors    = decodeParms.Colors    || channels;
+        const dpBpc     = decodeParms.BitsPerComponent || bpc;
+        const raw = pdfUnfilter(inflated, predictor, columns, colors, dpBpc, height);
+        // Convert interleaved bytes → Float32 0..1.
+        const N = width * height;
+        const out = new Float32Array(N * channels);
+        if (dpBpc === 8) {
+          for (let k = 0; k < N * channels; k++) out[k] = raw[k] / 255.0;
+        } else if (dpBpc === 16) {
+          for (let k = 0; k < N * channels; k++) {
+            out[k] = ((raw[k*2] << 8) | raw[k*2+1]) / 65535.0;
+          }
+        } else {
+          throw new Error('image_pdf_filter_unsupported');
+        }
+        return { rawPixels: out, width, height, channels, sourceBpc: dpBpc, isLab: false };
+      }
+
+      throw new Error('image_pdf_filter_unsupported');
+    }
+
+    function pdfUnfilter(data, predictor, columns, colors, bpc, height) {
+      // Predictor 1: no prediction — return data as-is.
+      if (predictor <= 1) return data;
+      // Predictor 2 — TIFF horizontal differencing on samples (Photoshop's default for
+      // FlateDecode-compressed images).
+      if (predictor === 2) return pdfUnfilterTiff(data, columns, colors, bpc);
+      // Predictors 10..15: PNG predictors, one filter byte per scanline.
+      const bytesPerPixel = Math.max(1, Math.ceil(colors * bpc / 8));
+      const scanlineBytes = Math.ceil(columns * colors * bpc / 8);
+      const out = new Uint8Array(scanlineBytes * height);
+      let inOff = 0, outOff = 0;
+      let prev = new Uint8Array(scanlineBytes);
+      for (let y = 0; y < height; y++) {
+        const f = data[inOff++];
+        const cur = new Uint8Array(scanlineBytes);
+        for (let x = 0; x < scanlineBytes; x++) {
+          const b = data[inOff + x];
+          const left = x >= bytesPerPixel ? cur[x - bytesPerPixel] : 0;
+          const up = prev[x];
+          const ul = x >= bytesPerPixel ? prev[x - bytesPerPixel] : 0;
+          let r;
+          switch (f) {
+            case 0: r = b; break;                          // None
+            case 1: r = (b + left) & 0xFF; break;          // Sub
+            case 2: r = (b + up) & 0xFF; break;            // Up
+            case 3: r = (b + ((left + up) >>> 1)) & 0xFF; break;  // Average
+            case 4: {                                       // Paeth
+              const p = left + up - ul;
+              const pa = Math.abs(p - left), pb = Math.abs(p - up), pc = Math.abs(p - ul);
+              const pred = (pa <= pb && pa <= pc) ? left : (pb <= pc ? up : ul);
+              r = (b + pred) & 0xFF;
+              break;
+            }
+            default: r = b;
+          }
+          cur[x] = r;
+          out[outOff + x] = r;
+        }
+        inOff += scanlineBytes;
+        outOff += scanlineBytes;
+        prev = cur;
+      }
+      return out;
+    }
+
+    function pdfUnfilterTiff(data, columns, colors, bpc) {
+      // PDF Predictor 2 — TIFF horizontal differencing. Each sample is encoded as the
+      // delta from the previous sample of the same colour in the same row; the first
+      // pixel of each row is stored unchanged. Photoshop uses this for FlateDecode.
+      if (bpc === 8) {
+        const samplesPerRow = columns * colors;       // one byte per sample
+        const rows = (data.length / samplesPerRow) | 0;
+        const out = new Uint8Array(rows * samplesPerRow);
+        for (let row = 0; row < rows; row++) {
+          const r = row * samplesPerRow;
+          for (let c = 0; c < colors; c++) out[r + c] = data[r + c];
+          for (let s = colors; s < samplesPerRow; s++) {
+            out[r + s] = (data[r + s] + out[r + s - colors]) & 0xFF;
+          }
+        }
+        return out;
+      }
+      if (bpc === 16) {
+        const samplesPerRow = columns * colors;       // two bytes per sample, BE
+        const bytesPerRow = samplesPerRow * 2;
+        const rows = (data.length / bytesPerRow) | 0;
+        const out = new Uint8Array(rows * bytesPerRow);
+        for (let row = 0; row < rows; row++) {
+          const r = row * bytesPerRow;
+          for (let c = 0; c < colors; c++) {
+            out[r + c*2]     = data[r + c*2];
+            out[r + c*2 + 1] = data[r + c*2 + 1];
+          }
+          for (let s = colors; s < samplesPerRow; s++) {
+            const i = r + s * 2;
+            const prevI = r + (s - colors) * 2;
+            const prevVal = (out[prevI] << 8) | out[prevI + 1];
+            const delta   = (data[i] << 8)   | data[i + 1];
+            const recon   = (prevVal + delta) & 0xFFFF;
+            out[i]     = (recon >> 8) & 0xFF;
+            out[i + 1] = recon & 0xFF;
+          }
+        }
+        return out;
+      }
+      throw new Error('image_pdf_filter_unsupported');
+    }
+
+    function decodeCmykJpegViaUtif(jpegBytes) {
+      // CMYK JPEG decode via UTIF's bundled JpegDecoder (originally from PDF.js).
+      // Used for both standalone CMYK .jpg files and CMYK /DCTDecode streams inside
+      // PDFs. Canvas can't read back raw CMYK samples; this decoder handles Adobe's
+      // APP14 YCCK transform internally and returns 4-channel CMYK in normal
+      // orientation (0 = no ink, 255 = full ink), matching our TIFF CMYK path.
+      if (typeof UTIF === 'undefined' || typeof UTIF.JpegDecoder !== 'function') {
+        throw new Error('image_tiff_lib_missing');
+      }
+      const parser = new UTIF.JpegDecoder();
+      parser.parse(jpegBytes);
+      if (!parser.W || parser.W.length !== 4) throw new Error('image_decode_failed');
+      const w = parser.width, h = parser.height;
+      const decoded = parser.getData({ width: w, height: h, forceRGB: false, isSourcePDF: false });
+      const N = w * h;
+      const out = new Float32Array(N * 4);
+      for (let i = 0; i < N * 4; i++) out[i] = decoded[i] / 255.0;
+      return { rawPixels: out, width: w, height: h, channels: 4, sourceBpc: 8, isLab: false };
+    }
+
+    function decodeViaCanvas(file, sniff) {
       return new Promise((resolve, reject) => {
         const url = URL.createObjectURL(file);
         const img = new Image();
@@ -8179,11 +9025,11 @@ or ICC profiles</span>
         }
         return out;
       }
-      const isIcc = _slotIsIcc(slot);
-      if (isIcc) {
+      const isEmbedded = slot === 'embedded';
+      const isIcc = !isEmbedded && _slotIsIcc(slot);
+      if (isEmbedded || isIcc) {
         // ICC: build patches in 0..100 (JS API convention — WASM wrapper rescales internally).
-        const ic = _iccState[slot];
-        const slotColorants = ic.info.colorants || [];
+        const handleId = isEmbedded ? _imageState.embeddedIcc.handleId : _iccState[slot].handleId;
         const patches = new Array(count);
         // Image device pixels are in normalized form: ink families come in 0..1 (since decode produced 0..1 universally),
         // non-ink (Gray/RGB) also 0..1. Multiply by 100 to hand to evalIccBatchSync.
@@ -8193,7 +9039,7 @@ or ICC profiles</span>
           for (let c = 0; c < channels; c++) arr[c] = pixels[base + c] * 100.0;
           patches[i] = arr;
         }
-        const labs = Gamut.evalIccBatchSync(ic.handleId, patches, 3);   // RI=3 (Absolute Colorimetric) per spec
+        const labs = Gamut.evalIccBatchSync(handleId, patches, 3);   // RI=3 (Absolute Colorimetric) per spec
         for (let i = 0; i < count; i++) {
           out.L[i] = labs[i] ? labs[i].L : NaN;
           out.a[i] = labs[i] ? labs[i].a : NaN;
@@ -8230,9 +9076,20 @@ or ICC profiles</span>
           }));
           return;
         }
-        setImageStatus('info', 'Decoding image…');
+        // Free any embedded ICC handle from a prior image.
+        freeEmbeddedIcc();
+        setImageStatus('info', t('image_decoding'));
         const fileBytes = new Uint8Array(await file.arrayBuffer());
         const sniff = sniffImage(fileBytes);
+        // Inflate any deferred-zlib embedded ICC (PNG iCCP, PDF /ICCBased) before
+        // deriving family / spaceSource — keeps the program path identical to JPEG
+        // APP2 and TIFF tag 34675 from this point on.
+        if (sniff.iccCompressed && !sniff.iccBytes) {
+          try {
+            sniff.iccBytes = await inflateAsync(sniff.iccCompressed);
+            sniff.iccSig = iccColorSpaceSig(sniff.iccBytes);
+          } catch (_) { /* leave iccBytes null; fall back to channel inference */ }
+        }
         const imageFamily = imageFamilyFromChannels(sniff.channels, sniff.iccSig);
         const isLab = !!sniff.labFlag;
 
@@ -8249,9 +9106,28 @@ or ICC profiles</span>
           boundSlot: null,
           labPoints: null,
           isLab,
+          embeddedIcc: null,
           status: 'decoding'
         };
         renderImageInfo();
+
+        // If the image carries an embedded ICC, load it into lcms2 for direct conversion.
+        // Lab images skip this — they plot through their photometric path.
+        if (!isLab && sniff.iccBytes) {
+          try {
+            const info = await Gamut.loadIccProfile(sniff.iccBytes.buffer.slice(
+              sniff.iccBytes.byteOffset, sniff.iccBytes.byteOffset + sniff.iccBytes.byteLength));
+            if (info && !info.error && typeof info.handle === 'number') {
+              const desc = (info.description && info.description.trim()) || info.colorSpace || 'ICC profile';
+              _imageState.embeddedIcc = {
+                handleId: info.handle,
+                description: desc,
+                colorSpace: info.colorSpace,
+                colorants: info.colorants || []
+              };
+            }
+          } catch (_) { /* leave embeddedIcc null; fall through to dataset binding */ }
+        }
 
         const decoded = await decodeImage(file, sniff, fileBytes);
         const binned = binImage(decoded);
@@ -8261,6 +9137,7 @@ or ICC profiles</span>
         _imageState.dedupedCount = deduped.count;
         _imageState.thumbDataUrl = await makeThumb(file, decoded);
         renderImageInfo();
+        repopulateImageBindDropdown();
         bindImageToCurrentSelection();
       } catch (e) {
         const msg = e && e.message ? e.message : 'image_decode_failed';
@@ -8275,12 +9152,18 @@ or ICC profiles</span>
 
     function humaniseImageError(code) {
       switch (code) {
-        case 'image_format_unsupported': return t('image_format_unsupported');
-        case 'image_too_small':          return 'Image file is too small / corrupt.';
-        case 'image_cmyk_jpeg_unsupported': return 'CMYK JPEGs are not supported in the browser — convert to TIFF.';
-        case 'image_tiff_lib_missing':   return 'TIFF decoder library failed to load.';
-        case 'image_slot_model_missing': return 'Selected dataset model is still loading — try again in a moment.';
-        case 'image_decode_failed':      return 'Image decode failed.';
+        case 'image_format_unsupported':       return t('image_format_unsupported');
+        case 'image_too_small':                return t('image_err_too_small');
+        case 'image_tiff_lib_missing':         return t('image_err_tiff_lib');
+        case 'image_slot_model_missing':       return t('image_err_slot_model');
+        case 'image_decode_failed':            return t('image_err_decode');
+        case 'image_pdf_not_photoshop':        return t('image_err_pdf_not_photoshop');
+        case 'image_pdf_encrypted':            return t('image_err_pdf_encrypted');
+        case 'image_pdf_multi_page':           return t('image_err_pdf_multi_page');
+        case 'image_pdf_corrupt':              return t('image_err_pdf_corrupt');
+        case 'image_pdf_no_image':             return t('image_err_pdf_no_image');
+        case 'image_pdf_colorspace_unsupported':return t('image_err_pdf_colorspace');
+        case 'image_pdf_filter_unsupported':   return t('image_err_pdf_filter');
         default: return code;
       }
     }
@@ -8312,11 +9195,14 @@ or ICC profiles</span>
           ctx.putImageData(id, 0, 0);
           return cnv.toDataURL();
         }
-        if (file.type === 'image/png' || file.type === 'image/jpeg') {
+        if (file.type === 'image/png' || file.type === 'image/jpeg' ||
+            file.type === 'image/bmp' || file.type === 'image/gif') {
           return URL.createObjectURL(file);
         }
-        // TIFF (non-Lab) — render channels 1/3 only for the preview; CMYK/NCLR previews fall back to a placeholder.
-        if (decoded && decoded.channels <= 3) {
+        // TIFF / CMYK-JPEG / NCLR preview — render channels 1/3/4 from decoded pixels.
+        // CMYK uses a simple (1−C)(1−K), (1−M)(1−K), (1−Y)(1−K) approximation; NCLR ≥ 5
+        // channels falls back to no thumb.
+        if (decoded && decoded.channels >= 1 && decoded.channels <= 4) {
           const w = Math.min(96, decoded.width);
           const h = Math.round(w * decoded.height / decoded.width);
           const cnv = document.createElement('canvas'); cnv.width = w; cnv.height = h;
@@ -8331,10 +9217,18 @@ or ICC profiles</span>
               if (decoded.channels === 1) {
                 const v = Math.round(decoded.rawPixels[sIdx] * 255);
                 id.data[dIdx] = id.data[dIdx+1] = id.data[dIdx+2] = v;
-              } else {
+              } else if (decoded.channels === 3) {
                 id.data[dIdx]   = Math.round(decoded.rawPixels[sIdx]   * 255);
                 id.data[dIdx+1] = Math.round(decoded.rawPixels[sIdx+1] * 255);
                 id.data[dIdx+2] = Math.round(decoded.rawPixels[sIdx+2] * 255);
+              } else {  // channels === 4 (CMYK)
+                const c = decoded.rawPixels[sIdx];
+                const m = decoded.rawPixels[sIdx+1];
+                const ys = decoded.rawPixels[sIdx+2];
+                const k = decoded.rawPixels[sIdx+3];
+                id.data[dIdx]   = Math.round((1 - c) * (1 - k) * 255);
+                id.data[dIdx+1] = Math.round((1 - m) * (1 - k) * 255);
+                id.data[dIdx+2] = Math.round((1 - ys) * (1 - k) * 255);
               }
               id.data[dIdx+3] = 255;
             }
@@ -8372,13 +9266,41 @@ or ICC profiles</span>
       const sel = document.getElementById('image-bind-slot');
       const slot = sel ? sel.value : 'a';
       const imgFamily = _imageState.colorSpace;
+      const imgChannels = familyChannelCount(imgFamily);
+
+      // 'embedded' = use the image's own embedded ICC for the device → Lab transform.
+      // No family/channel check is needed: the embedded profile *is* the image's color
+      // space, so they are compatible by construction.
+      if (slot === 'embedded') {
+        if (!_imageState.embeddedIcc) {
+          setImageStatus('error', t('image_err_embedded_gone'));
+          clearImageTrace();
+          return;
+        }
+        try {
+          const labPoints = convertImageToLab(
+            { pixels: _imageState.devicePixels, count: _imageState.dedupedCount, channels: imgChannels },
+            imgFamily, 'embedded'
+          );
+          _imageState.boundSlot = 'embedded';
+          _imageState.labPoints = labPoints;
+          publishImageTrace(labPoints);
+          setImageStatus('ok', t('image_bound_to', {
+            name: _imageState.embeddedIcc.description, n: _imageState.dedupedCount
+          }));
+        } catch (e) {
+          setImageStatus('error', humaniseImageError((e && e.message) || 'image_decode_failed'));
+          clearImageTrace();
+        }
+        return;
+      }
+
       const slotInfo = slotFamily(slot);
       if (!slotInfo) {
-        setImageStatus('error', `Dataset ${slot.toUpperCase()} is not loaded.`);
+        setImageStatus('error', t('image_err_dataset_not_loaded', { slot: slot.toUpperCase() }));
         clearImageTrace();
         return;
       }
-      const imgChannels = familyChannelCount(imgFamily);
       if (slotInfo.family !== imgFamily || slotInfo.channels !== imgChannels) {
         setImageStatus('error', t('image_mismatch_msg', {
           img: imgFamily, slot: slot.toUpperCase(), family: slotInfo.family
@@ -8419,9 +9341,11 @@ or ICC profiles</span>
     }
 
     function removeImage() {
+      freeEmbeddedIcc();
       _imageState = null;
       clearImageTrace();
       renderImageInfo();
+      repopulateImageBindDropdown();
       setImageStatus('', '');
     }
 
@@ -8436,15 +9360,15 @@ or ICC profiles</span>
         if (sel) sel.disabled = false;
         return;
       }
-      infoEl.style.display = '';
+      infoEl.style.display = 'flex';
       if (removeBtn) removeBtn.style.display = '';
       document.getElementById('image-name').textContent = _imageState.name;
-      const srcLabel = _imageState.spaceSource === 'icc' ? '(from embedded ICC)' :
-                       _imageState.spaceSource === 'tiff-photometric' ? '(TIFF Lab)' :
-                       '(inferred from channels)';
+      const srcLabel = _imageState.spaceSource === 'icc' ? t('image_src_icc') :
+                       _imageState.spaceSource === 'tiff-photometric' ? t('image_src_tiff_lab') :
+                       t('image_src_channels');
       document.getElementById('image-cspace').textContent = t('image_colorspace', { cs: _imageState.colorSpace, src: srcLabel });
       const ptsEl = document.getElementById('image-pts');
-      ptsEl.textContent = _imageState.dedupedCount ? (_imageState.dedupedCount + ' representative points after binning + dedupe') : '';
+      ptsEl.textContent = _imageState.dedupedCount ? t('image_points_summary', { n: _imageState.dedupedCount }) : '';
       const thumb = document.getElementById('image-thumb');
       if (_imageState.thumbDataUrl) { thumb.src = _imageState.thumbDataUrl; thumb.style.display = ''; }
       else thumb.style.display = 'none';
@@ -8454,9 +9378,8 @@ or ICC profiles</span>
     function setImageStatus(kind, msg) {
       const el = document.getElementById('image-status');
       if (!el) return;
-      if (!msg) { el.textContent = ''; el.style.color = ''; return; }
-      el.textContent = msg;
-      el.style.color = kind === 'error' ? '#c0392b' : kind === 'ok' ? '#2a7a3a' : '#666';
+      el.className = 'image-status' + (msg ? ' image-status-' + kind : '');
+      el.textContent = msg || '';
     }
 
     // Initial visibility sync (in case the page loads in Compare mode already populated).

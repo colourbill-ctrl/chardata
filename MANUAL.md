@@ -424,17 +424,33 @@ The **Image** section sits above the 3D plot in Compare mode (collapsed by defau
 
 | Format | Colorimetry source |
 |---|---|
-| **PNG** | Channel count (Gray or RGB; embedded `iCCP` chunk is detected but not decompressed) |
+| **PNG** | Embedded `iCCP` chunk (zlib-decompressed) if present, otherwise channel count (Gray or RGB) |
 | **JPEG** | Embedded ICC profile (APP2 `ICC_PROFILE` segments) if present, otherwise channel count |
 | **TIFF** | Embedded ICC profile (tag 34675) if present, otherwise channel count; TIFF `PhotometricInterpretation` 8 / 9 (CIELAB / ICCLab) is auto-detected and treated as Lab |
+| **BMP** | Channel count — RGB (Canvas expands indexed and 16/24/32-bit BMPs to RGB on decode). BMP V5 embedded ICC profiles are not currently read |
+| **GIF** | Channel count — RGB after palette expansion. GIF does not support embedded ICC profiles. Animated GIFs use the first frame only |
+| **PDF** | Photoshop-generated PDFs only. The first image XObject is extracted; its embedded `/ICCBased` profile (if any) drives colorimetry just like a JPEG/TIFF embedded ICC, otherwise channel count from `/DeviceGray`, `/DeviceRGB`, or `/DeviceCMYK` |
 
-CMYK JPEGs cannot be decoded in the browser. Use TIFF for CMYK and N-colorant images.
+CMYK JPEGs (both standalone `.jpg` files and CMYK `/DCTDecode` streams inside Photoshop PDFs) are decoded via UTIF's bundled JPEG decoder, which handles Adobe APP14 YCCK and raw CMYK. Use TIFF for N-colorant (≥5 channel) images. BMP and GIF are palette/RGB-only formats and cannot represent CMYK or N-colorant data.
+
+#### PDF — scope and limitations
+
+PDF support is intentionally narrow: only PDFs whose `/Info` dictionary's **Producer** or **Creator** string begins with `Adobe Photoshop` are accepted. Generic document PDFs (InDesign, Word, scanned PDFs, etc.) are rejected with a clear error so the gamut path never partially-decodes an unrelated document.
+
+For Photoshop-generated PDFs, the supported pipeline is:
+
+- **Compression** — JPEG quality presets (PDF `/DCTDecode`) or ZIP / Maximum Quality (`/FlateDecode` with optional PNG-style `Predictor` in `/DecodeParms`). Acrobat-6+ JPEG2000 compression is not yet supported.
+- **Colour spaces** — `/DeviceGray`, `/DeviceRGB`, `/DeviceCMYK`, and `/ICCBased` with Gray / RGB / CMYK channel counts.
+- **Embedded ICC** — Photoshop's working-space profile, embedded as the `/ICCBased` colour space, is decoded and treated identically to embedded ICC profiles in JPEG (APP2) or TIFF (tag 34675), including the **Embedded:** dropdown entry above the 3D plot.
+- **Single page only** — multi-page PDFs and encrypted PDFs are rejected.
 
 The 100 MB file-size cap protects against accidentally loading uncompressed scanner output.
 
 #### Binding to a dataset
 
-For **non-Lab** images, pick **Dataset A** or **Dataset B** from the dropdown. The image's device colorant space must match the bound dataset's colorant family (for example, an RGB image binds only to an RGB dataset; a CMYK image to a CMYK dataset; a 5-colorant TIFF to a 5-colorant CMYKOGV-style dataset). When the binding is valid, the image's device pixels are run through the dataset's estimate model (for characterisation datasets) or the A2B with Absolute Colorimetric rendering intent (for ICC profiles) to derive L\*a\*b\* coordinates.
+If the image carries an **embedded ICC profile** (JPEG APP2 / TIFF tag 34675), a first dropdown entry **Embedded: *profile name*** is added and selected by default. Picking this entry converts the image's device pixels straight through its own embedded profile (A2B, Absolute Colorimetric) to L\*a\*b\* — no dataset binding is involved and no family check applies, since the embedded profile *is* the image's colour space.
+
+For **non-Lab** images, you can also bind to **Dataset A** or **Dataset B** from the dropdown. The image's device colorant space must match the bound dataset's colorant family (for example, an RGB image binds only to an RGB dataset; a CMYK image to a CMYK dataset; a 5-colorant TIFF to a 5-colorant CMYKOGV-style dataset). When the binding is valid, the image's device pixels are run through the dataset's estimate model (for characterisation datasets) or the A2B with Absolute Colorimetric rendering intent (for ICC profiles) to derive L\*a\*b\* coordinates.
 
 For **Lab** images (TIFF with `PhotometricInterpretation` 8 or 9), the dataset dropdown is greyed out — the image plots in its native L\*a\*b\* coordinates directly with no transformation.
 
