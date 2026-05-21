@@ -2953,6 +2953,13 @@ or ICC profiles</span>
       refreshPanelUI('a');
       refreshPanelUI('b');
       updateValidateFileLabel();
+      // Image tab — the dynamic strings (colour-space line, points summary, status,
+      // "Embedded: …" dropdown entry, bound-to status) are written imperatively by
+      // these three functions; they have no data-i18n hooks, so applyTranslations()
+      // doesn't touch them. Re-run them here to pick up the new language.
+      if (typeof renderImageInfo === 'function') renderImageInfo();
+      if (typeof repopulateImageBindDropdown === 'function') repopulateImageBindDropdown();
+      if (typeof bindImageToCurrentSelection === 'function') bindImageToCurrentSelection();
       // Re-render the slice plot so the tab label suffix ("— L* = 50") and
       // legend "click to toggle" tooltip pick up the new language.
       renderSlicePlot();
