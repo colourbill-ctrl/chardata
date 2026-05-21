@@ -4479,9 +4479,7 @@ or ICC profiles</span>
     }
 
     // Open profiletool in a new tab and hand it the profile bytes via postMessage.
-    // profiletool posts {type:'icctools:ready'} on load; we reply with the bytes.
-    // (The literal 'icctools:' message-type prefix predates the rename and is wire
-    //  protocol — both sides must change in lockstep, so leaving as-is for now.)
+    // profiletool posts {type:'profiletool:ready'} on load; we reply with the bytes.
     // No return channel — profiletool owns the editing session from there.
     //
     // The listener stays active for a 15 s window and responds to every 'ready'
@@ -4506,8 +4504,8 @@ or ICC profiles</span>
       function onMsg(ev) {
         if (ev.source !== win) return;
         if (ev.origin !== targetOrigin) return;
-        if (!ev.data || ev.data.type !== 'icctools:ready') return;
-        win.postMessage({ type: 'icctools:load', filename, bytes }, targetOrigin);
+        if (!ev.data || ev.data.type !== 'profiletool:ready') return;
+        win.postMessage({ type: 'profiletool:load', filename, bytes }, targetOrigin);
       }
       window.addEventListener('message', onMsg);
       setTimeout(() => window.removeEventListener('message', onMsg), 15000);
@@ -10141,7 +10139,12 @@ or ICC profiles</span>
         // before opening the modal if you need a different port.
         return window.__cbSubEndpoint || 'http://localhost:8000/wp-admin/admin-ajax.php';
       }
-      return 'https://colourbill.com/wp-admin/admin-ajax.php';
+      // Point at www directly. The apex `colourbill.com` 301-redirects to
+      // www, but Apache's redirect response carries no Access-Control-Allow-
+      // Origin header, so the browser aborts CORS on the redirect itself
+      // (surfaces as a "Network error" in fetch's catch). Posting straight to
+      // www avoids the redirect entirely.
+      return 'https://www.colourbill.com/wp-admin/admin-ajax.php';
     }
 
     function _setSubscribeStatus(msg, kind) {

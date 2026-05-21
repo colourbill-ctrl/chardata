@@ -20,7 +20,12 @@ app.use(helmet({
                         // hosted at colourbill.com (handles list management,
                         // moderation, and release sends). The endpoint emits
                         // the matching Access-Control-Allow-Origin response.
+                        // Apex redirects to www, and Apache's 301 doesn't carry
+                        // ACAO — browsers reject CORS on the redirect itself —
+                        // so we POST to www directly. Apex is kept in the list
+                        // in case someone hand-edits a URL.
                         "https://colourbill.com",
+                        "https://www.colourbill.com",
                         // Dev: local Docker WP stack (see /tmp/wp-e2e). Harmless
                         // in prod since the directive is enforced by the browser;
                         // a prod page can't reach localhost anyway.
