@@ -1,7 +1,7 @@
 /**
  * icc-viewer WASM wrapper for chardata.
  *
- * Lifted from icctools' validator-wasm/wrapper.cpp — kept in sync so a
+ * Lifted from profiletool's validator-wasm/wrapper.cpp — kept in sync so a
  * profile-viewer JSON shape is identical across the two apps. Exposes:
  *
  *   validateProfile(Uint8Array) → JSON   (header + tags + validation)

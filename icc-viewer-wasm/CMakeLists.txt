@@ -10,7 +10,7 @@ if(NOT EMSCRIPTEN)
 endif()
 
 # ── Locate iccDEV source ────────────────────────────────────────────────────
-# Same default as ~/code/icctools/validator-wasm — overridable via -DICCDEV_ROOT.
+# Same default as ~/code/profiletool/validator-wasm — overridable via -DICCDEV_ROOT.
 set(ICCDEV_ROOT "/home/colour/code/iccdev" CACHE PATH "Root of iccDEV source tree")
 set(ICCPROFLIB_DIR "${ICCDEV_ROOT}/IccProfLib")
 
