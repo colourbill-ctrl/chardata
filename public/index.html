@@ -4,7 +4,31 @@
   <meta charset="UTF-8">
   <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CharData</title>
+  <title>CharData — ICC profile and CGATS/IT8 characterisation viewer in the browser</title>
+  <meta name="description" content="Free browser-based tool for viewing and comparing ICC profiles and CGATS/IT8/CSV colour characterisation data. 3D gamut, 2D slices, ΔE00, tone value, G7 — all local, no upload.">
+  <link rel="canonical" href="https://chardata.colourbill.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CharData">
+  <meta property="og:title" content="CharData — ICC profile and CGATS/IT8 viewer in the browser">
+  <meta property="og:description" content="View and compare ICC profiles and CGATS/IT8 characterisation data in your browser. 3D gamut, 2D slices, ΔE00, tone value, G7. Runs locally — no upload.">
+  <meta property="og:url" content="https://chardata.colourbill.com/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="CharData — ICC profile and CGATS/IT8 viewer in the browser">
+  <meta name="twitter:description" content="View and compare ICC profiles and CGATS/IT8 characterisation data in your browser. 3D gamut, 2D slices, ΔE00, tone value, G7. Runs locally — no upload.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "CharData",
+    "url": "https://chardata.colourbill.com/",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Any (modern web browser)",
+    "browserRequirements": "Requires WebAssembly",
+    "description": "Browser-based tool for exploring and comparing colour characterisation datasets (CGATS/IT8/ISO 28178, CSV) and ICC profiles. 3D L*a*b* gamut visualisation, 2D gamut slices, ΔE/ΔL*/ΔC*/ΔH* comparison, tone value / dot gain, G7 grey balance, spectral-to-Lab with selectable illuminant/observer/M-condition, rendering intent switching. Runs entirely in the browser; data stays local.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "softwareHelp": { "@type": "CreativeWork", "url": "https://chardata.colourbill.com/help.html" }
+  }
+  </script>
   <script src="gamut.js"></script>
   <script src="icc-viewer.js"></script>
   <script src="lib/utif.js"></script>
@@ -897,6 +921,16 @@
   </style>
 </head>
 <body>
+<noscript>
+  <div style="max-width:760px;margin:40px auto;padding:24px;font-family:Arial,sans-serif;color:#222;line-height:1.55;">
+    <h1 style="margin-bottom:12px;">CharData</h1>
+    <p><strong>Browser-based tool for exploring and comparing colour characterisation datasets and ICC profiles.</strong> Runs entirely in your browser — no installation, all data stays local, nothing is uploaded.</p>
+    <p>Accepts CGATS/IT8/ISO 28178 and CSV characterisation data, plus ICC profiles (output, input and display classes — evaluated via their A2B transform). Works on desktop and mobile.</p>
+    <p><strong>Capabilities:</strong> 3D L*a*b* gamut visualisation, 2D gamut slices, ΔE / ΔL* / ΔC* / ΔH* comparison tables, tone value and dot gain analysis, G7 grey balance check, polynomial estimate model, spectral-to-Lab conversion with selectable illuminant, observer and M-condition, and rendering intent switching for ICC evaluation.</p>
+    <p><strong>Built-in standard datasets:</strong> FOGRA, IFRA, APTEC, ISO 15339 / CRPC, EUROSB, JapanColor.</p>
+    <p>CharData needs JavaScript and WebAssembly to run. <a href="/help.html">Read the documentation</a> for a full walkthrough of every feature.</p>
+  </div>
+</noscript>
 <div id="app-layout">
 
   <!-- Left file-select blade -->
