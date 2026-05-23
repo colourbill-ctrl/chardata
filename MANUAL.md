@@ -368,7 +368,7 @@ Compare mode loads two slots (A and B) and shows a row-by-row colour difference 
 Matching depends on what's loaded:
 - **data vs data** — rows are matched by device colorant values; rows where all colorants are zero are excluded. The union of both files' colorant columns is used as the matching key.
 - **data vs ICC** — the dataset's rows drive the matching; for each row, the ICC profile is evaluated at the row's colorant values.
-- **ICC vs ICC** — both profiles are evaluated against the standard IT8.7/5 patch set; both profiles must be CMYK.
+- **ICC vs ICC** — both profiles are evaluated at the same input patch set, so they must expose **identical ordered colorant lists**. CMYK profiles use the standard IT8.7/5 patch set; matching N-channel NCLR profiles (e.g. two CMYKOGV proofers) use a generated patch set — paper white, single-ink ramps, and a two-ink overprint grid that thins with channel count to keep patch counts bounded. If the two colorant lists differ, the comparison is refused with a message that names both lists.
 
 ### 5.1 Compare table
 

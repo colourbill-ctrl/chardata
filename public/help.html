@@ -586,7 +586,7 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <ul>
 <li><strong>data vs data</strong> — rows are matched by device colorant values; rows where all colorants are zero are excluded. The union of both files' colorant columns is used as the matching key.</li>
 <li><strong>data vs ICC</strong> — the dataset's rows drive the matching; for each row, the ICC profile is evaluated at the row's colorant values.</li>
-<li><strong>ICC vs ICC</strong> — both profiles are evaluated against the standard IT8.7/5 patch set; both profiles must be CMYK.</li>
+<li><strong>ICC vs ICC</strong> — both profiles are evaluated at the same input patch set, so they must expose <strong>identical ordered colorant lists</strong>. CMYK profiles use the standard IT8.7/5 patch set; matching N-channel NCLR profiles (e.g. two CMYKOGV proofers) use a generated patch set — paper white, single-ink ramps, and a two-ink overprint grid that thins with channel count to keep patch counts bounded. If the two colorant lists differ, the comparison is refused with a message that names both lists.</li>
 </ul>
 <h3 id="5-1-compare-table">5.1 Compare table</h3>
 <p>The table shows, for each matched patch:</p>

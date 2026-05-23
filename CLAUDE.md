@@ -108,7 +108,7 @@ Required columns: `CYAN`, `MAGENTA`, `YELLOW`, `BLACK`, `LAB_L`, `LAB_A`, `LAB_B
 
 ### Known limitations
 
-- **NCLR-vs-NCLR Compare** currently aligns colorants by the hardcoded CMYK index at `index.html:5581` (tracked: GitHub issue #2). Comparing two N>4 profiles will silently mis-align channels past the first four.
+- **ICC-vs-ICC Compare** requires both profiles to expose the same ordered colorant list — per-patch ΔE is only well-defined when the same device vector is fed to both. Mismatched lists (e.g. CMYKOG vs CMYKOV) surface a targeted error naming both lists; CMYK-vs-CMYK uses `IT875_PATCHES`, and N≠4 matching profiles use `buildNclrPatches(N)` (coarser two-ink grid for higher N to keep patch counts bounded). See GitHub issue #2 for the original motivation.
 
 ### i18n
 
