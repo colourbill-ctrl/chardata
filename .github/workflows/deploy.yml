@@ -36,3 +36,18 @@ jobs:
             git describe --tags --abbrev=0 2>/dev/null > public/version.txt || echo "dev" > public/version.txt
             npm ci --omit=dev
             pm2 restart CharDataApp
+
+      - name: Notify IndexNow (Bing, Yandex, etc.)
+        run: |
+          curl -fsS -X POST https://api.indexnow.org/indexnow \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "host": "chardata.colourbill.com",
+              "key": "08a8bab323e44d7ba675200830b73872",
+              "keyLocation": "https://chardata.colourbill.com/08a8bab323e44d7ba675200830b73872.txt",
+              "urlList": [
+                "https://chardata.colourbill.com/",
+                "https://chardata.colourbill.com/help.html",
+                "https://chardata.colourbill.com/profiletool/"
+              ]
+            }' || echo "IndexNow ping failed (non-fatal)"
