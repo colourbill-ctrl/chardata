@@ -82,7 +82,9 @@ A "slot" is `'a'` or `'b'`. Each slot can hold either characterisation data (CSV
 - `_gamutState[slot]` — for characterisation data: `cachedModel` (from `Gamut.fitModel`) + `cachedMesh` (from `Gamut.buildGamutMesh`)
 - `_iccState[slot]` — for ICC profiles: `handleId`, `renderingIntent` (default 3 = Absolute Colorimetric), profile metadata
 
-File detection happens up front: `_sniffIcc(buffer)` checks bytes 36..39 for the `acsp` magic. ICC files are routed through `loadIccFromBuffer`; CSV/CGATS through the existing `parseCSV` + `validateCSV` path. The Rendering Intent dropdown is only visible when the slot holds an ICC profile, and changing it triggers a re-render of every dependent view (3D shell, 2D slice, Compare table, Tone Value chart, Estimate).
+File detection happens up front: `_sniffIcc(buffer)` checks bytes 36..39 for the `acsp` magic. ICC files are routed through `loadIccFromBuffer`; text files (CSV/CGATS/CxF) through `processFileText`, which sniffs the format (`isCxF` via the `colorexchangeformat.com` namespace / `CxF` root, else CGATS `BEGIN_DATA_FORMAT`, else CSV) and dispatches to `parseCxF` / `parseCGATS` / `parseCSV`. All three return the same `{ headers, rows[] }` shape, so everything downstream is format-agnostic. The Rendering Intent dropdown is only visible when the slot holds an ICC profile, and changing it triggers a re-render of every dependent view (3D shell, 2D slice, Compare table, Tone Value chart, Estimate).
+
+**CxF/X-3** (ISO 17972-3): `parseCxF` uses `DOMParser` + `getElementsByTagNameNS('*', localName)` (prefix-agnostic — real files use the `cc:` prefix, not the default namespace). Per `Object` it reads `Name`→`SAMPLE_NAME`, first `ColorCIELab`→`LAB_*`, first `ReflectanceSpectrum`→`xxx_NM` (0–1 reflectance; increment from the referenced `ColorSpecification`'s `WavelengthRange`), and `ColorCMYK`/`ColorCMYKPlusN`/`ColorRGB`→device colorants (0–100). `_buildCxF()` is the writer (full X-3, `cc:` prefix), wired into both `exportData` paths as the `cxf` format.
 
 3D plot defaults differ by data type: characterisation data → shell off, points on; ICC → shell on, points off.
 
@@ -104,7 +106,11 @@ File detection happens up front: `_sniffIcc(buffer)` checks bytes 36..39 for the
 
 ### CSV format
 
-Required columns: `CYAN`, `MAGENTA`, `YELLOW`, `BLACK`, `LAB_L`, `LAB_A`, `LAB_B`.
+Required columns: `LAB_L`, `LAB_A`, `LAB_B` plus at least one device colorant (typically `CYAN`, `MAGENTA`, `YELLOW`, `BLACK`). Spectral-only files derive Lab via `injectSpectralLab`.
+
+### Measurement-only datasets
+
+A dataset with Lab and/or spectral but **no device colorants** (common in CxF, also valid for CGATS/CSV) is accepted and flagged `measurementOnly` on `state[slot]`. `validateCSV` no longer rejects zero-colorant data — only missing Lab. `buildGamutCache` already early-returns on empty colorants (no model/mesh), so the 3D point cloud (`cachedXYZ`, built before that return) still renders. The limited feature set is gated on `measurementOnly`: the 3D point cloud, the 2D gamut slice (point cloud only — included in `renderSlicePlot`'s `allSpecs`; `_modelForSlot` returns null so no boundary polygon, same path as the image slot), the data table (with a `SAMPLE_NAME`/label column via `getLabelCol`), and label-matched Compare (`labelKey` instead of `nonZeroColorantKey` in `runCompare`) are enabled. The gamut shell controls, Extract, Tone Value, Estimate, and G7 validation are all hidden/skipped. Per-point labels also feed the 3D scatter hover (`text`/`%{text}` in `renderPlot`'s `buildTrace`).
 
 ### Known limitations
 

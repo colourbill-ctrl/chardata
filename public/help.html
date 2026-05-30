@@ -57,7 +57,7 @@
   <p class="subtitle">Browser-based colour characterisation data explorer and comparator</p>
 
 <p><strong>CharData</strong> is a browser-based tool for exploring and comparing colour characterisation datasets and ICC profiles. It runs entirely in your browser with no installation required — all data stays local to the browser, with no upload to any server — and works on both desktop and mobile. CharData pairs with <a href="https://chardata.colourbill.com/profiletool/" style="color:#1a73e8;font-weight:bold;text-decoration:none;">profiletool</a>, a companion in-browser ICC profile inspector and editor: when an ICC profile slot is open, the <strong>Launch editor</strong> button hands the loaded profile directly to profiletool in a new tab for header / tag inspection or full editing — same browser session, no upload.</p>
-<p>A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L*a*b* colorimetry and, optionally, spectral reflectance. CharData accepts these files in <strong>CGATS/IT8</strong> and <strong>CSV</strong> formats. CharData also accepts <strong>ICC profiles</strong> (output, input, and display classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.</p>
+<p>A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L*a*b* colorimetry and, optionally, spectral reflectance. CharData accepts these files in <strong>CGATS/IT8</strong>, <strong>CSV</strong>, and <strong>CxF/X-3</strong> formats. CharData also accepts <strong>ICC profiles</strong> (output, input, and display classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.</p>
 <p><strong>What you can do with CharData:</strong></p>
 <ul>
 <li><strong>Explore a single dataset or profile</strong> — browse the data table, visualise the colour gamut in 3D L*a*b* space, examine a 2D slice at any L*, a*, or b* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L*a*b* for any device colorant combination.</li>
@@ -139,17 +139,36 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <text x="232" y="3" text-anchor="end" class="t3">Mode selector</text><line x1="629" y1="31" x2="570" y2="31" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="570" y="28" text-anchor="end" class="t3">⚙ Settings</text><line x1="629" y1="72" x2="570" y2="72" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="570" y="69" text-anchor="end" class="t3">? Help</text>
-</svg><p>CharData accepts <strong>CSV</strong> and <strong>CGATS/IT8</strong> text files. CGATS is also published as <strong>ISO 28178</strong> — these are the same format.</p>
+</svg><p>CharData accepts <strong>CSV</strong>, <strong>CGATS/IT8</strong>, and <strong>CxF/X-3</strong> text files. CGATS is also published as <strong>ISO 28178</strong> — these are the same format. CxF/X-3 (ISO 17972-3, the <em>Color Exchange Format</em>) is the XML format produced by X-Rite i1Profiler, BabelColor PatchTool, and similar tools.</p>
 <h3 id="required-columns">Required columns</h3>
-<p>Every file must contain L*a*b* columns and at least one device colorant column:</p>
+<p>Every file must contain L*a*b* columns (or spectral data from which they are computed). A device colorant column is needed for the full feature set, but is not required to load the file — see <a href="#measurement-only-datasets">Measurement-only datasets</a> below.</p>
 <table><thead>
 <tr><th>Column</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>LAB_L</code></td><td>CIE L*</td></tr>
 <tr><td><code>LAB_A</code></td><td>CIE a*</td></tr>
 <tr><td><code>LAB_B</code></td><td>CIE b*</td></tr>
-<tr><td><em>(colorant)</em></td><td>At least one device colorant column (e.g. <code>CYAN</code>, <code>7CLR_1</code>)</td></tr>
+<tr><td><em>(colorant)</em></td><td>A device colorant column (e.g. <code>CYAN</code>, <code>7CLR_1</code>) — needed for gamut, Extract, Tone Value, Estimate, and validation</td></tr>
 </tbody></table>
 <p>Files with spectral data but no pre-computed LAB columns are also accepted — CharData computes L*a*b* from the spectral data automatically (see <a href="#spectral-lab">Settings — Spectral → LAB</a>).</p>
+<h3 id="cxf-x-3-files">CxF/X-3 files</h3>
+<p>CharData detects CxF by its XML root and the <code>colorexchangeformat.com</code> namespace. From each colour object it reads:</p>
+<table><thead>
+<tr><th>CxF element</th><th>Mapped to</th></tr></thead><tbody>
+<tr><td><code>Object</code> <code>Name</code> (or <code>Id</code>)</td><td><code>SAMPLE_NAME</code> (patch label)</td></tr>
+<tr><td><code>ColorCIELab</code> (<code>L</code>, <code>A</code>, <code>B</code>)</td><td><code>LAB_L</code>, <code>LAB_A</code>, <code>LAB_B</code></td></tr>
+<tr><td><code>ReflectanceSpectrum</code> (<code>StartWL</code> + <code>WavelengthRange</code> increment)</td><td>spectral <code>xxx_NM</code> columns (reflectance 0–1)</td></tr>
+<tr><td><code>DeviceColorValues</code> → <code>ColorCMYK</code> / <code>ColorCMYKPlusN</code> / <code>ColorRGB</code></td><td>device colorant columns (0–100)</td></tr>
+</tbody></table>
+<p>The first measurement block per object is used (one measurement condition). Many CxF files in the wild — measurement-only QC files and converted output targets — carry no device colorant values; these load as <a href="#measurement-only-datasets">measurement-only datasets</a>. CxF is also available as an <strong>Export</strong> format (via the Extract → Export controls in Explore mode), writing a full CxF/X-3 document with <code>ColorCMYK</code>/<code>ColorCMYKPlusN</code>, <code>ColorCIELab</code>, <code>ReflectanceSpectrum</code>, and a <code>ColorSpecification</code> derived from the current illuminant / observer / M-condition.</p>
+<h3 id="measurement-only-datasets">Measurement-only datasets</h3>
+<p>A file that has L*a*b* and/or spectral data but <strong>no device colorant columns</strong> (common in CxF, but also possible in CGATS/CSV) loads as a <em>measurement-only</em> dataset. For these, CharData can:</p>
+<ul>
+<li>plot the 3D L*a*b* <strong>point cloud</strong> (each point carries its sample label on hover);</li>
+<li>project that cloud onto the <strong>2D gamut slice</strong> (points only, no boundary — exactly like an image-derived cloud);</li>
+<li>show the <strong>data table</strong> (sample label + L*a*b* + derived C*/h* + spectral);</li>
+<li>run <strong>Compare</strong>, matching patches <strong>by sample label</strong> instead of by device inking.</li>
+</ul>
+<p>Because there is no device→colour relationship to model, the gamut <strong>shell</strong>, <strong>Extract</strong>, <strong>Tone Value</strong>, <strong>Estimate</strong>, and <strong>G7 validation</strong> are unavailable for measurement-only datasets.</p>
 <h3 id="device-colorant-detection">Device colorant detection</h3>
 <p>Any column that does not match a known non-colorant pattern is treated as a device colorant. The following are <strong>excluded</strong> from colorant detection:</p>
 <table><thead>
@@ -196,7 +215,7 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <table><thead>
 <tr><th>Section</th><th>Contains</th></tr></thead><tbody>
 <tr><td><strong>Standard datasets</strong></td><td>Built-in industry reference datasets (FOGRA, IFRA, APTEC, ISO 15339 / CRPC, EUROSB, JapanColor) shipped with the app. Click any entry to load it as if it were a local file, or drag an entry directly onto Dataset A or Dataset B. Once loaded it also appears in the Characterization data section below. Defaults to collapsed.</td></tr>
-<tr><td><strong>Characterization data</strong></td><td>CSV and CGATS/IT8 files (your own or loaded from Standard datasets)</td></tr>
+<tr><td><strong>Characterization data</strong></td><td>CSV, CGATS/IT8, and CxF/X-3 files (your own or loaded from Standard datasets)</td></tr>
 <tr><td><strong>ICC Profiles</strong></td><td><code>.icc</code> / <code>.icm</code> binary profiles</td></tr>
 </tbody></table>
 <p>Click a section header (▾) to collapse or expand that section; the state persists between sessions. The button at the top loads files of either kind — CharData detects each file's type and routes it into the correct section automatically.</p>
@@ -204,13 +223,14 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <li><strong>Drag and drop</strong> files from your file system directly onto a Dataset panel or anywhere inside the File Select panel.</li>
 <li><strong>Drag a card</strong> from the File Select panel onto Dataset A or Dataset B to assign it.</li>
 <li><strong>Click a card</strong> to assign it to the next available slot (Explore mode → A; Compare mode → first empty of A / B).</li>
-<li>Click <strong>Display File</strong> (after a file loads) to view its contents. For CSV / CGATS, this shows the raw text. For ICC profiles, it opens an in-page viewer with <strong>Header</strong> and <strong>Tags</strong> tabs, where each tag row expands inline to show its full type-specific description (loaded on demand). The ICC viewer also has a <strong>Launch editor</strong> button that opens the profile in <a href="https://chardata.colourbill.com/profiletool/">profiletool</a> in a new tab — useful for inspecting tag XML/JSON or making round-trip edits. The profile bytes are passed to profiletool in-browser via <code>postMessage</code>, no upload involved.</li>
+<li>Click <strong>Display File</strong> (after a file loads) to view its contents. For CSV / CGATS / CxF, this shows the raw text. For ICC profiles, it opens an in-page viewer with <strong>Header</strong> and <strong>Tags</strong> tabs, where each tag row expands inline to show its full type-specific description (loaded on demand). The ICC viewer also has a <strong>Launch editor</strong> button that opens the profile in <a href="https://chardata.colourbill.com/profiletool/">profiletool</a> in a new tab — useful for inspecting tag XML/JSON or making round-trip edits. The profile bytes are passed to profiletool in-browser via <code>postMessage</code>, no upload involved.</li>
 </ul>
 <p>Once a file loads, the slot panel shows:</p>
 <table><thead>
 <tr><th>Type</th><th>Information shown</th></tr></thead><tbody>
 <tr><td>CSV</td><td>File name, type <strong>CSV</strong>, row count, validation, device colorants, spectral status</td></tr>
 <tr><td>CGATS / ISO 28178</td><td>File name, type <strong>Characterization dataset</strong>, row count, validation, device colorants, spectral status</td></tr>
+<tr><td>CxF/X-3</td><td>File name, type <strong>CxF/X-3</strong>, row count, validation, device colorants (or "none" for measurement-only), spectral status</td></tr>
 <tr><td>ICC profile</td><td>File name, type <strong>ICC Profile</strong>, color space + colorants, <strong>Rendering intent</strong> dropdown</td></tr>
 </tbody></table>
 <p>Row counts, CGATS header warnings, and the "Colorimetric only" message are not shown for ICC profiles — they don't apply.</p>
