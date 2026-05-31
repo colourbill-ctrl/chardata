@@ -3555,6 +3555,8 @@ or ICC profiles</span>
           const mc  = document.getElementById('m-cond').value;
           lsDiv.textContent = t('lab_from_spectral', {ill, obs, mc});
         }
+        const moDiv = validEl.querySelector('.i18n-meas-only');
+        if (moDiv) moDiv.textContent = t('measurement_only_notice');
       }
       // Colorants + spectral status
       if (colorantsEl) {
