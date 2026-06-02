@@ -194,7 +194,15 @@
     /* Left margin matches the thin bar (6px). Right margin matches the floating
        blade-tab buttons (38px) so #main-content's vertical scrollbar lives just
        to the left of them and isn't covered when the right blade is collapsed. */
-    #main-content { margin-left: 6px; margin-right: 38px; padding: 32px 16px; height: 100vh; overflow-y: auto; }
+    /* margin-left tracks the live width of the left File-Select blade so the
+       canvas slides right when the blade opens (rather than being overlapped)
+       and slides back when it collapses to the 6px bar. The var is set from JS
+       at every toggle/resize; 6px is the collapsed-bar fallback. The transition
+       matches the blade's own 0.2s width transition so they move in lockstep. */
+    #main-content { margin-left: var(--fs-main-offset, 6px); margin-right: 38px; padding: 32px 16px; height: 100vh; overflow-y: auto; transition: margin-left 0.2s; }
+    /* During a resize drag the blade transition is disabled for snappy feedback —
+       drop the canvas transition too so it tracks the pointer without lag. */
+    body.fs-resizing #main-content { transition: none; }
 
     .panels {
       display: flex;
@@ -1000,7 +1008,7 @@ or ICC profiles</span>
   <!-- Main content -->
   <div id="main-content">
   <div id="page-title" style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 0 14px 32px;">
-    <h1 style="font-size:24px;font-weight:600;color:#333;margin:0;line-height:1.1;">Chardata Viewer</h1>
+    <h1 style="font-size:24px;font-weight:600;color:#333;margin:0;line-height:1.1;">CharData Viewer</h1>
     <span class="page-title-sub" style="font-size:13px;color:#888;" data-i18n="app_subtitle">Free browser-resident online tool</span>
   </div>
   <div id="seg-row" style="display:inline-flex;gap:6px;margin-left:32px;margin-bottom:24px;">
@@ -5171,6 +5179,32 @@ or ICC profiles</span>
     if (_isMobile || localStorage.getItem('fsBladeCollapsed') === '1') fsBlade.classList.add('collapsed');
     const fsArrow = fsToggle.querySelector('.fs-arrow');
     fsArrow.textContent = fsBlade.classList.contains('collapsed') ? '\u203a' : '\u2039';
+    // Drive #main-content's left margin from the blade's live width so the canvas
+    // slides right when the blade opens and back when it collapses. Desktop only \u2014
+    // on mobile the blade is an overlay drawer and the media query pins margin to 0.
+    function syncFsMainOffset() {
+      if (_isMobile) return;
+      const collapsed = fsBlade.classList.contains('collapsed');
+      const w = collapsed ? 6 : (parseInt(fsBlade.style.width, 10) || 220);
+      document.documentElement.style.setProperty('--fs-main-offset', w + 'px');
+    }
+    // When the canvas finishes sliding (blade open or close), reflow every tab to
+    // the new width — same effect as a browser-window resize, so Plotly charts
+    // (3D, slice, Tone Value, spectral) fill the available horizontal space.
+    const fsMainEl = document.getElementById('main-content');
+    if (fsMainEl && !_isMobile) {
+      fsMainEl.addEventListener('transitionend', e => {
+        if (e.target === fsMainEl && e.propertyName === 'margin-left') {
+          window.dispatchEvent(new Event('resize'));
+        }
+      });
+    }
+    // First sync without animating, so the canvas doesn't slide in on page load.
+    if (fsMainEl && !_isMobile) {
+      fsMainEl.style.transition = 'none';
+      syncFsMainOffset();
+      requestAnimationFrame(() => requestAnimationFrame(() => { fsMainEl.style.transition = ''; }));
+    }
     fsToggle.addEventListener('click', () => {
       fsBlade.classList.toggle('collapsed');
       const collapsed = fsBlade.classList.contains('collapsed');
@@ -5187,6 +5221,7 @@ or ICC profiles</span>
           fsBlade.style.minWidth = saved + 'px';
         }
       }
+      syncFsMainOffset();
     });
     // When the blade is collapsed, clicks anywhere on the bar (including the
     // resize handle, which is the visible bar in that state) open the panel \u2014
@@ -5275,6 +5310,7 @@ or ICC profiles</span>
       if (saved && saved >= MIN && saved <= MAX && !fsBlade.classList.contains('collapsed')) {
         fsBlade.style.width = saved + 'px';
         fsBlade.style.minWidth = saved + 'px';
+        syncFsMainOffset();
       }
       let dragging = false;
       handle.addEventListener('pointerdown', e => {
@@ -5291,6 +5327,7 @@ or ICC profiles</span>
         const w = Math.min(MAX, Math.max(MIN, e.clientX));
         fsBlade.style.width = w + 'px';
         fsBlade.style.minWidth = w + 'px';
+        syncFsMainOffset();
       });
       const stop = e => {
         if (!dragging) return;
@@ -5301,6 +5338,9 @@ or ICC profiles</span>
         fsBlade.style.transition = '';
         const w = parseInt(fsBlade.style.width, 10);
         if (w) localStorage.setItem('fsBladeWidth', String(w));
+        // Drag disables transitions (no transitionend fires), so reflow tabs once
+        // the user lets go — keeps Plotly charts filling the new canvas width.
+        window.dispatchEvent(new Event('resize'));
       };
       handle.addEventListener('pointerup', stop);
       handle.addEventListener('pointercancel', stop);
