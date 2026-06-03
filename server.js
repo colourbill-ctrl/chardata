@@ -55,4 +55,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+// Bind to loopback only: nginx reverse-proxies to localhost:3001 over TLS.
+// Binding 0.0.0.0 also exposed the app directly over plaintext HTTP on :3001,
+// bypassing nginx/TLS — 127.0.0.1 keeps it private to the proxy.
+app.listen(PORT, '127.0.0.1', () => console.log(`Server running at http://127.0.0.1:${PORT}`));
