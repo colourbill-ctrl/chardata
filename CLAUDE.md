@@ -45,6 +45,8 @@ Gamut math (polynomial model fitting, 3D mesh generation, 2D slice, ICC profile 
 
 **Supported ICC color spaces**: CMYK, CMY, RGB, Gray, and NCLR 2..15 channels (`cmsSig{N}colorData`). NCLR profiles get real ink names from `cmsSigColorantTableTag` when present; otherwise the wrapper synthesises generic `Ink1..InkN` names.
 
+**Supported ICC profile classes**: Output (`prtr`), Input (`scnr`), Display (`mntr`), and ColorSpace (`spac`) — all expose a device→PCS A2B map, so they share the same transform path. Abstract (`abst`, PCS→PCS), DeviceLink (`link`, device→device), and NamedColor (`nmcl`) stay rejected by the class guard in `loadIccProfile` because none of them map device→Lab. The guard is deliberately permissive: a `spac` (or any) profile that lacks the A2B tags a given intent needs is caught downstream by the transform creation, not pre-emptively.
+
 lcms2 expects 0..100 inputs for ink colour spaces (CMYK, CMY, NCLR 5..15ch — anything `IsInkSpace` returns true for) and 0..1 for non-ink (RGB/Gray). The wrapper tracks this via `IccProfile::inputMax`; do not reintroduce a blanket `/100.0` scale.
 
 **Sampling caveat**: `BOUNDARY_STEPS`/`SLICE_FACE_STEPS` shrink fast with channel count because mesh vertices grow as `C(N,2) * 2^(N-2) * (steps+1)^2`. For N≥12, even the floor of `steps=2` is best-effort and may OOM in WASM. Don't bump those defaults without measuring.
@@ -80,7 +82,7 @@ For the dev-mode cross-origin popup to retain its `window.opener`, the helmet co
 A "slot" is `'a'` or `'b'`. Each slot can hold either characterisation data (CSV/CGATS) or an ICC profile, and there are two parallel state objects:
 
 - `_gamutState[slot]` — for characterisation data: `cachedModel` (from `Gamut.fitModel`) + `cachedMesh` (from `Gamut.buildGamutMesh`)
-- `_iccState[slot]` — for ICC profiles: `handleId`, `renderingIntent` (default 3 = Absolute Colorimetric), profile metadata
+- `_iccState[slot]` — for ICC profiles: `handleId`, `renderingIntent` (default 3 = Absolute Colorimetric), profile metadata, plus `patches` (the device test set) and `patchLabValues` (its profile-evaluated Lab). `buildGamutCache` pre-evaluates a device test set for **every** supported device space — `IT875_PATCHES` for CMYK, `buildNclrPatches(N)` otherwise — into `cachedXYZ` (the 3D point cloud) and `icc.patches`, which `renderExploreIcc` tabulates as the data table (device colorants + Lab) for all device spaces, not just CMYK. The mesh-vertex fallback in `buildGamutCache` only fills `cachedXYZ` if that patch eval failed.
 
 File detection happens up front: `_sniffIcc(buffer)` checks bytes 36..39 for the `acsp` magic. ICC files are routed through `loadIccFromBuffer`; text files (CSV/CGATS/CxF) through `processFileText`, which sniffs the format (`isCxF` via the `colorexchangeformat.com` namespace / `CxF` root, else CGATS `BEGIN_DATA_FORMAT`, else CSV) and dispatches to `parseCxF` / `parseCGATS` / `parseCSV`. All three return the same `{ headers, rows[] }` shape, so everything downstream is format-agnostic. The Rendering Intent dropdown is only visible when the slot holds an ICC profile, and changing it triggers a re-render of every dependent view (3D shell, 2D slice, Compare table, Tone Value chart, Estimate).
 

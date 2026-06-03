@@ -706,12 +706,18 @@ static std::string loadIccProfile(const std::string& base64Data) {
     cmsHPROFILE h = cmsOpenProfileFromMem(bytes.data(), (cmsUInt32Number)bytes.size());
     if (!h) return "{\"error\":\"not a valid ICC profile\"}";
 
+    // Accept any class that exposes a device→PCS (A2B) mapping. ColorSpace
+    // ('spac') profiles carry the same A2B0/1/2 tags as Output profiles, so
+    // they flow through the existing transform path unchanged; profiles that
+    // lack the tags an intent needs are caught later by the transform guards.
+    // Abstract/DeviceLink/NamedColor stay rejected — they don't map device→PCS.
     cmsProfileClassSignature cls = cmsGetDeviceClass(h);
-    if (cls != cmsSigOutputClass &&
-        cls != cmsSigInputClass  &&
-        cls != cmsSigDisplayClass) {
+    if (cls != cmsSigOutputClass     &&
+        cls != cmsSigInputClass      &&
+        cls != cmsSigDisplayClass    &&
+        cls != cmsSigColorSpaceClass) {
         cmsCloseProfile(h);
-        return "{\"error\":\"only output/input/display profiles supported\"}";
+        return "{\"error\":\"only output/input/display/colorspace profiles supported\"}";
     }
 
     cmsColorSpaceSignature cs = cmsGetColorSpace(h);

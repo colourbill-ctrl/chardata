@@ -4,7 +4,7 @@ CharData is a browser-based tool for loading, exploring, and comparing colour ch
 
 **CharData** is a browser-based tool for exploring and comparing colour characterisation datasets and ICC profiles. It runs entirely in your browser with no installation required — all data stays local to the browser, with no upload to any server — and works on both desktop and mobile. CharData pairs with <a href="https://chardata.colourbill.com/profiletool/" style="color:#1a73e8;font-weight:bold;text-decoration:none;">profiletool</a>, a companion in-browser ICC profile inspector and editor: when an ICC profile slot is open, the **Launch editor** button hands the loaded profile directly to profiletool in a new tab for header / tag inspection or full editing — same browser session, no upload.
 
-A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L\*a\*b\* colorimetry and, optionally, spectral reflectance. CharData accepts these files in **CGATS/IT8**, **CSV**, and **CxF/X-3** formats. CharData also accepts **ICC profiles** (output, input, and display classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.
+A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L\*a\*b\* colorimetry and, optionally, spectral reflectance. CharData accepts these files in **CGATS/IT8**, **CSV**, and **CxF/X-3** formats. CharData also accepts **ICC profiles** (output, input, display, and colorspace classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.
 
 **What you can do with CharData:**
 
@@ -123,7 +123,7 @@ CharData also accepts ICC profiles (`.icc`, `.icm`). A file is recognised as an 
 | CMYK, CMY, RGB, GRAY device color spaces | Other spaces are rejected |
 | All four ICC rendering intents | Only those actually present in the profile are selectable; unsupported intents are greyed out |
 
-When a profile loads, CharData treats it as a virtual dataset evaluated on demand through the profile's A2B (device-to-Lab) transform at the chosen rendering intent. CMYK profiles are pre-evaluated against the standard IT8.7/5 patch set so that 3D scatter clouds and ΔE comparisons against another dataset are immediate.
+When a profile loads, CharData treats it as a virtual dataset evaluated on demand through the profile's A2B (device-to-Lab) transform at the chosen rendering intent. The profile is pre-evaluated against a device-colorant test set so that 3D scatter clouds and ΔE comparisons against another dataset are immediate — CMYK profiles use the standard IT8.7/5 patch set; every other device space (RGB, Gray, CMY, and N-colorant) uses a generated set of paper white, single-channel ramps, and a two-channel overprint grid.
 
 ---
 
@@ -240,7 +240,7 @@ Overrides the interface language. **System default** detects the browser locale 
 
 Explore mode works with a single slot (A) holding either a characterization dataset or an ICC profile. Select it with the **Explore** button at the top.
 
-When the slot holds an ICC profile, Explore shows a profile summary panel (color space, device class, available rendering intents, colorant list) and — for CMYK profiles — an optional table of the profile's IT8.7/5 patch evaluations at the current rendering intent.
+When the slot holds an ICC profile, Explore shows a profile summary panel (color space, device class, available rendering intents, colorant list) and an optional table of the profile's patch evaluations at the current rendering intent — the device colorant values alongside the resulting L\*a\*b\*. CMYK profiles tabulate the IT8.7/5 patch set; every other device space (RGB, Gray, CMY, N-colorant) tabulates the generated device patch set.
 
 ### 4.1 Data table
 

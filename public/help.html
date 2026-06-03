@@ -57,7 +57,7 @@
   <p class="subtitle">Browser-based colour characterisation data explorer and comparator</p>
 
 <p><strong>CharData</strong> is a browser-based tool for exploring and comparing colour characterisation datasets and ICC profiles. It runs entirely in your browser with no installation required — all data stays local to the browser, with no upload to any server — and works on both desktop and mobile. CharData pairs with <a href="https://chardata.colourbill.com/profiletool/" style="color:#1a73e8;font-weight:bold;text-decoration:none;">profiletool</a>, a companion in-browser ICC profile inspector and editor: when an ICC profile slot is open, the <strong>Launch editor</strong> button hands the loaded profile directly to profiletool in a new tab for header / tag inspection or full editing — same browser session, no upload.</p>
-<p>A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L*a*b* colorimetry and, optionally, spectral reflectance. CharData accepts these files in <strong>CGATS/IT8</strong>, <strong>CSV</strong>, and <strong>CxF/X-3</strong> formats. CharData also accepts <strong>ICC profiles</strong> (output, input, and display classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.</p>
+<p>A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L*a*b* colorimetry and, optionally, spectral reflectance. CharData accepts these files in <strong>CGATS/IT8</strong>, <strong>CSV</strong>, and <strong>CxF/X-3</strong> formats. CharData also accepts <strong>ICC profiles</strong> (output, input, display, and colorspace classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.</p>
 <p><strong>What you can do with CharData:</strong></p>
 <ul>
 <li><strong>Explore a single dataset or profile</strong> — browse the data table, visualise the colour gamut in 3D L*a*b* space, examine a 2D slice at any L*, a*, or b* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L*a*b* for any device colorant combination.</li>
@@ -203,7 +203,7 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <tr><td>CMYK, CMY, RGB, GRAY device color spaces</td><td>Other spaces are rejected</td></tr>
 <tr><td>All four ICC rendering intents</td><td>Only those actually present in the profile are selectable; unsupported intents are greyed out</td></tr>
 </tbody></table>
-<p>When a profile loads, CharData treats it as a virtual dataset evaluated on demand through the profile's A2B (device-to-Lab) transform at the chosen rendering intent. CMYK profiles are pre-evaluated against the standard IT8.7/5 patch set so that 3D scatter clouds and ΔE comparisons against another dataset are immediate.</p>
+<p>When a profile loads, CharData treats it as a virtual dataset evaluated on demand through the profile's A2B (device-to-Lab) transform at the chosen rendering intent. The profile is pre-evaluated against a device-colorant test set so that 3D scatter clouds and ΔE comparisons against another dataset are immediate — CMYK profiles use the standard IT8.7/5 patch set; every other device space (RGB, Gray, CMY, and N-colorant) uses a generated set of paper white, single-channel ramps, and a two-channel overprint grid.</p>
 <hr>
 <h2 id="2-loading-datasets">2. Loading datasets</h2>
 <p>Files (datasets and profiles) load through the <strong>File Select</strong> panel on the left edge of the screen.</p>
@@ -371,7 +371,7 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <text x="710" y="69" text-anchor="start" class="t3">Collapsed section (click to expand)</text><line x1="186" y1="118" x2="710" y2="118" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="710" y="115" text-anchor="start" class="t3">Expanded section</text>
 </svg><p>Explore mode works with a single slot (A) holding either a characterization dataset or an ICC profile. Select it with the <strong>Explore</strong> button at the top.</p>
-<p>When the slot holds an ICC profile, Explore shows a profile summary panel (color space, device class, available rendering intents, colorant list) and — for CMYK profiles — an optional table of the profile's IT8.7/5 patch evaluations at the current rendering intent.</p>
+<p>When the slot holds an ICC profile, Explore shows a profile summary panel (color space, device class, available rendering intents, colorant list) and an optional table of the profile's patch evaluations at the current rendering intent — the device colorant values alongside the resulting L*a*b*. CMYK profiles tabulate the IT8.7/5 patch set; every other device space (RGB, Gray, CMY, N-colorant) tabulates the generated device patch set.</p>
 <h3 id="4-1-data-table">4.1 Data table</h3>
 <p>Click <strong>Display File</strong> in the Dataset A panel to open a sortable table of all rows.</p>
 <ul>
