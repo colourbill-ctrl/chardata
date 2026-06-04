@@ -61,8 +61,8 @@ app.get('/health', (req, res) => res.status(200).type('text/plain').send('ok'));
 // Body is JUST the token — no raw numbers — since the URL is publicly reachable;
 // the metrics go to the server log only. Fails OPEN to MEM_OK if meminfo can't be
 // read (e.g. non-Linux dev box) so the monitor doesn't false-alarm off-platform.
-const MIN_AVAIL_MB = 60;  // available RAM floor before we flag
-const MAX_SWAP_PCT = 75;  // swap utilisation ceiling before we flag
+const MIN_AVAIL_MB = 100; // available RAM floor before we flag
+const MAX_SWAP_PCT = 60;  // swap utilisation ceiling before we flag
 app.get('/memstat', (req, res) => {
   let token = 'MEM_OK';
   try {
