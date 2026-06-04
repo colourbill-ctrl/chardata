@@ -55,6 +55,39 @@
       strong { color: #e0e4ea; }
       .subtitle { color: #666e7a; }
     }
+
+.cd-things { border:1px solid #d0e0ee; border-radius:10px; background:#fbfdff; padding:18px 20px 22px; margin:28px 0; }
+.cd-things__title { margin:0 0 4px; border:none; padding:0; }
+.cd-things__intro { font-size:13px; color:#666; margin:0 0 14px; }
+.cd-uihint-demo { color:#1a5a8a; border-bottom:1px dashed #1a5a8a; font-weight:bold; }
+.cd-thing { border:1px solid #dde4ec; border-radius:8px; margin:8px 0; background:#fff; }
+.cd-thing > summary { cursor:pointer; padding:11px 16px; font-weight:bold; color:#1a5a8a; font-size:14px; list-style:none; }
+.cd-thing > summary::-webkit-details-marker { display:none; }
+.cd-thing > summary::before { content:"\25B6"; color:#9aa6b2; font-size:0.7em; margin-right:8px; }
+.cd-thing[open] > summary::before { content:"\25BC"; }
+.cd-thing__body { padding:2px 16px 14px; }
+.cd-thing__body p { font-size:14px; margin:0 0 9px; }
+button.cd-uihint { font:inherit; font-weight:bold; color:#1a5a8a; background:none; border:none; border-bottom:1px dashed #1a5a8a; padding:0 1px; margin:0; cursor:pointer; }
+button.cd-uihint:hover { background:#e8f0f8; }
+button.cd-uihint::after { content:"\2317"; font-size:0.85em; opacity:0.65; margin-left:2px; }
+.cd-modal[hidden] { display:none; }
+.cd-modal { position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:24px; }
+.cd-modal__overlay { position:absolute; inset:0; background:rgba(10,15,25,0.72); }
+.cd-modal__dialog { position:relative; background:#f0f2f5; border-radius:12px; padding:22px 22px 18px; max-width:840px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 24px 70px rgba(0,0,0,0.5); }
+.cd-modal__close { position:absolute; top:6px; right:12px; border:none; background:none; font-size:28px; line-height:1; cursor:pointer; color:#8a93a0; }
+.cd-modal__close:hover { color:#333; }
+.cd-diag { margin:0; }
+.cd-diag figcaption { margin-top:12px; font-size:13px; line-height:1.5; color:#555; font-family:Arial,sans-serif; }
+@media (prefers-color-scheme: dark) {
+  .cd-things { background:#1d2026; border-color:#333a44; }
+  .cd-things__intro { color:#9aa0a8; }
+  .cd-thing { background:#22262e; border-color:#333a44; }
+  .cd-thing > summary { color:#7ab8e8; }
+  .cd-modal__dialog { background:#1a1c1f; }
+  .cd-modal__close { color:#9aa0a8; }
+  .cd-diag figcaption { color:#9aa0a8; }
+  .cd-modal__close:hover { color:#fff; }
+}
   </style>
 </head>
 <body>
@@ -73,6 +106,94 @@
 <li><strong>Switch rendering intent</strong> — for ICC profiles, change between Perceptual / Relative Colorimetric / Saturation / Absolute Colorimetric and have every view (3D shell, 2D slice, comparison table, tone curves, estimate) recompute against the new transform.</li>
 </ul>
 <p>The suggested workflow is to load an entire directory of characterisation files via the File Select panel, then pick individual files to explore or compare.</p>
+
+<section class="cd-things" id="things-you-can-do">
+  <h2 class="cd-things__title">Things you can do with CharData</h2>
+  <p class="cd-things__intro">Expand any item below for detail. Underlined <span class="cd-uihint-demo">UI references</span> open a labelled diagram of that part of the app.</p>
+  <details class="cd-thing" id="view-datasets">
+    <summary>View characterization datasets: CGATS, CxF/X-3, CSV, ICC</summary>
+    <div class="cd-thing__body">
+<p>CharData reads characterization datasets in CGATS, CxF/X-3 and CSV formats &mdash; focusing on device colorants, colorimetry and spectral data. It will also load ICC profiles to use as characterization datasets, with some caveats. Although permissive about the wide variety of commercial CGATS variants, CharData flags any format issues and can be used for (loose) validation.</p>
+<p>The loading workflow starts from the <button type="button" class="cd-uihint" data-diag="layout">collapsible File Select pane</button> on the left. Use the file-selection button to load file handles into the dataset list beneath it; standard datasets from the ICC website are preloaded for convenience. Click-select or drag-and-drop datasets and ICC profiles onto the <button type="button" class="cd-uihint" data-diag="layout">Dataset boxes</button> in the main canvas to activate them for viewing.</p>
+<p>The &ldquo;Display File&rdquo; button in the <button type="button" class="cd-uihint" data-diag="layout">Dataset box</button> shows the original (or edited) text of the dataset file. For ICC profiles the header and tags are shown, with an option to launch a simple ICC profile editor/inspector in a separate tab.</p>
+<p>The <button type="button" class="cd-uihint" data-diag="settings">collapsible Settings panel</button> on the right controls whether duplicates (by device colorant) are filtered, and the averaging method used &mdash; useful where a dataset repeats measurements of the same colorant.</p>
+<p>The <button type="button" class="cd-uihint" data-diag="datatable">Data Table</button> shows the data row by row. Double-clicking colorimetry reveals the spectral data for that row, when available. For ICC profiles a synthetic table is generated by sampling the A2B table.</p>
+<p>The <button type="button" class="cd-uihint" data-diag="tonevalue">Tone Value tab</button> plots tone value for the primary colorant ramps. Murray-Davies densitometry is available only when spectral data is present; otherwise CTV (Colour Tone Value) is used. In general, where both spectral and colorimetric data are available, the spectral data is treated as the source of truth.</p>
+    </div>
+  </details>
+  <details class="cd-thing" id="plot-datasets">
+    <summary>Plot datasets — 3D plot &amp; 2D slices</summary>
+    <div class="cd-thing__body">
+<p>Datasets can be viewed graphically and interactively, both as a <button type="button" class="cd-uihint" data-diag="gamut">3D plot</button> in colorimetric L*a*b* space and as a <button type="button" class="cd-uihint" data-diag="slice">2D gamut slice view</button>. Each dataset can be shown as its raw L*a*b* point cluster, as an estimated gamut shell (when a model can be generated), or both.</p>
+<p>In the 3D plot, the gear icon on each dataset&rsquo;s legend label lets you change opacity and point density per dataset, and toggle the gamut or point cloud on or off. When spectral data is present you can view the spectral curve of any point by clicking it (with &ldquo;Show spectral data when point selected&rdquo; enabled).</p>
+<p>The 2D Gamut Slice view moves a slice along any principal colorimetric direction &mdash; L*, a* or b* &mdash; which is especially useful for seeing how colorimetric points relate to gamut boundaries. Slice thickness is adjustable; the soft viewing mode emphasises points near the slice and de-emphasises those farther into or out of it.</p>
+    </div>
+  </details>
+  <details class="cd-thing" id="create-models">
+    <summary>Create simple models from datasets</summary>
+    <div class="cd-thing__body">
+<p>For datasets containing both device colorants and colour data (colorimetric and/or spectral) it is often possible to fit a forward model. When possible this model is generated on load, and the <button type="button" class="cd-uihint" data-diag="estimate">Estimate</button> section lets you evaluate device colorants through it. This enables effective interpolation, but beware that the simple technique behaves less well with higher-dimensional data. Model fit statistics are shown below the dataset so you can judge how far to trust it.</p>
+<p>There is no way to generate a model from a pure colour point cloud &mdash; device coordinates are a necessary condition.</p>
+    </div>
+  </details>
+  <details class="cd-thing" id="generate-gamuts">
+    <summary>Generate gamuts</summary>
+    <div class="cd-thing__body">
+<p>The model &mdash; whether fit from characterization data or evaluated through an ICC profile &mdash; is used to estimate a gamut shell, mapping the boundary of the device-colorant hypercube into L*a*b* space. That 3D boundary shape is then plotted in both the <button type="button" class="cd-uihint" data-diag="gamut">3D plot</button> and <button type="button" class="cd-uihint" data-diag="slice">2D gamut slice</button> views.</p>
+    </div>
+  </details>
+  <details class="cd-thing" id="extract-subsets">
+    <summary>Extract dataset subsets</summary>
+    <div class="cd-thing__body">
+<p>Some features within a characterization dataset &mdash; the CMY gray axis, the primary/secondary subsets, or a lower-dimensional subset of the full dataset &mdash; are used frequently. The <button type="button" class="cd-uihint" data-diag="extract">Extract</button> function is a convenience for discarding data rows to build such a subset from the original.</p>
+<p>For example, Extract can be used to pull the CMYK characterization data out of a CMYKOGV dataset.</p>
+    </div>
+  </details>
+  <details class="cd-thing" id="compare">
+    <summary>Compare datasets &amp; profiles</summary>
+    <div class="cd-thing__body">
+<p>CharData has two main uses: inspecting a single dataset, and comparing two directly. Comparison is enabled by selecting <button type="button" class="cd-uihint" data-diag="compare">Compare</button> mode at the top of the app. As in Explore, drag or select a dataset or ICC profile from the File Select panel onto one of the two Dataset boxes; the comparisons are generated automatically.</p>
+<p>The <button type="button" class="cd-uihint" data-diag="compare">Comparison Table</button> shows a row-by-row comparison generating a variety of ΔE metrics (the specific ΔE type is configurable in the Settings pane). It only compares matching device colorants &mdash; with no matching colorants, or none at all (a pure colorimetric point cloud), no comparison can be made.</p>
+<p>A set of <button type="button" class="cd-uihint" data-diag="compare">comparison aggregate statistics</button> (mean, min, max, std dev) is presented right at the top &mdash; especially useful when evaluating differences between two datasets that should be of the same device, or between an ICC profile&rsquo;s absolute-colorimetric forward model and its formative characterization dataset.</p>
+<p>Other useful comparisons include the tonal behaviour of the two datasets and their gamut-boundary locations, in either the 3D or 2D views.</p>
+    </div>
+  </details>
+  <details class="cd-thing" id="check-fit">
+    <summary>Check dataset vs profile fit</summary>
+    <div class="cd-thing__body">
+<p>A common use case is checking how well an ICC profile&rsquo;s (absolute) colorimetry matches its formative characterization dataset. This is easily done with <button type="button" class="cd-uihint" data-diag="compare">Compare mode</button>: compare the two directly &mdash; the ICC profile as one dataset, and the corresponding characterization dataset as the other.</p>
+    </div>
+  </details>
+  <details class="cd-thing" id="view-icc">
+    <summary>View ICC profiles</summary>
+    <div class="cd-thing__body">
+<p>ICC profiles (currently supporting up to v4) load into CharData and behave much like characterization datasets, with some minor but important differences.</p>
+<p>Because an ICC profile is a composite data format, the rendering intent must be chosen. For most CharData use cases that is Absolute Colorimetric (A2B3), though the others can be used too. Accordingly, only profile types that provide a device-colorant-to-colorimetry mapping (output, scanner, display) are supported; classes such as abstract and DeviceLink are not, and likely never will be.</p>
+<p><button type="button" class="cd-uihint" data-diag="estimate">Estimate</button> evaluates device colorants through the chosen forward-model intent, and <button type="button" class="cd-uihint" data-diag="tonevalue">Tone Value</button> plots the CTV. A set of patches generated by evaluating device colorants through the forward model is currently implemented for CMYK only, as a convenience.</p>
+    </div>
+  </details>
+  <details class="cd-thing" id="edit-profiles">
+    <summary>Edit profiles (via profiletool)</summary>
+    <div class="cd-thing__body">
+<p>For ICC profiles loaded as a dataset, the <button type="button" class="cd-uihint" data-diag="layout">&ldquo;Display File&rdquo;</button> button opens a view tab showing the header and tag content. A <button type="button" class="cd-uihint" data-diag="layout">&ldquo;Launch Editor&rdquo;</button> button opens profiletool, the companion app based on the open-source IccDev project.</p>
+<p>profiletool enables both viewing and limited editing of the header and tags by converting the ICC profile (a tag-based data construct) to either XML or JSON. You can edit the XML or JSON, convert the edited result back to ICC profile format, and save it out.</p>
+    </div>
+  </details>
+  <details class="cd-thing" id="image-gamut">
+    <summary>View image gamut</summary>
+    <div class="cd-thing__body">
+<p>CharData can convert an image into an L*a*b* point cloud, which can then be analysed directly or compared against a reference colour gamut.</p>
+<p>The key steps are to first load the image in the Image tab, then assign a forward model to interpret the image&rsquo;s device colorants as colorimetry. If the image embeds an ICC profile, that profile is taken as the default interpretation (you can override it). If the image is itself defined in the Lab colour space, that Lab data is used directly.</p>
+    </div>
+  </details>
+  <details class="cd-thing" id="calculate-tonality">
+    <summary>Calculate tonality</summary>
+    <div class="cd-thing__body">
+<p>Tonality is commonly calculated a couple of ways. Murray-Davies densitometry uses the inner product between RGBV filter functions and the spectral power distribution (SPD) of a measurement to derive density and hence tonality. <button type="button" class="cd-uihint" data-diag="tonevalue">Colour Tone Value</button> (CTV) instead uses the measured colorimetry to determine tonality.</p>
+<p>Both methods are supported in CharData, though Murray-Davies is only available when spectral measurement is present. Although some datasets carry measured density (D_VIS, D_RED, D_BLUE, D_GREEN), CharData strips this out and treats the spectral data as the source of truth.</p>
+    </div>
+  </details>
+</section>
 
   <nav>
     <strong>Contents</strong>
@@ -104,7 +225,7 @@
 
 <h2 id="1-file-format">1. File format</h2>
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350"
   style="width:100%;max-width:760px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
 
 <style>
@@ -141,11 +262,10 @@ text.t3   { fill:var(--tx3); font-size:10px; }
 text.tW   { fill:var(--txW); }
 text.tA   { fill:var(--txA); font-weight:bold; }
 </style>
-<rect x="0" y="0" width="760" height="330" rx="0" class="bg"/><rect x="10" y="10" width="155" height="310" rx="5" class="pnl"/><rect x="10" y="10" width="155" height="28" rx="5" class="hd"/><text x="87.5" y="28" text-anchor="middle" class="tT">File Select</text><rect x="18" y="46" width="139" height="88" rx="5" class="pnl"/><rect x="18" y="46" width="139" height="20" rx="5" class="hd"/><text x="87.5" y="60" text-anchor="middle" class="tB">Dataset A</text><text x="87.5" y="78" text-anchor="middle" class="t3">filename.csv</text><text x="87.5" y="92" text-anchor="middle" class="t3">1200 rows  CMYK+LAB</text><text x="87.5" y="106" text-anchor="middle" class="t2">✓ Valid</text><rect x="24" y="116" width="127" height="14" rx="3" class="btn"/><text x="87.5" y="127" text-anchor="middle" class="t3">Display File</text><rect x="18" y="142" width="139" height="88" rx="5" class="pnl"/><rect x="18" y="142" width="139" height="20" rx="5" class="hd"/><text x="87.5" y="156" text-anchor="middle" class="tB">Dataset B</text><text x="87.5" y="174" text-anchor="middle" class="t3">(drop file here)</text><text x="87.5" y="250" text-anchor="middle" class="t3">Drag & drop files</text><text x="87.5" y="264" text-anchor="middle" class="t3">or use file picker</text><rect x="18" y="282" width="139" height="18" rx="3" class="btn"/><text x="87.5" y="294" text-anchor="middle" class="t3">☕  Ko-fi  ↑ Top</text><rect x="172" y="10" width="430" height="310" rx="5" class="pnl"/><rect x="182" y="20" width="100" height="24" rx="4" class="act"/><text x="232" y="36" text-anchor="middle" class="tW tB">Explore</text><rect x="290" y="20" width="100" height="24" rx="4" class="btn"/><text x="340" y="36" text-anchor="middle" class="t2">Compare</text><rect x="182" y="54" width="410" height="256" rx="4" class="lnbd"/><text x="387" y="130" text-anchor="middle" class="tT">Mode Content Area</text><text x="387" y="150" text-anchor="middle" class="t3">(Data Table · G7 Report · 3D Gamut · 2D Slice · Estimate)</text><rect x="610" y="10" width="140" height="310" rx="5" class="pnl"/><rect x="610" y="10" width="38" height="34" rx="0" class="btn"/><text x="629" y="31" text-anchor="middle" class="t2">⚙</text><rect x="610" y="52" width="38" height="34" rx="0" class="btn"/><text x="629" y="72" text-anchor="middle" class="t2">?</text><line x1="648" y1="10" x2="648" y2="320" class="div"/><text x="690" y="30" text-anchor="middle" class="tT">Settings</text><text x="690" y="60" text-anchor="middle" class="t2">ΔE Method</text><text x="690" y="78" text-anchor="middle" class="t2">Filter Duplicates</text><text x="690" y="96" text-anchor="middle" class="t2">Spectral → LAB</text><text x="690" y="114" text-anchor="middle" class="t2">Background</text><line x1="87.5" y1="60" x2="32.5" y2="20" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
-<text x="32.5" y="17" text-anchor="end" class="t3">Dataset A panel</text><line x1="232" y1="36" x2="232" y2="6" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
-<text x="232" y="3" text-anchor="end" class="t3">Mode selector</text><line x1="629" y1="31" x2="570" y2="31" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
-<text x="570" y="28" text-anchor="end" class="t3">⚙ Settings</text><line x1="629" y1="72" x2="570" y2="72" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
-<text x="570" y="69" text-anchor="end" class="t3">? Help</text>
+<rect x="0" y="0" width="760" height="350" rx="0" class="bg"/><rect x="10" y="10" width="158" height="330" rx="5" class="pnl"/><rect x="10" y="10" width="158" height="26" rx="5" class="hd"/><text x="89" y="27" text-anchor="middle" class="tT">File Select</text><rect x="18" y="42" width="142" height="18" rx="3" class="btn"/><text x="89" y="54" text-anchor="middle" class="t3">+  Load files…</text><rect x="18" y="66" width="142" height="16" rx="3" class="hd"/><text x="23" y="77" text-anchor="start" class="t3">▾ Standard datasets</text><rect x="22" y="84" width="134" height="14" rx="3" class="sec"/><text x="28" y="94" text-anchor="start" class="t3">FOGRA51.txt</text><rect x="18" y="104" width="142" height="16" rx="3" class="hd"/><text x="23" y="115" text-anchor="start" class="t3">▾ Characterization data</text><rect x="22" y="122" width="134" height="14" rx="3" class="sec"/><text x="28" y="132" text-anchor="start" class="t3">myjob.csv</text><rect x="18" y="142" width="142" height="16" rx="3" class="hd"/><text x="23" y="153" text-anchor="start" class="t3">▾ ICC Profiles</text><rect x="22" y="160" width="134" height="14" rx="3" class="sec"/><text x="28" y="170" text-anchor="start" class="t3">press.icc</text><text x="89" y="194" text-anchor="middle" class="t3">Drag a card onto</text><text x="89" y="207" text-anchor="middle" class="t3">a Dataset box →</text><rect x="176" y="10" width="420" height="330" rx="5" class="pnl"/><rect x="186" y="20" width="90" height="24" rx="4" class="act"/><text x="231" y="36" text-anchor="middle" class="tW tB">Explore</text><rect x="284" y="20" width="90" height="24" rx="4" class="btn"/><text x="329" y="36" text-anchor="middle" class="t2">Compare</text><rect x="186" y="56" width="195" height="96" rx="5" class="pnl"/><rect x="186" y="56" width="195" height="20" rx="5" class="hd"/><text x="283.5" y="70" text-anchor="middle" class="tB">Dataset A  ✓</text><text x="283.5" y="90" text-anchor="middle" class="t3">FOGRA51.txt</text><text x="283.5" y="104" text-anchor="middle" class="t3">Char. dataset · 1485 rows</text><text x="283.5" y="118" text-anchor="middle" class="t3">CMYK · spectral ✓</text><rect x="198" y="126" width="171" height="16" rx="3" class="btn"/><text x="283.5" y="137" text-anchor="middle" class="t3">Display File</text><rect x="391" y="56" width="195" height="96" rx="5" class="pnl"/><rect x="391" y="56" width="195" height="20" rx="5" class="hd"/><text x="488.5" y="70" text-anchor="middle" class="tB">Dataset B</text><text x="488.5" y="114" text-anchor="middle" class="t3">(drag a card here)</text><rect x="186" y="164" width="400" height="174" rx="4" class="lnbd"/><text x="386" y="214" text-anchor="middle" class="tT">Mode content</text><text x="386" y="234" text-anchor="middle" class="t3">Data Table · 3D Gamut · 2D Slice</text><text x="386" y="248" text-anchor="middle" class="t3">Tone Value · G7 · Estimate</text><rect x="606" y="10" width="144" height="330" rx="5" class="pnl"/><rect x="606" y="10" width="38" height="34" rx="0" class="btn"/><text x="625" y="31" text-anchor="middle" class="t2">⚙</text><rect x="606" y="52" width="38" height="34" rx="0" class="btn"/><text x="625" y="72" text-anchor="middle" class="t2">?</text><line x1="644" y1="10" x2="644" y2="340" class="div"/><text x="697" y="30" text-anchor="middle" class="tT">Settings</text><text x="697" y="54" text-anchor="middle" class="t2">ΔE Method</text><text x="697" y="72" text-anchor="middle" class="t2">Filter Duplicates</text><text x="697" y="90" text-anchor="middle" class="t2">Spectral → LAB</text><text x="697" y="108" text-anchor="middle" class="t2">Model</text><text x="697" y="126" text-anchor="middle" class="t2">Background</text><line x1="283.5" y1="152" x2="283.5" y2="184" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="283.5" y="181" text-anchor="end" class="t3">Dataset boxes — in the main canvas (drag a card here)</text><line x1="89" y1="23" x2="83" y2="4" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="83" y="1" text-anchor="end" class="t3">File Select pane</text><line x1="625" y1="31" x2="702" y2="4" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="702" y="1" text-anchor="start" class="t3">Settings panel</text>
 </svg><p>CharData accepts <strong>CSV</strong>, <strong>CGATS/IT8</strong>, and <strong>CxF/X-3</strong> text files. CGATS is also published as <strong>ISO 28178</strong> — these are the same format. CxF/X-3 (ISO 17972-3, the <em>Color Exchange Format</em>) is the XML format produced by X-Rite i1Profiler, BabelColor PatchTool, and similar tools.</p>
 <h3 id="required-columns">Required columns</h3>
 <p>Every file must contain L*a*b* columns (or spectral data from which they are computed). A device colorant column is needed for the full feature set, but is not required to load the file — see <a href="#measurement-only-datasets">Measurement-only datasets</a> below.</p>
@@ -373,7 +493,7 @@ text.t3   { fill:var(--tx3); font-size:10px; }
 text.tW   { fill:var(--txW); }
 text.tA   { fill:var(--txA); font-weight:bold; }
 </style>
-<rect x="0" y="0" width="720" height="370" rx="0" class="bg"/><rect x="10" y="10" width="150" height="350" rx="5" class="pnl"/><rect x="10" y="10" width="150" height="22" rx="5" class="hd"/><text x="85" y="25" text-anchor="middle" class="tT">File Select</text><rect x="16" y="38" width="138" height="80" rx="5" class="pnl"/><rect x="16" y="38" width="138" height="18" rx="5" class="hd"/><text x="85" y="50" text-anchor="middle" class="tB">Dataset A  ✓</text><text x="85" y="66" text-anchor="middle" class="t3">profile.csv</text><text x="85" y="78" text-anchor="middle" class="t3">1 200 rows</text><text x="85" y="90" text-anchor="middle" class="t3">CMYK + Spectral</text><rect x="22" y="122" width="126" height="14" rx="3" class="btn"/><text x="85" y="132" text-anchor="middle" class="t3">Dataset B  (empty)</text><rect x="168" y="10" width="542" height="350" rx="5" class="pnl"/><rect x="176" y="18" width="90" height="22" rx="4" class="act"/><text x="221" y="33" text-anchor="middle" class="tW tB">Explore</text><rect x="272" y="18" width="90" height="22" rx="4" class="btn"/><text x="317" y="33" text-anchor="middle" class="t2">Compare</text><rect x="176" y="50" width="526" height="22" rx="3" class="sec"/><text x="186" y="65" text-anchor="start" class="t2">▶  Data Table</text><rect x="176" y="74" width="526" height="22" rx="3" class="pnl"/><text x="186" y="89" text-anchor="start" class="tA">▼  3D Gamut Plot</text><rect x="176" y="98" width="526" height="22" rx="3" class="pnl"/><text x="186" y="113" text-anchor="start" class="t3">     ☑ Show gamut shell · ☑ Show data points · ☑ Color by hue · ☑ Color by value</text><rect x="176" y="122" width="526" height="22" rx="3" class="pnl"/><text x="186" y="137" text-anchor="start" class="t3">     Shell opacity ░░░░░░░░░░░░░░░░</text><rect x="176" y="146" width="526" height="22" rx="3" class="pnl"/><text x="186" y="161" text-anchor="start" class="t3">     ☐ Show spectral data when point selected</text><rect x="176" y="170" width="526" height="22" rx="3" class="sec"/><text x="186" y="185" text-anchor="start" class="t2">▶  Gamut Slice (2D)</text><rect x="176" y="194" width="526" height="22" rx="3" class="sec"/><text x="186" y="209" text-anchor="start" class="t2">▶  G7 Report</text><rect x="176" y="218" width="526" height="22" rx="3" class="sec"/><text x="186" y="233" text-anchor="start" class="t2">▶  Estimate</text><line x1="221" y1="33" x2="221" y2="3" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<rect x="0" y="0" width="720" height="370" rx="0" class="bg"/><rect x="10" y="10" width="150" height="350" rx="5" class="pnl"/><rect x="10" y="10" width="150" height="22" rx="5" class="hd"/><text x="85" y="25" text-anchor="middle" class="tT">File Select</text><rect x="16" y="38" width="138" height="80" rx="5" class="pnl"/><rect x="16" y="38" width="138" height="18" rx="5" class="hd"/><text x="85" y="50" text-anchor="middle" class="tB">Dataset A  ✓</text><text x="85" y="66" text-anchor="middle" class="t3">profile.csv</text><text x="85" y="78" text-anchor="middle" class="t3">1 200 rows</text><text x="85" y="90" text-anchor="middle" class="t3">CMYK + Spectral</text><rect x="22" y="122" width="126" height="14" rx="3" class="btn"/><text x="85" y="132" text-anchor="middle" class="t3">Dataset B  (empty)</text><rect x="168" y="10" width="542" height="350" rx="5" class="pnl"/><rect x="176" y="18" width="90" height="22" rx="4" class="act"/><text x="221" y="33" text-anchor="middle" class="tW tB">Explore</text><rect x="272" y="18" width="90" height="22" rx="4" class="btn"/><text x="317" y="33" text-anchor="middle" class="t2">Compare</text><rect x="176" y="50" width="526" height="22" rx="3" class="sec"/><text x="186" y="65" text-anchor="start" class="t2">▶  Data Table</text><rect x="176" y="74" width="526" height="22" rx="3" class="pnl"/><text x="186" y="89" text-anchor="start" class="tA">▼  3D Gamut Plot</text><rect x="176" y="98" width="526" height="22" rx="3" class="pnl"/><text x="186" y="113" text-anchor="start" class="t3">     ☑ Show gamut shell · ☑ Show data points · ☑ Color by hue · ☑ Color by value</text><rect x="176" y="122" width="526" height="22" rx="3" class="pnl"/><text x="186" y="137" text-anchor="start" class="t3">     Shell opacity ░░░░░░░░░░░░░░░░</text><rect x="176" y="146" width="526" height="22" rx="3" class="pnl"/><text x="186" y="161" text-anchor="start" class="t3">     ☐ Show spectral data when point selected</text><rect x="176" y="170" width="526" height="22" rx="3" class="sec"/><text x="186" y="185" text-anchor="start" class="t2">▶  Gamut Slice (2D)</text><rect x="176" y="194" width="526" height="22" rx="3" class="sec"/><text x="186" y="209" text-anchor="start" class="t2">▶  Tone Value</text><rect x="176" y="218" width="526" height="22" rx="3" class="sec"/><text x="186" y="233" text-anchor="start" class="t2">▶  G7 Report</text><rect x="176" y="242" width="526" height="22" rx="3" class="sec"/><text x="186" y="257" text-anchor="start" class="t2">▶  Estimate</text><line x1="221" y1="33" x2="221" y2="3" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="221" y="0" text-anchor="end" class="t3">Active mode</text><line x1="186" y1="72" x2="710" y2="72" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="710" y="69" text-anchor="start" class="t3">Collapsed section (click to expand)</text><line x1="186" y1="118" x2="710" y2="118" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="710" y="115" text-anchor="start" class="t3">Expanded section</text>
@@ -728,5 +848,404 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <p>All features are available on mobile; the layout adapts to the smaller screen.</p>
 
 </div>
+<template class="cd-diag-tpl" data-diag="layout"><figure class="cd-diag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350"
+  style="width:100%;max-width:760px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
+
+<style>
+:root {
+  --bg:#f0f2f5; --pnl:#fff; --pnl-bd:#ccd6e0; --hd:#e8edf2; --hd-bd:#c0ccd8;
+  --sec:#f5f6f8; --sec-bd:#dde4ec; --btn:#e8edf2; --btn-bd:#bbb;
+  --act:#4a90e2; --act2:#2a6ab5; --red:#e24a4a;
+  --tx:#333; --tx2:#555; --tx3:#888; --txW:#fff; --txA:#1a5a8a;
+  --ln:#dde4ec;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1c1f; --pnl:#22262e; --pnl-bd:#3a4048; --hd:#252930; --hd-bd:#3a4048;
+    --sec:#1e2128; --sec-bd:#333a44; --btn:#252930; --btn-bd:#444;
+    --act:#2a5a90; --act2:#1f4070; --red:#8a2a2a;
+    --tx:#c8cdd4; --tx2:#9aa0a8; --tx3:#555e6a; --txW:#c8cdd4; --txA:#7ab8e8;
+    --ln:#2e3440;
+  }
+}
+rect.bg   { fill:var(--bg); }
+rect.pnl  { fill:var(--pnl);  stroke:var(--pnl-bd); stroke-width:1.5; }
+rect.hd   { fill:var(--hd);   stroke:var(--hd-bd);  stroke-width:1; }
+rect.sec  { fill:var(--sec);  stroke:var(--sec-bd); stroke-width:1; }
+rect.btn  { fill:var(--btn);  stroke:var(--btn-bd); stroke-width:1; }
+rect.act  { fill:var(--act);  stroke:var(--act2);   stroke-width:1; }
+rect.red  { fill:var(--red);  stroke:#a03030;        stroke-width:1; }
+rect.lnbd { fill:none; stroke:var(--ln); stroke-width:1; }
+line.div  { stroke:var(--ln); stroke-width:1; }
+text      { font-family:Arial,sans-serif; font-size:11px; fill:var(--tx); }
+text.tT   { font-size:13px; font-weight:bold; fill:var(--txA); }
+text.tB   { font-weight:bold; }
+text.t2   { fill:var(--tx2); }
+text.t3   { fill:var(--tx3); font-size:10px; }
+text.tW   { fill:var(--txW); }
+text.tA   { fill:var(--txA); font-weight:bold; }
+</style>
+<rect x="0" y="0" width="760" height="350" rx="0" class="bg"/><rect x="10" y="10" width="158" height="330" rx="5" class="pnl"/><rect x="10" y="10" width="158" height="26" rx="5" class="hd"/><text x="89" y="27" text-anchor="middle" class="tT">File Select</text><rect x="18" y="42" width="142" height="18" rx="3" class="btn"/><text x="89" y="54" text-anchor="middle" class="t3">+  Load files…</text><rect x="18" y="66" width="142" height="16" rx="3" class="hd"/><text x="23" y="77" text-anchor="start" class="t3">▾ Standard datasets</text><rect x="22" y="84" width="134" height="14" rx="3" class="sec"/><text x="28" y="94" text-anchor="start" class="t3">FOGRA51.txt</text><rect x="18" y="104" width="142" height="16" rx="3" class="hd"/><text x="23" y="115" text-anchor="start" class="t3">▾ Characterization data</text><rect x="22" y="122" width="134" height="14" rx="3" class="sec"/><text x="28" y="132" text-anchor="start" class="t3">myjob.csv</text><rect x="18" y="142" width="142" height="16" rx="3" class="hd"/><text x="23" y="153" text-anchor="start" class="t3">▾ ICC Profiles</text><rect x="22" y="160" width="134" height="14" rx="3" class="sec"/><text x="28" y="170" text-anchor="start" class="t3">press.icc</text><text x="89" y="194" text-anchor="middle" class="t3">Drag a card onto</text><text x="89" y="207" text-anchor="middle" class="t3">a Dataset box →</text><rect x="176" y="10" width="420" height="330" rx="5" class="pnl"/><rect x="186" y="20" width="90" height="24" rx="4" class="act"/><text x="231" y="36" text-anchor="middle" class="tW tB">Explore</text><rect x="284" y="20" width="90" height="24" rx="4" class="btn"/><text x="329" y="36" text-anchor="middle" class="t2">Compare</text><rect x="186" y="56" width="195" height="96" rx="5" class="pnl"/><rect x="186" y="56" width="195" height="20" rx="5" class="hd"/><text x="283.5" y="70" text-anchor="middle" class="tB">Dataset A  ✓</text><text x="283.5" y="90" text-anchor="middle" class="t3">FOGRA51.txt</text><text x="283.5" y="104" text-anchor="middle" class="t3">Char. dataset · 1485 rows</text><text x="283.5" y="118" text-anchor="middle" class="t3">CMYK · spectral ✓</text><rect x="198" y="126" width="171" height="16" rx="3" class="btn"/><text x="283.5" y="137" text-anchor="middle" class="t3">Display File</text><rect x="391" y="56" width="195" height="96" rx="5" class="pnl"/><rect x="391" y="56" width="195" height="20" rx="5" class="hd"/><text x="488.5" y="70" text-anchor="middle" class="tB">Dataset B</text><text x="488.5" y="114" text-anchor="middle" class="t3">(drag a card here)</text><rect x="186" y="164" width="400" height="174" rx="4" class="lnbd"/><text x="386" y="214" text-anchor="middle" class="tT">Mode content</text><text x="386" y="234" text-anchor="middle" class="t3">Data Table · 3D Gamut · 2D Slice</text><text x="386" y="248" text-anchor="middle" class="t3">Tone Value · G7 · Estimate</text><rect x="606" y="10" width="144" height="330" rx="5" class="pnl"/><rect x="606" y="10" width="38" height="34" rx="0" class="btn"/><text x="625" y="31" text-anchor="middle" class="t2">⚙</text><rect x="606" y="52" width="38" height="34" rx="0" class="btn"/><text x="625" y="72" text-anchor="middle" class="t2">?</text><line x1="644" y1="10" x2="644" y2="340" class="div"/><text x="697" y="30" text-anchor="middle" class="tT">Settings</text><text x="697" y="54" text-anchor="middle" class="t2">ΔE Method</text><text x="697" y="72" text-anchor="middle" class="t2">Filter Duplicates</text><text x="697" y="90" text-anchor="middle" class="t2">Spectral → LAB</text><text x="697" y="108" text-anchor="middle" class="t2">Model</text><text x="697" y="126" text-anchor="middle" class="t2">Background</text><line x1="283.5" y1="152" x2="283.5" y2="184" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="283.5" y="181" text-anchor="end" class="t3">Dataset boxes — in the main canvas (drag a card here)</text><line x1="89" y1="23" x2="83" y2="4" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="83" y="1" text-anchor="end" class="t3">File Select pane</text><line x1="625" y1="31" x2="702" y2="4" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="702" y="1" text-anchor="start" class="t3">Settings panel</text>
+</svg><figcaption>Overall layout — File Select pane (left), the Dataset A / B boxes and mode content in the main canvas (centre), Settings panel (right). The “Display File” / “Launch editor” buttons live on each Dataset box.</figcaption></figure></template>
+<template class="cd-diag-tpl" data-diag="settings"><figure class="cd-diag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 366"
+  style="width:100%;max-width:380px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
+
+<style>
+:root {
+  --bg:#f0f2f5; --pnl:#fff; --pnl-bd:#ccd6e0; --hd:#e8edf2; --hd-bd:#c0ccd8;
+  --sec:#f5f6f8; --sec-bd:#dde4ec; --btn:#e8edf2; --btn-bd:#bbb;
+  --act:#4a90e2; --act2:#2a6ab5; --red:#e24a4a;
+  --tx:#333; --tx2:#555; --tx3:#888; --txW:#fff; --txA:#1a5a8a;
+  --ln:#dde4ec;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1c1f; --pnl:#22262e; --pnl-bd:#3a4048; --hd:#252930; --hd-bd:#3a4048;
+    --sec:#1e2128; --sec-bd:#333a44; --btn:#252930; --btn-bd:#444;
+    --act:#2a5a90; --act2:#1f4070; --red:#8a2a2a;
+    --tx:#c8cdd4; --tx2:#9aa0a8; --tx3:#555e6a; --txW:#c8cdd4; --txA:#7ab8e8;
+    --ln:#2e3440;
+  }
+}
+rect.bg   { fill:var(--bg); }
+rect.pnl  { fill:var(--pnl);  stroke:var(--pnl-bd); stroke-width:1.5; }
+rect.hd   { fill:var(--hd);   stroke:var(--hd-bd);  stroke-width:1; }
+rect.sec  { fill:var(--sec);  stroke:var(--sec-bd); stroke-width:1; }
+rect.btn  { fill:var(--btn);  stroke:var(--btn-bd); stroke-width:1; }
+rect.act  { fill:var(--act);  stroke:var(--act2);   stroke-width:1; }
+rect.red  { fill:var(--red);  stroke:#a03030;        stroke-width:1; }
+rect.lnbd { fill:none; stroke:var(--ln); stroke-width:1; }
+line.div  { stroke:var(--ln); stroke-width:1; }
+text      { font-family:Arial,sans-serif; font-size:11px; fill:var(--tx); }
+text.tT   { font-size:13px; font-weight:bold; fill:var(--txA); }
+text.tB   { font-weight:bold; }
+text.t2   { fill:var(--tx2); }
+text.t3   { fill:var(--tx3); font-size:10px; }
+text.tW   { fill:var(--txW); }
+text.tA   { fill:var(--txA); font-weight:bold; }
+</style>
+<rect x="0" y="0" width="380" height="366" rx="0" class="bg"/><rect x="10" y="10" width="360" height="346" rx="5" class="pnl"/><rect x="10" y="10" width="38" height="34" rx="0" class="btn"/><text x="29" y="31" text-anchor="middle" class="t2">⚙</text><rect x="10" y="46" width="38" height="34" rx="0" class="btn"/><text x="29" y="67" text-anchor="middle" class="t2">?</text><line x1="48" y1="10" x2="48" y2="356" class="div"/><text x="214" y="26" text-anchor="middle" class="tT">Settings</text><line x1="58" y1="36" x2="370" y2="36" class="div"/><text x="62" y="59" text-anchor="start" class="t3">ΔE Method</text><rect x="256" y="46" width="110" height="18" rx="3" class="btn"/><text x="264" y="59" text-anchor="start" class="t2">ΔE00</text><text x="358" y="59" text-anchor="end" class="t3">▾</text><text x="62" y="83" text-anchor="start" class="t3">Filter Duplicates</text><rect x="256" y="70" width="110" height="18" rx="3" class="btn"/><text x="264" y="83" text-anchor="start" class="t2">Yes</text><text x="358" y="83" text-anchor="end" class="t3">▾</text><text x="62" y="107" text-anchor="start" class="t3">Filter Method</text><rect x="256" y="94" width="110" height="18" rx="3" class="btn"/><text x="264" y="107" text-anchor="start" class="t2">Median</text><text x="358" y="107" text-anchor="end" class="t3">▾</text><line x1="58" y1="118" x2="370" y2="118" class="div"/><text x="62" y="141" text-anchor="start" class="t2 tB">Spectral → LAB</text><text x="62" y="161" text-anchor="start" class="t3">Illuminant</text><rect x="256" y="148" width="110" height="18" rx="3" class="btn"/><text x="264" y="161" text-anchor="start" class="t2">D50</text><text x="358" y="161" text-anchor="end" class="t3">▾</text><text x="62" y="185" text-anchor="start" class="t3">Standard Observer</text><rect x="256" y="172" width="110" height="18" rx="3" class="btn"/><text x="264" y="185" text-anchor="start" class="t2">2°</text><text x="358" y="185" text-anchor="end" class="t3">▾</text><text x="62" y="209" text-anchor="start" class="t3">M-Condition</text><rect x="256" y="196" width="110" height="18" rx="3" class="btn"/><text x="264" y="209" text-anchor="start" class="t2">M0</text><text x="358" y="209" text-anchor="end" class="t3">▾</text><line x1="58" y1="220" x2="370" y2="220" class="div"/><text x="62" y="243" text-anchor="start" class="t2 tB">Model</text><text x="62" y="263" text-anchor="start" class="t3">Weighted</text><rect x="256" y="250" width="110" height="18" rx="3" class="btn"/><text x="264" y="263" text-anchor="start" class="t2">Off</text><text x="358" y="263" text-anchor="end" class="t3">▾</text><line x1="58" y1="274" x2="370" y2="274" class="div"/><text x="62" y="297" text-anchor="start" class="t2 tB">Display</text><text x="62" y="317" text-anchor="start" class="t3">Background</text><rect x="256" y="304" width="110" height="18" rx="3" class="btn"/><text x="264" y="317" text-anchor="start" class="t2">System</text><text x="358" y="317" text-anchor="end" class="t3">▾</text><text x="62" y="341" text-anchor="start" class="t3">Language</text><rect x="256" y="328" width="110" height="18" rx="3" class="btn"/><text x="264" y="341" text-anchor="start" class="t2">System default</text><text x="358" y="341" text-anchor="end" class="t3">▾</text>
+</svg><figcaption>Settings panel — ΔE method, duplicate filtering and averaging, spectral→Lab conditions, model and display options.</figcaption></figure></template>
+<template class="cd-diag-tpl" data-diag="datatable"><figure class="cd-diag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300"
+  style="width:100%;max-width:600px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
+
+<style>
+:root {
+  --bg:#f0f2f5; --pnl:#fff; --pnl-bd:#ccd6e0; --hd:#e8edf2; --hd-bd:#c0ccd8;
+  --sec:#f5f6f8; --sec-bd:#dde4ec; --btn:#e8edf2; --btn-bd:#bbb;
+  --act:#4a90e2; --act2:#2a6ab5; --red:#e24a4a;
+  --tx:#333; --tx2:#555; --tx3:#888; --txW:#fff; --txA:#1a5a8a;
+  --ln:#dde4ec;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1c1f; --pnl:#22262e; --pnl-bd:#3a4048; --hd:#252930; --hd-bd:#3a4048;
+    --sec:#1e2128; --sec-bd:#333a44; --btn:#252930; --btn-bd:#444;
+    --act:#2a5a90; --act2:#1f4070; --red:#8a2a2a;
+    --tx:#c8cdd4; --tx2:#9aa0a8; --tx3:#555e6a; --txW:#c8cdd4; --txA:#7ab8e8;
+    --ln:#2e3440;
+  }
+}
+rect.bg   { fill:var(--bg); }
+rect.pnl  { fill:var(--pnl);  stroke:var(--pnl-bd); stroke-width:1.5; }
+rect.hd   { fill:var(--hd);   stroke:var(--hd-bd);  stroke-width:1; }
+rect.sec  { fill:var(--sec);  stroke:var(--sec-bd); stroke-width:1; }
+rect.btn  { fill:var(--btn);  stroke:var(--btn-bd); stroke-width:1; }
+rect.act  { fill:var(--act);  stroke:var(--act2);   stroke-width:1; }
+rect.red  { fill:var(--red);  stroke:#a03030;        stroke-width:1; }
+rect.lnbd { fill:none; stroke:var(--ln); stroke-width:1; }
+line.div  { stroke:var(--ln); stroke-width:1; }
+text      { font-family:Arial,sans-serif; font-size:11px; fill:var(--tx); }
+text.tT   { font-size:13px; font-weight:bold; fill:var(--txA); }
+text.tB   { font-weight:bold; }
+text.t2   { fill:var(--tx2); }
+text.t3   { fill:var(--tx3); font-size:10px; }
+text.tW   { fill:var(--txW); }
+text.tA   { fill:var(--txA); font-weight:bold; }
+</style>
+<rect x="0" y="0" width="600" height="300" rx="0" class="bg"/><rect x="10" y="10" width="580" height="280" rx="5" class="pnl"/><rect x="10" y="10" width="580" height="24" rx="5" class="hd"/><text x="300" y="26" text-anchor="middle" class="tT">Data Table  (Explore mode)</text><rect x="18" y="40" width="564" height="18" rx="3" class="sec"/><text x="26" y="53" text-anchor="start" class="tA">▼ Data Table</text><text x="574" y="53" text-anchor="end" class="t3">click a header to sort</text><rect x="18" y="64" width="564" height="22" rx="0" class="hd"/><text x="53.25" y="79" text-anchor="middle" class="t3">#</text><text x="123.75" y="79" text-anchor="middle" class="t3">C</text><line x1="88.5" y1="64" x2="88.5" y2="86" class="div"/><text x="194.25" y="79" text-anchor="middle" class="t3">M</text><line x1="159" y1="64" x2="159" y2="86" class="div"/><text x="264.75" y="79" text-anchor="middle" class="t3">Y</text><line x1="229.5" y1="64" x2="229.5" y2="86" class="div"/><text x="335.25" y="79" text-anchor="middle" class="t3">K</text><line x1="300" y1="64" x2="300" y2="86" class="div"/><text x="405.75" y="79" text-anchor="middle" class="tA">L* ▲</text><line x1="370.5" y1="64" x2="370.5" y2="86" class="div"/><text x="476.25" y="79" text-anchor="middle" class="t3">a*</text><line x1="441" y1="64" x2="441" y2="86" class="div"/><text x="546.75" y="79" text-anchor="middle" class="t3">b*</text><line x1="511.5" y1="64" x2="511.5" y2="86" class="div"/><rect x="18" y="86" width="564" height="22" rx="0" class="sec"/><text x="53.25" y="101" text-anchor="middle" class="t3">1</text><text x="123.75" y="101" text-anchor="middle" class="t3">0</text><text x="194.25" y="101" text-anchor="middle" class="t3">0</text><text x="264.75" y="101" text-anchor="middle" class="t3">0</text><text x="335.25" y="101" text-anchor="middle" class="t3">0</text><text x="405.75" y="101" text-anchor="middle" class="t2">95.0</text><text x="476.25" y="101" text-anchor="middle" class="t2">-0.2</text><text x="546.75" y="101" text-anchor="middle" class="t2">2.1</text><rect x="18" y="108" width="564" height="22" rx="0" class="pnl"/><text x="53.25" y="123" text-anchor="middle" class="t3">2</text><text x="123.75" y="123" text-anchor="middle" class="t3">100</text><text x="194.25" y="123" text-anchor="middle" class="t3">0</text><text x="264.75" y="123" text-anchor="middle" class="t3">0</text><text x="335.25" y="123" text-anchor="middle" class="t3">0</text><text x="405.75" y="123" text-anchor="middle" class="t2">55.3</text><text x="476.25" y="123" text-anchor="middle" class="t2">-37.1</text><text x="546.75" y="123" text-anchor="middle" class="t2">-50.2</text><rect x="18" y="130" width="564" height="22" rx="0" class="sec"/><text x="53.25" y="145" text-anchor="middle" class="t3">3</text><text x="123.75" y="145" text-anchor="middle" class="t3">0</text><text x="194.25" y="145" text-anchor="middle" class="t3">100</text><text x="264.75" y="145" text-anchor="middle" class="t3">0</text><text x="335.25" y="145" text-anchor="middle" class="t3">0</text><text x="405.75" y="145" text-anchor="middle" class="t2">48.6</text><text x="476.25" y="145" text-anchor="middle" class="t2">74.2</text><text x="546.75" y="145" text-anchor="middle" class="t2">-3.4</text><rect x="18" y="152" width="564" height="22" rx="0" class="pnl"/><text x="53.25" y="167" text-anchor="middle" class="t3">4</text><text x="123.75" y="167" text-anchor="middle" class="t3">0</text><text x="194.25" y="167" text-anchor="middle" class="t3">0</text><text x="264.75" y="167" text-anchor="middle" class="t3">100</text><text x="335.25" y="167" text-anchor="middle" class="t3">0</text><text x="405.75" y="167" text-anchor="middle" class="t2">89.1</text><text x="476.25" y="167" text-anchor="middle" class="t2">-5.0</text><text x="546.75" y="167" text-anchor="middle" class="t2">93.0</text><rect x="18" y="174" width="564" height="22" rx="0" class="sec"/><text x="53.25" y="189" text-anchor="middle" class="t3">5</text><text x="123.75" y="189" text-anchor="middle" class="t3">0</text><text x="194.25" y="189" text-anchor="middle" class="t3">0</text><text x="264.75" y="189" text-anchor="middle" class="t3">0</text><text x="335.25" y="189" text-anchor="middle" class="t3">100</text><text x="405.75" y="189" text-anchor="middle" class="t2">16.2</text><text x="476.25" y="189" text-anchor="middle" class="t2">0.4</text><text x="546.75" y="189" text-anchor="middle" class="t2">-0.9</text><rect x="18" y="196" width="564" height="22" rx="0" class="pnl"/><text x="53.25" y="211" text-anchor="middle" class="t3">6</text><text x="123.75" y="211" text-anchor="middle" class="t3">50</text><text x="194.25" y="211" text-anchor="middle" class="t3">40</text><text x="264.75" y="211" text-anchor="middle" class="t3">30</text><text x="335.25" y="211" text-anchor="middle" class="t3">10</text><text x="405.75" y="211" text-anchor="middle" class="t2">58.7</text><text x="476.25" y="211" text-anchor="middle" class="t2">3.2</text><text x="546.75" y="211" text-anchor="middle" class="t2">5.8</text><rect x="18" y="218" width="564" height="22" rx="0" class="sec"/><text x="53.25" y="233" text-anchor="middle" class="t3">7</text><text x="123.75" y="233" text-anchor="middle" class="t3">75</text><text x="194.25" y="233" text-anchor="middle" class="t3">68</text><text x="264.75" y="233" text-anchor="middle" class="t3">67</text><text x="335.25" y="233" text-anchor="middle" class="t3">90</text><text x="405.75" y="233" text-anchor="middle" class="t2">12.0</text><text x="476.25" y="233" text-anchor="middle" class="t2">0.1</text><text x="546.75" y="233" text-anchor="middle" class="t2">-0.6</text><line x1="405.75" y1="79" x2="405.75" y2="60" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="405.75" y="57" text-anchor="end" class="t3">Device colorants, then L* a* b*</text><text x="300" y="284" text-anchor="middle" class="t3">Double-click a row’s L*a*b* → spectral curve popup</text>
+</svg><figcaption>Data Table (expanded) — one row per patch, sortable columns: device colorants first, then L* a* b*. Double-click the colorimetry for a row’s spectral curve.</figcaption></figure></template>
+<template class="cd-diag-tpl" data-diag="tonevalue"><figure class="cd-diag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 330"
+  style="width:100%;max-width:620px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
+
+<style>
+:root {
+  --bg:#f0f2f5; --pnl:#fff; --pnl-bd:#ccd6e0; --hd:#e8edf2; --hd-bd:#c0ccd8;
+  --sec:#f5f6f8; --sec-bd:#dde4ec; --btn:#e8edf2; --btn-bd:#bbb;
+  --act:#4a90e2; --act2:#2a6ab5; --red:#e24a4a;
+  --tx:#333; --tx2:#555; --tx3:#888; --txW:#fff; --txA:#1a5a8a;
+  --ln:#dde4ec;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1c1f; --pnl:#22262e; --pnl-bd:#3a4048; --hd:#252930; --hd-bd:#3a4048;
+    --sec:#1e2128; --sec-bd:#333a44; --btn:#252930; --btn-bd:#444;
+    --act:#2a5a90; --act2:#1f4070; --red:#8a2a2a;
+    --tx:#c8cdd4; --tx2:#9aa0a8; --tx3:#555e6a; --txW:#c8cdd4; --txA:#7ab8e8;
+    --ln:#2e3440;
+  }
+}
+rect.bg   { fill:var(--bg); }
+rect.pnl  { fill:var(--pnl);  stroke:var(--pnl-bd); stroke-width:1.5; }
+rect.hd   { fill:var(--hd);   stroke:var(--hd-bd);  stroke-width:1; }
+rect.sec  { fill:var(--sec);  stroke:var(--sec-bd); stroke-width:1; }
+rect.btn  { fill:var(--btn);  stroke:var(--btn-bd); stroke-width:1; }
+rect.act  { fill:var(--act);  stroke:var(--act2);   stroke-width:1; }
+rect.red  { fill:var(--red);  stroke:#a03030;        stroke-width:1; }
+rect.lnbd { fill:none; stroke:var(--ln); stroke-width:1; }
+line.div  { stroke:var(--ln); stroke-width:1; }
+text      { font-family:Arial,sans-serif; font-size:11px; fill:var(--tx); }
+text.tT   { font-size:13px; font-weight:bold; fill:var(--txA); }
+text.tB   { font-weight:bold; }
+text.t2   { fill:var(--tx2); }
+text.t3   { fill:var(--tx3); font-size:10px; }
+text.tW   { fill:var(--txW); }
+text.tA   { fill:var(--txA); font-weight:bold; }
+</style>
+<rect x="0" y="0" width="620" height="330" rx="0" class="bg"/><rect x="10" y="10" width="600" height="310" rx="5" class="pnl"/><rect x="10" y="10" width="600" height="22" rx="5" class="hd"/><text x="310" y="25" text-anchor="middle" class="tT">Tone Value</text><rect x="18" y="38" width="584" height="200" rx="4" class="sec"/><line x1="64" y1="46" x2="64" y2="224" class="div"/><line x1="64" y1="224" x2="590" y2="224" class="div"/><text x="56" y="52" text-anchor="end" class="t3">TV%</text><text x="590" y="240" text-anchor="end" class="t3">ink %</text><text x="56" y="224" text-anchor="end" class="t3">0</text><text x="56" y="50" text-anchor="end" class="t3">100</text><text x="64" y="240" text-anchor="middle" class="t3">0</text><text x="590" y="240" text-anchor="end" class="t3">100</text><line x1="64" y1="224" x2="590" y2="46" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="4,3"/><polyline points="64.0,224.0 116.6,196.9 169.2,170.8 221.8,146.3 274.4,124.3 327.0,105.0 379.6,88.7 432.2,75.1 484.8,64.0 537.4,54.5 590.0,46.0" fill="none" stroke="#2aa4d4" stroke-width="2"/><polyline points="64.0,224.0 116.6,198.8 169.2,174.3 221.8,151.2 274.4,130.0 327.0,111.0 379.6,94.4 432.2,80.0 484.8,67.5 537.4,56.4 590.0,46.0" fill="none" stroke="#d24a9a" stroke-width="2"/><polyline points="64.0,224.0 116.6,201.9 169.2,180.2 221.8,159.3 274.4,139.5 327.0,121.0 379.6,103.9 432.2,88.1 484.8,73.4 537.4,59.5 590.0,46.0" fill="none" stroke="#d0a91e" stroke-width="2"/><polyline points="64.0,224.0 116.6,195.7 169.2,168.4 221.8,143.1 274.4,120.5 327.0,101.0 379.6,84.9 432.2,71.9 484.8,61.6 537.4,53.3 590.0,46.0" fill="none" stroke="var(--tx)" stroke-width="2"/><line x1="74" y1="54" x2="88" y2="54" stroke="#2aa4d4" stroke-width="2"/><text x="96" y="58" text-anchor="middle" class="t3">C</text><line x1="108" y1="54" x2="122" y2="54" stroke="#d24a9a" stroke-width="2"/><text x="130" y="58" text-anchor="middle" class="t3">M</text><line x1="142" y1="54" x2="156" y2="54" stroke="#d0a91e" stroke-width="2"/><text x="164" y="58" text-anchor="middle" class="t3">Y</text><line x1="176" y1="54" x2="190" y2="54" stroke="var(--tx)" stroke-width="2"/><text x="198" y="58" text-anchor="middle" class="t3">K</text><rect x="18" y="246" width="584" height="74" rx="4" class="pnl"/><text x="26" y="262" text-anchor="start" class="tA">▼ Controls</text><text x="26" y="286" text-anchor="start" class="t3">Tone Method</text><rect x="26" y="290" width="120" height="16" rx="3" class="btn"/><text x="32" y="302" text-anchor="start" class="t2">Murray-Davies</text><text x="138" y="302" text-anchor="end" class="t3">▾</text><text x="160" y="286" text-anchor="start" class="t3">Filter</text><rect x="160" y="290" width="44" height="16" rx="3" class="btn"/><text x="166" y="302" text-anchor="start" class="t2">V</text><text x="196" y="302" text-anchor="end" class="t3">▾</text><text x="220" y="286" text-anchor="start" class="t3">Graph Type</text><rect x="220" y="290" width="86" height="16" rx="3" class="btn"/><text x="226" y="302" text-anchor="start" class="t2">Transfer</text><text x="298" y="302" text-anchor="end" class="t3">▾</text><text x="330" y="286" text-anchor="start" class="t3">Colorants</text><text x="330" y="302" text-anchor="start" class="t2">☑ C</text><text x="382" y="302" text-anchor="start" class="t2">☑ M</text><text x="434" y="302" text-anchor="start" class="t2">☑ Y</text><text x="486" y="302" text-anchor="start" class="t2">☑ K</text><line x1="327" y1="116" x2="397" y2="86" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="397" y="83" text-anchor="start" class="t3">Curves above the diagonal = dot gain</text>
+</svg><figcaption>Tone Value — printed tone value vs input ink % per colorant; curves above the diagonal show dot gain. The control bar selects Tone Method (Murray-Davies / CTV), filter and graph type.</figcaption></figure></template>
+<template class="cd-diag-tpl" data-diag="gamut"><figure class="cd-diag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 270"
+  style="width:100%;max-width:720px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
+
+<style>
+:root {
+  --bg:#f0f2f5; --pnl:#fff; --pnl-bd:#ccd6e0; --hd:#e8edf2; --hd-bd:#c0ccd8;
+  --sec:#f5f6f8; --sec-bd:#dde4ec; --btn:#e8edf2; --btn-bd:#bbb;
+  --act:#4a90e2; --act2:#2a6ab5; --red:#e24a4a;
+  --tx:#333; --tx2:#555; --tx3:#888; --txW:#fff; --txA:#1a5a8a;
+  --ln:#dde4ec;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1c1f; --pnl:#22262e; --pnl-bd:#3a4048; --hd:#252930; --hd-bd:#3a4048;
+    --sec:#1e2128; --sec-bd:#333a44; --btn:#252930; --btn-bd:#444;
+    --act:#2a5a90; --act2:#1f4070; --red:#8a2a2a;
+    --tx:#c8cdd4; --tx2:#9aa0a8; --tx3:#555e6a; --txW:#c8cdd4; --txA:#7ab8e8;
+    --ln:#2e3440;
+  }
+}
+rect.bg   { fill:var(--bg); }
+rect.pnl  { fill:var(--pnl);  stroke:var(--pnl-bd); stroke-width:1.5; }
+rect.hd   { fill:var(--hd);   stroke:var(--hd-bd);  stroke-width:1; }
+rect.sec  { fill:var(--sec);  stroke:var(--sec-bd); stroke-width:1; }
+rect.btn  { fill:var(--btn);  stroke:var(--btn-bd); stroke-width:1; }
+rect.act  { fill:var(--act);  stroke:var(--act2);   stroke-width:1; }
+rect.red  { fill:var(--red);  stroke:#a03030;        stroke-width:1; }
+rect.lnbd { fill:none; stroke:var(--ln); stroke-width:1; }
+line.div  { stroke:var(--ln); stroke-width:1; }
+text      { font-family:Arial,sans-serif; font-size:11px; fill:var(--tx); }
+text.tT   { font-size:13px; font-weight:bold; fill:var(--txA); }
+text.tB   { font-weight:bold; }
+text.t2   { fill:var(--tx2); }
+text.t3   { fill:var(--tx3); font-size:10px; }
+text.tW   { fill:var(--txW); }
+text.tA   { fill:var(--txA); font-weight:bold; }
+</style>
+<rect x="0" y="0" width="720" height="270" rx="0" class="bg"/><rect x="10" y="10" width="700" height="80" rx="5" class="pnl"/><rect x="10" y="10" width="700" height="22" rx="5" class="hd"/><text x="360" y="25" text-anchor="middle" class="tT">3D Gamut Plot Controls</text><text x="20" y="48" text-anchor="start" class="t2">☑ Show gamut shell</text><text x="195" y="48" text-anchor="start" class="t2">☑ Show data points</text><text x="370" y="48" text-anchor="start" class="t2">☑ Color by hue angle</text><text x="545" y="48" text-anchor="start" class="t2">☑ Color by value</text><text x="20" y="68" text-anchor="start" class="t3">Shell opacity:</text><rect x="98" y="60" width="120" height="12" rx="2" class="btn"/><rect x="98" y="60" width="70" height="12" rx="2" class="act"/><text x="230" y="68" text-anchor="start" class="t3">☐ Show spectral data when point selected</text><line x1="10" y1="92" x2="710" y2="92" class="div"/><text x="20" y="108" text-anchor="start" class="t3">Per-slot controls (gear icon ⚙ in legend):</text><rect x="10" y="118" width="700" height="142" rx="4" class="sec"/><text x="360" y="170" text-anchor="middle" class="tT">3D L*a*b* Gamut Plot</text><text x="360" y="192" text-anchor="middle" class="t3">(interactive — rotate, zoom, click points)</text><rect x="560" y="128" width="140" height="60" rx="4" class="pnl"/><text x="570" y="143" text-anchor="start" class="tA">⚙  Dataset A</text><text x="570" y="161" text-anchor="start" class="t2">⚙  Dataset B</text><text x="570" y="175" text-anchor="start" class="t3">↑ click to toggle</text><line x1="107" y1="48" x2="107" y2="38" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="107" y="35" text-anchor="end" class="t3">Global checkboxes</text><line x1="570" y1="143" x2="575" y2="108" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="575" y="105" text-anchor="start" class="t3">Per-slot gear</text>
+</svg><figcaption>3D L*a*b* gamut plot — per-dataset gear controls for opacity/density, shell &amp; point-cloud toggles; click a point for its spectrum.</figcaption></figure></template>
+<template class="cd-diag-tpl" data-diag="slice"><figure class="cd-diag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300"
+  style="width:100%;max-width:720px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
+
+<style>
+:root {
+  --bg:#f0f2f5; --pnl:#fff; --pnl-bd:#ccd6e0; --hd:#e8edf2; --hd-bd:#c0ccd8;
+  --sec:#f5f6f8; --sec-bd:#dde4ec; --btn:#e8edf2; --btn-bd:#bbb;
+  --act:#4a90e2; --act2:#2a6ab5; --red:#e24a4a;
+  --tx:#333; --tx2:#555; --tx3:#888; --txW:#fff; --txA:#1a5a8a;
+  --ln:#dde4ec;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1c1f; --pnl:#22262e; --pnl-bd:#3a4048; --hd:#252930; --hd-bd:#3a4048;
+    --sec:#1e2128; --sec-bd:#333a44; --btn:#252930; --btn-bd:#444;
+    --act:#2a5a90; --act2:#1f4070; --red:#8a2a2a;
+    --tx:#c8cdd4; --tx2:#9aa0a8; --tx3:#555e6a; --txW:#c8cdd4; --txA:#7ab8e8;
+    --ln:#2e3440;
+  }
+}
+rect.bg   { fill:var(--bg); }
+rect.pnl  { fill:var(--pnl);  stroke:var(--pnl-bd); stroke-width:1.5; }
+rect.hd   { fill:var(--hd);   stroke:var(--hd-bd);  stroke-width:1; }
+rect.sec  { fill:var(--sec);  stroke:var(--sec-bd); stroke-width:1; }
+rect.btn  { fill:var(--btn);  stroke:var(--btn-bd); stroke-width:1; }
+rect.act  { fill:var(--act);  stroke:var(--act2);   stroke-width:1; }
+rect.red  { fill:var(--red);  stroke:#a03030;        stroke-width:1; }
+rect.lnbd { fill:none; stroke:var(--ln); stroke-width:1; }
+line.div  { stroke:var(--ln); stroke-width:1; }
+text      { font-family:Arial,sans-serif; font-size:11px; fill:var(--tx); }
+text.tT   { font-size:13px; font-weight:bold; fill:var(--txA); }
+text.tB   { font-weight:bold; }
+text.t2   { fill:var(--tx2); }
+text.t3   { fill:var(--tx3); font-size:10px; }
+text.tW   { fill:var(--txW); }
+text.tA   { fill:var(--txA); font-weight:bold; }
+</style>
+<rect x="0" y="0" width="720" height="300" rx="0" class="bg"/><rect x="10" y="10" width="700" height="46" rx="5" class="pnl"/><rect x="10" y="10" width="700" height="22" rx="5" class="hd"/><text x="360" y="25" text-anchor="middle" class="tT">2D Gamut Slice Controls</text><text x="20" y="49" text-anchor="start" class="t3">Slice axis:</text><rect x="92" y="41" width="38" height="14" rx="3" class="act"/><text x="111" y="51" text-anchor="middle" class="tW">L*</text><rect x="134" y="41" width="38" height="14" rx="3" class="btn"/><text x="153" y="51" text-anchor="middle" class="t2">a*</text><rect x="176" y="41" width="38" height="14" rx="3" class="btn"/><text x="195" y="51" text-anchor="middle" class="t2">b*</text><text x="250" y="49" text-anchor="start" class="t3">Position</text><rect x="308" y="43" width="120" height="10" rx="2" class="btn"/><rect x="308" y="43" width="66" height="10" rx="2" class="act"/><text x="452" y="49" text-anchor="start" class="t3">Thickness</text><rect x="522" y="43" width="80" height="10" rx="2" class="btn"/><rect x="522" y="43" width="26" height="10" rx="2" class="act"/><text x="700" y="49" text-anchor="end" class="t3">☑ Soft view</text><rect x="10" y="64" width="700" height="226" rx="4" class="sec"/><ellipse cx="360" cy="177" rx="180" ry="76" fill="none" stroke="var(--act)" stroke-width="1.5"/><line x1="160" y1="177" x2="560" y2="177" class="div"/><line x1="360" y1="85" x2="360" y2="269" class="div"/><text x="566" y="180" text-anchor="start" class="t3">a*</text><text x="360" y="79" text-anchor="middle" class="t3">b*</text><circle cx="230" cy="149" r="4" fill="var(--act2)" opacity="1"/><circle cx="300" cy="195" r="2.5" fill="var(--act2)" opacity="0.32"/><circle cx="368" cy="137" r="2.5" fill="var(--act2)" opacity="0.32"/><circle cx="424" cy="205" r="4" fill="var(--act2)" opacity="1"/><circle cx="486" cy="167" r="2.5" fill="var(--act2)" opacity="0.32"/><circle cx="332" cy="225" r="2.5" fill="var(--act2)" opacity="0.32"/><circle cx="452" cy="129" r="4" fill="var(--act2)" opacity="1"/><circle cx="396" cy="235" r="2.5" fill="var(--act2)" opacity="0.32"/><circle cx="264" cy="217" r="2.5" fill="var(--act2)" opacity="0.32"/><line x1="450" y1="111" x2="450" y2="73" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="450" y="70" text-anchor="end" class="t3">Gamut boundary at this slice</text><line x1="374" y1="48" x2="374" y2="30" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="374" y="27" text-anchor="end" class="t3">Slice position</text><line x1="230" y1="149" x2="24" y2="149" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="24" y="146" text-anchor="end" class="t3">Soft view fades distant points</text>
+</svg><figcaption>2D gamut slice — move the slice along L*, a* or b*, adjust its thickness; soft view emphasises points near the slice.</figcaption></figure></template>
+<template class="cd-diag-tpl" data-diag="estimate"><figure class="cd-diag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 310"
+  style="width:100%;max-width:720px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
+
+<style>
+:root {
+  --bg:#f0f2f5; --pnl:#fff; --pnl-bd:#ccd6e0; --hd:#e8edf2; --hd-bd:#c0ccd8;
+  --sec:#f5f6f8; --sec-bd:#dde4ec; --btn:#e8edf2; --btn-bd:#bbb;
+  --act:#4a90e2; --act2:#2a6ab5; --red:#e24a4a;
+  --tx:#333; --tx2:#555; --tx3:#888; --txW:#fff; --txA:#1a5a8a;
+  --ln:#dde4ec;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1c1f; --pnl:#22262e; --pnl-bd:#3a4048; --hd:#252930; --hd-bd:#3a4048;
+    --sec:#1e2128; --sec-bd:#333a44; --btn:#252930; --btn-bd:#444;
+    --act:#2a5a90; --act2:#1f4070; --red:#8a2a2a;
+    --tx:#c8cdd4; --tx2:#9aa0a8; --tx3:#555e6a; --txW:#c8cdd4; --txA:#7ab8e8;
+    --ln:#2e3440;
+  }
+}
+rect.bg   { fill:var(--bg); }
+rect.pnl  { fill:var(--pnl);  stroke:var(--pnl-bd); stroke-width:1.5; }
+rect.hd   { fill:var(--hd);   stroke:var(--hd-bd);  stroke-width:1; }
+rect.sec  { fill:var(--sec);  stroke:var(--sec-bd); stroke-width:1; }
+rect.btn  { fill:var(--btn);  stroke:var(--btn-bd); stroke-width:1; }
+rect.act  { fill:var(--act);  stroke:var(--act2);   stroke-width:1; }
+rect.red  { fill:var(--red);  stroke:#a03030;        stroke-width:1; }
+rect.lnbd { fill:none; stroke:var(--ln); stroke-width:1; }
+line.div  { stroke:var(--ln); stroke-width:1; }
+text      { font-family:Arial,sans-serif; font-size:11px; fill:var(--tx); }
+text.tT   { font-size:13px; font-weight:bold; fill:var(--txA); }
+text.tB   { font-weight:bold; }
+text.t2   { fill:var(--tx2); }
+text.t3   { fill:var(--tx3); font-size:10px; }
+text.tW   { fill:var(--txW); }
+text.tA   { fill:var(--txA); font-weight:bold; }
+</style>
+<rect x="0" y="0" width="720" height="310" rx="0" class="bg"/><rect x="10" y="10" width="700" height="290" rx="5" class="pnl"/><rect x="10" y="10" width="700" height="22" rx="5" class="hd"/><text x="360" y="25" text-anchor="middle" class="tT">Estimate Section  (Explore mode)</text><rect x="18" y="38" width="200" height="260" rx="4" class="sec"/><text x="118" y="56" text-anchor="middle" class="tB t2">Before generating</text><rect x="28" y="66" width="180" height="24" rx="4" class="act"/><text x="118" y="82" text-anchor="middle" class="tW tB">Generate model</text><text x="118" y="106" text-anchor="middle" class="t3">Click to fit polynomial</text><text x="118" y="120" text-anchor="middle" class="t3">model to the dataset</text><rect x="228" y="38" width="482" height="260" rx="4" class="pnl"/><text x="469" y="56" text-anchor="middle" class="tB t2">After generating</text><rect x="238" y="64" width="472" height="42" rx="4" class="sec"/><text x="278" y="80" text-anchor="middle" class="t3">Mean ΔE</text><text x="278" y="96" text-anchor="middle" class="tB">1.83</text><text x="348" y="80" text-anchor="middle" class="t3">Min ΔE</text><text x="348" y="96" text-anchor="middle" class="tB">0.04</text><text x="418" y="80" text-anchor="middle" class="t3">Max ΔE</text><text x="418" y="96" text-anchor="middle" class="tB">7.21</text><text x="488" y="80" text-anchor="middle" class="t3">Std Dev</text><text x="488" y="96" text-anchor="middle" class="tB">1.12</text><text x="568" y="80" text-anchor="middle" class="t3">Pts</text><text x="568" y="96" text-anchor="middle" class="tB">1200</text><rect x="238" y="114" width="472" height="184" rx="4" class="sec"/><rect x="238" y="114" width="80" height="20" rx="0" class="hd"/><text x="278" y="128" text-anchor="middle" class="t3">Colorant</text><rect x="318" y="114" width="120" height="20" rx="0" class="hd"/><text x="378" y="128" text-anchor="middle" class="t3">Slider</text><rect x="438" y="114" width="80" height="20" rx="0" class="hd"/><text x="478" y="128" text-anchor="middle" class="t3">Model</text><rect x="518" y="114" width="80" height="20" rx="0" class="hd"/><text x="558" y="128" text-anchor="middle" class="t3">Nearest</text><text x="278" y="150" text-anchor="middle" class="t2">CYAN</text><text x="358" y="150" text-anchor="middle" class="t3">░░░░░▓░░░</text><text x="478" y="150" text-anchor="middle" class="t3">42</text><text x="558" y="150" text-anchor="middle" class="t3">42</text><text x="278" y="172" text-anchor="middle" class="t2">MAGENTA</text><text x="358" y="172" text-anchor="middle" class="t3">░░░░░░░▓░</text><text x="478" y="172" text-anchor="middle" class="t3">71</text><text x="558" y="172" text-anchor="middle" class="t3">…</text><text x="278" y="194" text-anchor="middle" class="t2">YELLOW</text><text x="358" y="194" text-anchor="middle" class="t3">░░▓░░░░░░</text><text x="478" y="194" text-anchor="middle" class="t3">23</text><text x="558" y="194" text-anchor="middle" class="t3">…</text><text x="278" y="216" text-anchor="middle" class="t2">BLACK</text><text x="358" y="216" text-anchor="middle" class="t3">░░░░░▓░░░</text><text x="478" y="216" text-anchor="middle" class="t3">45</text><text x="558" y="216" text-anchor="middle" class="t3">…</text><line x1="238" y1="224" x2="710" y2="224" class="div"/><text x="278" y="240" text-anchor="middle" class="t3">L*</text><text x="478" y="240" text-anchor="middle" class="tB t2">61.2</text><text x="558" y="240" text-anchor="middle" class="t3">60.8</text><text x="278" y="256" text-anchor="middle" class="t3">a*</text><text x="478" y="256" text-anchor="middle" class="tB t2">-3.1</text><text x="558" y="256" text-anchor="middle" class="t3">-3.4</text><text x="278" y="272" text-anchor="middle" class="t3">b*</text><text x="478" y="272" text-anchor="middle" class="tB t2">12.4</text><text x="558" y="272" text-anchor="middle" class="t3">12.1</text><rect x="620" y="272" width="84" height="22" rx="4" class="btn"/><text x="662" y="287" text-anchor="middle" class="t3">↺ Regenerate</text><line x1="278" y1="80" x2="140" y2="64" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="140" y="61" text-anchor="end" class="t3">Fit statistics</text><line x1="278" y1="190" x2="140" y2="200" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="140" y="197" text-anchor="end" class="t3">Colorant sliders</text><line x1="478" y1="240" x2="478" y2="298" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="478" y="295" text-anchor="end" class="t3">Model prediction</text><line x1="558" y1="240" x2="710" y2="298" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="710" y="295" text-anchor="start" class="t3">Nearest in dataset</text>
+</svg><figcaption>Estimate — fit a forward model, then predict L*a*b* for any device-colorant combination; fit statistics shown alongside.</figcaption></figure></template>
+<template class="cd-diag-tpl" data-diag="extract"><figure class="cd-diag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 300"
+  style="width:100%;max-width:560px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
+
+<style>
+:root {
+  --bg:#f0f2f5; --pnl:#fff; --pnl-bd:#ccd6e0; --hd:#e8edf2; --hd-bd:#c0ccd8;
+  --sec:#f5f6f8; --sec-bd:#dde4ec; --btn:#e8edf2; --btn-bd:#bbb;
+  --act:#4a90e2; --act2:#2a6ab5; --red:#e24a4a;
+  --tx:#333; --tx2:#555; --tx3:#888; --txW:#fff; --txA:#1a5a8a;
+  --ln:#dde4ec;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1c1f; --pnl:#22262e; --pnl-bd:#3a4048; --hd:#252930; --hd-bd:#3a4048;
+    --sec:#1e2128; --sec-bd:#333a44; --btn:#252930; --btn-bd:#444;
+    --act:#2a5a90; --act2:#1f4070; --red:#8a2a2a;
+    --tx:#c8cdd4; --tx2:#9aa0a8; --tx3:#555e6a; --txW:#c8cdd4; --txA:#7ab8e8;
+    --ln:#2e3440;
+  }
+}
+rect.bg   { fill:var(--bg); }
+rect.pnl  { fill:var(--pnl);  stroke:var(--pnl-bd); stroke-width:1.5; }
+rect.hd   { fill:var(--hd);   stroke:var(--hd-bd);  stroke-width:1; }
+rect.sec  { fill:var(--sec);  stroke:var(--sec-bd); stroke-width:1; }
+rect.btn  { fill:var(--btn);  stroke:var(--btn-bd); stroke-width:1; }
+rect.act  { fill:var(--act);  stroke:var(--act2);   stroke-width:1; }
+rect.red  { fill:var(--red);  stroke:#a03030;        stroke-width:1; }
+rect.lnbd { fill:none; stroke:var(--ln); stroke-width:1; }
+line.div  { stroke:var(--ln); stroke-width:1; }
+text      { font-family:Arial,sans-serif; font-size:11px; fill:var(--tx); }
+text.tT   { font-size:13px; font-weight:bold; fill:var(--txA); }
+text.tB   { font-weight:bold; }
+text.t2   { fill:var(--tx2); }
+text.t3   { fill:var(--tx3); font-size:10px; }
+text.tW   { fill:var(--txW); }
+text.tA   { fill:var(--txA); font-weight:bold; }
+</style>
+<rect x="0" y="0" width="560" height="300" rx="0" class="bg"/><rect x="10" y="10" width="540" height="280" rx="5" class="pnl"/><rect x="10" y="10" width="540" height="22" rx="5" class="hd"/><text x="280" y="25" text-anchor="middle" class="tT">Extract — build a subset by dropping rows</text><rect x="24" y="42" width="512" height="20" rx="0" class="hd"/><text x="60.57142857142857" y="56" text-anchor="middle" class="t3">C</text><text x="133.71428571428572" y="56" text-anchor="middle" class="t3">M</text><line x1="97.14285714285714" y1="42" x2="97.14285714285714" y2="62" class="div"/><text x="206.85714285714283" y="56" text-anchor="middle" class="t3">Y</text><line x1="170.28571428571428" y1="42" x2="170.28571428571428" y2="62" class="div"/><text x="280" y="56" text-anchor="middle" class="t3">K</text><line x1="243.42857142857142" y1="42" x2="243.42857142857142" y2="62" class="div"/><text x="353.1428571428571" y="56" text-anchor="middle" class="t3">O</text><line x1="316.57142857142856" y1="42" x2="316.57142857142856" y2="62" class="div"/><text x="426.2857142857142" y="56" text-anchor="middle" class="t3">G</text><line x1="389.71428571428567" y1="42" x2="389.71428571428567" y2="62" class="div"/><text x="499.4285714285714" y="56" text-anchor="middle" class="t3">V</text><line x1="462.85714285714283" y1="42" x2="462.85714285714283" y2="62" class="div"/><rect x="24" y="62" width="512" height="24" rx="0" class="sec"/><text x="60.57142857142857" y="77" text-anchor="middle" class="t2">100</text><text x="133.71428571428572" y="77" text-anchor="middle" class="t2">0</text><text x="206.85714285714283" y="77" text-anchor="middle" class="t2">0</text><text x="280" y="77" text-anchor="middle" class="t2">0</text><text x="353.1428571428571" y="77" text-anchor="middle" class="t2">0</text><text x="426.2857142857142" y="77" text-anchor="middle" class="t2">0</text><text x="499.4285714285714" y="77" text-anchor="middle" class="t2">0</text><rect x="24" y="86" width="512" height="24" rx="0" class="pnl"/><text x="60.57142857142857" y="101" text-anchor="middle" class="t2">0</text><text x="133.71428571428572" y="101" text-anchor="middle" class="t2">100</text><text x="206.85714285714283" y="101" text-anchor="middle" class="t2">0</text><text x="280" y="101" text-anchor="middle" class="t2">0</text><text x="353.1428571428571" y="101" text-anchor="middle" class="t2">0</text><text x="426.2857142857142" y="101" text-anchor="middle" class="t2">0</text><text x="499.4285714285714" y="101" text-anchor="middle" class="t2">0</text><rect x="24" y="110" width="512" height="24" rx="0" class="btn"/><text x="60.57142857142857" y="125" text-anchor="middle" class="t3">0</text><text x="133.71428571428572" y="125" text-anchor="middle" class="t3">0</text><text x="206.85714285714283" y="125" text-anchor="middle" class="t3">0</text><text x="280" y="125" text-anchor="middle" class="t3">0</text><text x="353.1428571428571" y="125" text-anchor="middle" class="t3">100</text><text x="426.2857142857142" y="125" text-anchor="middle" class="t3">0</text><text x="499.4285714285714" y="125" text-anchor="middle" class="t3">0</text><line x1="28" y1="122" x2="532" y2="122" class="div"/><rect x="24" y="134" width="512" height="24" rx="0" class="pnl"/><text x="60.57142857142857" y="149" text-anchor="middle" class="t2">0</text><text x="133.71428571428572" y="149" text-anchor="middle" class="t2">0</text><text x="206.85714285714283" y="149" text-anchor="middle" class="t2">100</text><text x="280" y="149" text-anchor="middle" class="t2">0</text><text x="353.1428571428571" y="149" text-anchor="middle" class="t2">0</text><text x="426.2857142857142" y="149" text-anchor="middle" class="t2">0</text><text x="499.4285714285714" y="149" text-anchor="middle" class="t2">0</text><rect x="24" y="158" width="512" height="24" rx="0" class="btn"/><text x="60.57142857142857" y="173" text-anchor="middle" class="t3">0</text><text x="133.71428571428572" y="173" text-anchor="middle" class="t3">0</text><text x="206.85714285714283" y="173" text-anchor="middle" class="t3">0</text><text x="280" y="173" text-anchor="middle" class="t3">0</text><text x="353.1428571428571" y="173" text-anchor="middle" class="t3">0</text><text x="426.2857142857142" y="173" text-anchor="middle" class="t3">100</text><text x="499.4285714285714" y="173" text-anchor="middle" class="t3">0</text><line x1="28" y1="170" x2="532" y2="170" class="div"/><rect x="24" y="182" width="512" height="24" rx="0" class="pnl"/><text x="60.57142857142857" y="197" text-anchor="middle" class="t2">0</text><text x="133.71428571428572" y="197" text-anchor="middle" class="t2">0</text><text x="206.85714285714283" y="197" text-anchor="middle" class="t2">0</text><text x="280" y="197" text-anchor="middle" class="t2">100</text><text x="353.1428571428571" y="197" text-anchor="middle" class="t2">0</text><text x="426.2857142857142" y="197" text-anchor="middle" class="t2">0</text><text x="499.4285714285714" y="197" text-anchor="middle" class="t2">0</text><rect x="24" y="206" width="512" height="24" rx="0" class="btn"/><text x="60.57142857142857" y="221" text-anchor="middle" class="t3">0</text><text x="133.71428571428572" y="221" text-anchor="middle" class="t3">0</text><text x="206.85714285714283" y="221" text-anchor="middle" class="t3">0</text><text x="280" y="221" text-anchor="middle" class="t3">0</text><text x="353.1428571428571" y="221" text-anchor="middle" class="t3">0</text><text x="426.2857142857142" y="221" text-anchor="middle" class="t3">0</text><text x="499.4285714285714" y="221" text-anchor="middle" class="t3">100</text><line x1="28" y1="218" x2="532" y2="218" class="div"/><rect x="400" y="260" width="140" height="26" rx="5" class="act"/><text x="470" y="277" text-anchor="middle" class="tW tB">Extract CMYK</text><line x1="506" y1="122" x2="534" y2="122" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="534" y="119" text-anchor="start" class="t3">Rows dropped (O · G · V)</text><line x1="64" y1="74" x2="26" y2="74" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="26" y="71" text-anchor="end" class="t3">Rows kept (C · M · Y · K)</text>
+</svg><figcaption>Extract — discard rows to build a subset, e.g. pull the CMYK data out of a CMYKOGV dataset.</figcaption></figure></template>
+<template class="cd-diag-tpl" data-diag="compare"><figure class="cd-diag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 310"
+  style="width:100%;max-width:720px;display:block;margin:20px 0;border-radius:8px;overflow:visible;">
+
+<style>
+:root {
+  --bg:#f0f2f5; --pnl:#fff; --pnl-bd:#ccd6e0; --hd:#e8edf2; --hd-bd:#c0ccd8;
+  --sec:#f5f6f8; --sec-bd:#dde4ec; --btn:#e8edf2; --btn-bd:#bbb;
+  --act:#4a90e2; --act2:#2a6ab5; --red:#e24a4a;
+  --tx:#333; --tx2:#555; --tx3:#888; --txW:#fff; --txA:#1a5a8a;
+  --ln:#dde4ec;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1c1f; --pnl:#22262e; --pnl-bd:#3a4048; --hd:#252930; --hd-bd:#3a4048;
+    --sec:#1e2128; --sec-bd:#333a44; --btn:#252930; --btn-bd:#444;
+    --act:#2a5a90; --act2:#1f4070; --red:#8a2a2a;
+    --tx:#c8cdd4; --tx2:#9aa0a8; --tx3:#555e6a; --txW:#c8cdd4; --txA:#7ab8e8;
+    --ln:#2e3440;
+  }
+}
+rect.bg   { fill:var(--bg); }
+rect.pnl  { fill:var(--pnl);  stroke:var(--pnl-bd); stroke-width:1.5; }
+rect.hd   { fill:var(--hd);   stroke:var(--hd-bd);  stroke-width:1; }
+rect.sec  { fill:var(--sec);  stroke:var(--sec-bd); stroke-width:1; }
+rect.btn  { fill:var(--btn);  stroke:var(--btn-bd); stroke-width:1; }
+rect.act  { fill:var(--act);  stroke:var(--act2);   stroke-width:1; }
+rect.red  { fill:var(--red);  stroke:#a03030;        stroke-width:1; }
+rect.lnbd { fill:none; stroke:var(--ln); stroke-width:1; }
+line.div  { stroke:var(--ln); stroke-width:1; }
+text      { font-family:Arial,sans-serif; font-size:11px; fill:var(--tx); }
+text.tT   { font-size:13px; font-weight:bold; fill:var(--txA); }
+text.tB   { font-weight:bold; }
+text.t2   { fill:var(--tx2); }
+text.t3   { fill:var(--tx3); font-size:10px; }
+text.tW   { fill:var(--txW); }
+text.tA   { fill:var(--txA); font-weight:bold; }
+</style>
+<rect x="0" y="0" width="720" height="310" rx="0" class="bg"/><rect x="10" y="10" width="150" height="290" rx="5" class="pnl"/><rect x="10" y="10" width="150" height="22" rx="5" class="hd"/><text x="85" y="25" text-anchor="middle" class="tT">File Select</text><rect x="16" y="38" width="138" height="68" rx="5" class="pnl"/><rect x="16" y="38" width="138" height="18" rx="5" class="hd"/><text x="85" y="50" text-anchor="middle" class="tB">Dataset A  ✓</text><text x="85" y="68" text-anchor="middle" class="t3">profile_A.csv</text><text x="85" y="82" text-anchor="middle" class="t3">1 200 rows</text><text x="85" y="96" text-anchor="middle" class="t3">CMYK+LAB</text><rect x="16" y="112" width="138" height="68" rx="5" class="pnl"/><rect x="16" y="112" width="138" height="18" rx="5" class="hd"/><text x="85" y="124" text-anchor="middle" class="tB">Dataset B  ✓</text><text x="85" y="142" text-anchor="middle" class="t3">profile_B.csv</text><text x="85" y="156" text-anchor="middle" class="t3">1 180 rows</text><text x="85" y="170" text-anchor="middle" class="t3">CMYK+LAB</text><rect x="168" y="10" width="542" height="290" rx="5" class="pnl"/><rect x="176" y="18" width="90" height="22" rx="4" class="btn"/><text x="221" y="33" text-anchor="middle" class="t2">Explore</text><rect x="272" y="18" width="90" height="22" rx="4" class="act"/><text x="317" y="33" text-anchor="middle" class="tW tB">Compare</text><rect x="176" y="48" width="526" height="46" rx="4" class="sec"/><text x="206" y="65" text-anchor="middle" class="t3">Mean ΔE00</text><text x="206" y="83" text-anchor="middle" class="tB">2.41</text><text x="276" y="65" text-anchor="middle" class="t3">Min ΔE00</text><text x="276" y="83" text-anchor="middle" class="tB">0.18</text><text x="346" y="65" text-anchor="middle" class="t3">Max ΔE00</text><text x="346" y="83" text-anchor="middle" class="tB">8.93</text><text x="416" y="65" text-anchor="middle" class="t3">Std Dev</text><text x="416" y="83" text-anchor="middle" class="tB">1.67</text><rect x="176" y="102" width="526" height="22" rx="0" class="hd"/><text x="197.91666666666666" y="117" text-anchor="middle" class="t3">C</text><text x="241.75" y="117" text-anchor="middle" class="t3">M</text><line x1="219.83333333333334" y1="102" x2="219.83333333333334" y2="124" class="div"/><text x="285.58333333333337" y="117" text-anchor="middle" class="t3">Y</text><line x1="263.6666666666667" y1="102" x2="263.6666666666667" y2="124" class="div"/><text x="329.4166666666667" y="117" text-anchor="middle" class="t3">K</text><line x1="307.5" y1="102" x2="307.5" y2="124" class="div"/><text x="373.25000000000006" y="117" text-anchor="middle" class="t3">L*(A)</text><line x1="351.33333333333337" y1="102" x2="351.33333333333337" y2="124" class="div"/><text x="417.08333333333337" y="117" text-anchor="middle" class="t3">a*(A)</text><line x1="395.1666666666667" y1="102" x2="395.1666666666667" y2="124" class="div"/><text x="460.9166666666667" y="117" text-anchor="middle" class="t3">b*(A)</text><line x1="439" y1="102" x2="439" y2="124" class="div"/><text x="504.75000000000006" y="117" text-anchor="middle" class="t3">L*(B)</text><line x1="482.83333333333337" y1="102" x2="482.83333333333337" y2="124" class="div"/><text x="548.5833333333334" y="117" text-anchor="middle" class="t3">a*(B)</text><line x1="526.6666666666667" y1="102" x2="526.6666666666667" y2="124" class="div"/><text x="592.4166666666666" y="117" text-anchor="middle" class="t3">b*(B)</text><line x1="570.5" y1="102" x2="570.5" y2="124" class="div"/><text x="636.25" y="117" text-anchor="middle" class="t3">ΔE</text><line x1="614.3333333333334" y1="102" x2="614.3333333333334" y2="124" class="div"/><text x="680.0833333333334" y="117" text-anchor="middle" class="t3">ΔH</text><line x1="658.1666666666667" y1="102" x2="658.1666666666667" y2="124" class="div"/><rect x="176" y="124" width="526" height="22" rx="0" class="sec"/><text x="197.91666666666666" y="139" text-anchor="middle" class="t3">100</text><text x="241.75" y="139" text-anchor="middle" class="t3">0</text><text x="285.58333333333337" y="139" text-anchor="middle" class="t3">0</text><text x="329.4166666666667" y="139" text-anchor="middle" class="t3">0</text><text x="373.25000000000006" y="139" text-anchor="middle" class="t3">28</text><text x="417.08333333333337" y="139" text-anchor="middle" class="t3">48</text><text x="460.9166666666667" y="139" text-anchor="middle" class="t3">-3</text><text x="504.75000000000006" y="139" text-anchor="middle" class="t3">27</text><text x="548.5833333333334" y="139" text-anchor="middle" class="t3">47</text><text x="592.4166666666666" y="139" text-anchor="middle" class="t3">-2</text><text x="636.25" y="139" text-anchor="middle" class="t3">0.9</text><text x="680.0833333333334" y="139" text-anchor="middle" class="t3">0.5</text><rect x="176" y="146" width="526" height="22" rx="0" class="pnl"/><text x="197.91666666666666" y="161" text-anchor="middle" class="t3">…</text><text x="241.75" y="161" text-anchor="middle" class="t3">…</text><text x="285.58333333333337" y="161" text-anchor="middle" class="t3">…</text><text x="329.4166666666667" y="161" text-anchor="middle" class="t3">…</text><text x="373.25000000000006" y="161" text-anchor="middle" class="t3">…</text><text x="417.08333333333337" y="161" text-anchor="middle" class="t3">…</text><text x="460.9166666666667" y="161" text-anchor="middle" class="t3">…</text><text x="504.75000000000006" y="161" text-anchor="middle" class="t3">…</text><text x="548.5833333333334" y="161" text-anchor="middle" class="t3">…</text><text x="592.4166666666666" y="161" text-anchor="middle" class="t3">…</text><text x="636.25" y="161" text-anchor="middle" class="t3">…</text><text x="680.0833333333334" y="161" text-anchor="middle" class="t3">…</text><rect x="176" y="168" width="526" height="22" rx="0" class="sec"/><text x="197.91666666666666" y="183" text-anchor="middle" class="t3">…</text><text x="241.75" y="183" text-anchor="middle" class="t3">…</text><text x="285.58333333333337" y="183" text-anchor="middle" class="t3">…</text><text x="329.4166666666667" y="183" text-anchor="middle" class="t3">…</text><text x="373.25000000000006" y="183" text-anchor="middle" class="t3">…</text><text x="417.08333333333337" y="183" text-anchor="middle" class="t3">…</text><text x="460.9166666666667" y="183" text-anchor="middle" class="t3">…</text><text x="504.75000000000006" y="183" text-anchor="middle" class="t3">…</text><text x="548.5833333333334" y="183" text-anchor="middle" class="t3">…</text><text x="592.4166666666666" y="183" text-anchor="middle" class="t3">…</text><text x="636.25" y="183" text-anchor="middle" class="t3">…</text><text x="680.0833333333334" y="183" text-anchor="middle" class="t3">…</text><rect x="176" y="190" width="526" height="22" rx="0" class="pnl"/><text x="197.91666666666666" y="205" text-anchor="middle" class="t3">…</text><text x="241.75" y="205" text-anchor="middle" class="t3">…</text><text x="285.58333333333337" y="205" text-anchor="middle" class="t3">…</text><text x="329.4166666666667" y="205" text-anchor="middle" class="t3">…</text><text x="373.25000000000006" y="205" text-anchor="middle" class="t3">…</text><text x="417.08333333333337" y="205" text-anchor="middle" class="t3">…</text><text x="460.9166666666667" y="205" text-anchor="middle" class="t3">…</text><text x="504.75000000000006" y="205" text-anchor="middle" class="t3">…</text><text x="548.5833333333334" y="205" text-anchor="middle" class="t3">…</text><text x="592.4166666666666" y="205" text-anchor="middle" class="t3">…</text><text x="636.25" y="205" text-anchor="middle" class="t3">…</text><text x="680.0833333333334" y="205" text-anchor="middle" class="t3">…</text><rect x="176" y="212" width="526" height="22" rx="0" class="sec"/><text x="197.91666666666666" y="227" text-anchor="middle" class="t3">…</text><text x="241.75" y="227" text-anchor="middle" class="t3">…</text><text x="285.58333333333337" y="227" text-anchor="middle" class="t3">…</text><text x="329.4166666666667" y="227" text-anchor="middle" class="t3">…</text><text x="373.25000000000006" y="227" text-anchor="middle" class="t3">…</text><text x="417.08333333333337" y="227" text-anchor="middle" class="t3">…</text><text x="460.9166666666667" y="227" text-anchor="middle" class="t3">…</text><text x="504.75000000000006" y="227" text-anchor="middle" class="t3">…</text><text x="548.5833333333334" y="227" text-anchor="middle" class="t3">…</text><text x="592.4166666666666" y="227" text-anchor="middle" class="t3">…</text><text x="636.25" y="227" text-anchor="middle" class="t3">…</text><text x="680.0833333333334" y="227" text-anchor="middle" class="t3">…</text><line x1="296" y1="65" x2="296" y2="46" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="296" y="43" text-anchor="end" class="t3">Summary statistics</text><line x1="439" y1="117" x2="715" y2="107" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="715" y="104" text-anchor="start" class="t3">Sortable columns</text>
+</svg><figcaption>Compare mode — row-by-row ΔE Comparison Table with aggregate statistics (mean / min / max / std dev) across matched patches.</figcaption></figure></template>
+<script>
+(function () {
+  var modal, body;
+  function ensure() {
+    if (modal) return;
+    modal = document.createElement('div');
+    modal.className = 'cd-modal'; modal.hidden = true;
+    modal.innerHTML = '<div class="cd-modal__overlay"></div><div class="cd-modal__dialog" role="dialog" aria-modal="true"><button class="cd-modal__close" aria-label="Close">\u00D7</button><div class="cd-modal__body"></div></div>';
+    document.body.appendChild(modal);
+    body = modal.querySelector('.cd-modal__body');
+    modal.querySelector('.cd-modal__overlay').addEventListener('click', close);
+    modal.querySelector('.cd-modal__close').addEventListener('click', close);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+  }
+  function open(id) {
+    ensure();
+    var tpl = document.querySelector('template.cd-diag-tpl[data-diag="' + id + '"]');
+    if (!tpl) return;
+    body.innerHTML = '';
+    body.appendChild(tpl.content.cloneNode(true));
+    modal.hidden = false; document.body.style.overflow = 'hidden';
+    modal.querySelector('.cd-modal__close').focus();
+  }
+  function close() { if (modal) { modal.hidden = true; document.body.style.overflow = ''; } }
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('.cd-uihint');
+    if (btn) { e.preventDefault(); open(btn.getAttribute('data-diag')); }
+  });
+}());
+</script>
 </body>
 </html>
