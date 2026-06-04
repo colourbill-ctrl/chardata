@@ -1,6 +1,7 @@
 const express = require('express');
 const helmet  = require('helmet');
 const path    = require('path');
+const fs      = require('fs');
 
 const app = express();
 const PORT = 3001;
@@ -48,6 +49,38 @@ app.use(helmet({
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.get('/health', (req, res) => res.status(200).type('text/plain').send('ok'));
+
+// Memory watchdog for outside-in monitoring. UptimeRobot runs a Keyword monitor
+// against this URL set to alert when "MEM_OK" is ABSENT — so a low-memory reading
+// (token flips to MEM_LOW) or a total box lockup (no response at all) both trip
+// the same alert. The 447MB Lightsail instance has no headroom; a nightly apt
+// kernel upgrade once OOM-thrashed it into being unreachable on every port. We
+// added 2GB swap as the cushion; this endpoint is the early-warning tripwire.
+//
+// Reads /proc/meminfo directly (cheap, dependency-free, same spirit as /health).
+// Body is JUST the token — no raw numbers — since the URL is publicly reachable;
+// the metrics go to the server log only. Fails OPEN to MEM_OK if meminfo can't be
+// read (e.g. non-Linux dev box) so the monitor doesn't false-alarm off-platform.
+const MIN_AVAIL_MB = 60;  // available RAM floor before we flag
+const MAX_SWAP_PCT = 75;  // swap utilisation ceiling before we flag
+app.get('/memstat', (req, res) => {
+  let token = 'MEM_OK';
+  try {
+    const mi = fs.readFileSync('/proc/meminfo', 'utf8');
+    const kB = (k) => { const m = mi.match(new RegExp('^' + k + ':\\s+(\\d+) kB', 'm')); return m ? +m[1] : null; };
+    const availMB  = kB('MemAvailable') != null ? kB('MemAvailable') / 1024 : Infinity;
+    const swapTot  = kB('SwapTotal') || 0;
+    const swapFree = kB('SwapFree')  || 0;
+    const swapPct  = swapTot > 0 ? ((swapTot - swapFree) / swapTot) * 100 : 0;
+    if (availMB < MIN_AVAIL_MB || swapPct > MAX_SWAP_PCT) {
+      token = 'MEM_LOW';
+      console.warn(`/memstat MEM_LOW: avail=${availMB.toFixed(0)}MB swapUsed=${swapPct.toFixed(0)}%`);
+    }
+  } catch (e) {
+    // meminfo unavailable — fail open so the keyword stays present.
+  }
+  res.status(200).type('text/plain').send(token);
+});
 
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, filePath) => {

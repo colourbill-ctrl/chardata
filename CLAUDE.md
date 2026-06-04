@@ -135,6 +135,7 @@ Drift audit: `node scripts/check-translations.js` compares each xlsx column 0 ag
 `server.js` exposes two endpoints beyond the static middleware:
 - `GET /favicon.ico` → 204 (so the browser stops asking).
 - `GET /health` → 200 `text/plain` "ok". Used by UptimeRobot for outside-in monitoring; keep it cheap and dependency-free.
+- `GET /memstat` → 200 `text/plain` `MEM_OK` or `MEM_LOW`. Memory watchdog read straight from `/proc/meminfo` (no deps). A UptimeRobot **Keyword** monitor watches this URL and alerts when `MEM_OK` is **absent** — covering both a low-memory reading (token flips to `MEM_LOW`) and a total box lockup (no response). Thresholds: available RAM < `MIN_AVAIL_MB` (60) or swap utilisation > `MAX_SWAP_PCT` (75). Body is token-only (no raw numbers) because the URL is public; metrics go to the server log. Fails open to `MEM_OK` if `/proc/meminfo` is unreadable (non-Linux dev). Background: the 447 MB instance once OOM-thrashed into being unreachable on every port during a nightly apt kernel upgrade; 2 GB swap was added as the cushion and this endpoint is the tripwire.
 
 ### Subscribe form (release notifications)
 
