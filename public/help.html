@@ -102,7 +102,7 @@ button.cd-uihint::after { content:"\2317"; font-size:0.85em; opacity:0.65; margi
 <ul>
 <li><strong>Explore a single dataset or profile</strong> — browse the data table, visualise the colour gamut in 3D L*a*b* space, examine a 2D slice at any L*, a*, or b* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L*a*b* for any device colorant combination.</li>
 <li><strong>Compare two datasets, two profiles, or one of each</strong> — see a row-by-row ΔE / ΔL* / ΔC* / ΔH* / Δh* table for matched patches, with summary statistics (mean, min, max, std dev), and view both gamuts and tone value curves overlaid on the same charts.</li>
-<li><strong>Work with spectral data</strong> — if spectral reflectance columns are present, CharData computes L*a*b* from them using a selectable illuminant (D50/D65), observer (2°/10°), and M-condition (M0/M1/M2), and can display the spectral curve for any clicked data point.</li>
+<li><strong>Work with spectral data</strong> — if spectral reflectance columns are present, CharData computes L*a*b* from them using a selectable illuminant (D50, D65, A, LED-B1, F11), observer (2°/10°), and M-condition (M0/M1/M2), and can display the spectral curve for any clicked data point.</li>
 <li><strong>Switch rendering intent</strong> — for ICC profiles, change between Perceptual / Relative Colorimetric / Saturation / Absolute Colorimetric and have every view (3D shell, 2D slice, comparison table, tone curves, estimate) recompute against the new transform.</li>
 </ul>
 <p>The suggested workflow is to load an entire directory of characterisation files via the File Select panel, then pick individual files to explore or compare.</p>
@@ -437,11 +437,11 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <p>Controls how L*a*b* is derived when spectral columns are present. These settings have no effect on files without spectral data.</p>
 <table><thead>
 <tr><th>Setting</th><th>Options</th></tr></thead><tbody>
-<tr><td>Illuminant</td><td>D50 (default), D65</td></tr>
+<tr><td>Illuminant</td><td>D50 (default), D65, A, LED-B1, F11</td></tr>
 <tr><td>Standard Observer</td><td>2° (default), 10°</td></tr>
 <tr><td>M-Condition</td><td>M0 (default), M1 (forces D50), M2 (UV cut)</td></tr>
 </tbody></table>
-<p>Changing any of these settings immediately reprocesses all loaded spectral files.</p>
+<p>Lab is computed using the ICC <a href="https://registry.color.org/colorimetry-data/">colorimetry-data</a> illuminant × observer weighting tables (380–780 nm at 10 nm, normalised so the perfect reflector has Y = 100), so values match the reference CMM. Changing any of these settings immediately reprocesses all loaded spectral files.</p>
 <h3 id="model">Model</h3>
 <p>Controls how the polynomial model in the <a href="#4-5-estimate-section">Estimate section</a> is fitted to the dataset.</p>
 <table><thead>

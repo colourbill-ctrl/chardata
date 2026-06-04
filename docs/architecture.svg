@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1356" viewBox="0 0 1200 1356" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="1356" fill="#ffffff"/>
+  <text x="30" y="40" font-size="26" font-weight="bold" fill="#1a1a1a">CharData — Architecture</text>
+  <text x="30" y="62" font-size="13" fill="#666">Major components grouped by runtime environment</text>
+
+  <!-- ================= BROWSER ================= -->
+  <rect x="30" y="78" width="1140" height="446" rx="8" fill="#eef5fc" stroke="#2b6cb0" stroke-width="2"/>
+  <text x="48" y="104" font-size="16" font-weight="bold" fill="#2b6cb0">CLIENT — Browser</text>
+
+  <!-- JS subgroup -->
+  <rect x="50" y="118" width="1100" height="196" rx="6" fill="#ffffff" stroke="#90b4d6" stroke-width="1.5"/>
+  <text x="66" y="138" font-size="13" font-weight="bold" fill="#3a6ea5">JavaScript / DOM</text>
+
+  <rect x="66" y="150" width="540" height="150" rx="5" fill="#dbeafe" stroke="#2b6cb0" stroke-width="1.5"/>
+  <text font-size="12.5" fill="#1a2733">
+    <tspan x="80" y="172" font-weight="bold">public/index.html — single ~10.8k-line SPA</tspan>
+    <tspan x="80" y="194">• UI + state: _gamutState[a|b], _iccState[a|b], _rawFileData[]</tspan>
+    <tspan x="80" y="213">• Ingest: addFileToList, _sniffIcc (acsp magic)</tspan>
+    <tspan x="80" y="232">• Parsers: parseCSV / parseCGATS / parseCxF (CxF·X-3)</tspan>
+    <tspan x="80" y="251">• Views: renderPlot (3D), renderSlicePlot (2D),</tspan>
+    <tspan x="92" y="268">runCompare (ΔE), Tone Value, Estimate, G7</tspan>
+    <tspan x="80" y="289">• I18N dict (11 langs), escapeHtml (XSS guard)</tspan>
+  </text>
+
+  <rect x="636" y="150" width="262" height="58" rx="5" fill="#dbeafe" stroke="#2b6cb0" stroke-width="1.5"/>
+  <text font-size="12.5" fill="#1a2733">
+    <tspan x="650" y="172" font-weight="bold">public/gamut.js</tspan>
+    <tspan x="650" y="190">blob-URL dynamic import</tspan>
+    <tspan x="650" y="204">→ window.Gamut</tspan>
+  </text>
+
+  <rect x="636" y="218" width="262" height="58" rx="5" fill="#dbeafe" stroke="#2b6cb0" stroke-width="1.5"/>
+  <text font-size="12.5" fill="#1a2733">
+    <tspan x="650" y="240" font-weight="bold">public/icc-viewer.js</tspan>
+    <tspan x="650" y="258">blob-URL dynamic import</tspan>
+    <tspan x="650" y="272">→ window.IccViewer</tspan>
+  </text>
+
+  <rect x="918" y="150" width="216" height="58" rx="5" fill="#e6eef7" stroke="#5a86b3" stroke-width="1.5"/>
+  <text font-size="12.5" fill="#1a2733">
+    <tspan x="932" y="174" font-weight="bold">plotly-2.27.0.min.js</tspan>
+    <tspan x="932" y="194">3D / 2D rendering</tspan>
+  </text>
+
+  <!-- WASM subgroup -->
+  <rect x="50" y="324" width="1100" height="186" rx="6" fill="#ffffff" stroke="#9d7bc4" stroke-width="1.5"/>
+  <text x="66" y="344" font-size="13" font-weight="bold" fill="#7b4fb0">WebAssembly (C++ compiled)</text>
+
+  <rect x="66" y="356" width="540" height="142" rx="5" fill="#ede4f7" stroke="#7b4fb0" stroke-width="1.5"/>
+  <text font-size="12.5" fill="#241a33">
+    <tspan x="80" y="378" font-weight="bold">chardata-gamut.wasm</tspan>
+    <tspan x="80" y="397">src: gamut-wasm/gamut-wrapper.cpp</tspan>
+    <tspan x="80" y="414">embeds lcms2 (vendored)</tspan>
+    <tspan x="80" y="437">fitModel · buildGamutMesh · buildSlice</tspan>
+    <tspan x="80" y="456">loadIccProfile · evalIccA2B/batch</tspan>
+    <tspan x="80" y="473">buildIccGamutMesh</tspan>
+    <tspan x="80" y="491" font-style="italic" fill="#6a4f8a">always loaded</tspan>
+  </text>
+
+  <rect x="636" y="356" width="498" height="142" rx="5" fill="#ede4f7" stroke="#7b4fb0" stroke-width="1.5"/>
+  <text font-size="12.5" fill="#241a33">
+    <tspan x="650" y="378" font-weight="bold">icc-viewer.wasm  (lazy)</tspan>
+    <tspan x="650" y="397">src: icc-viewer-wasm/wrapper.cpp</tspan>
+    <tspan x="650" y="414">embeds IccProfLib (iccDEV)</tspan>
+    <tspan x="650" y="437">validateProfile · describeTag</tspan>
+    <tspan x="650" y="473" font-style="italic" fill="#6a4f8a">loaded only on “Display File”</tspan>
+  </text>
+
+  <!-- ================= SERVER ================= -->
+  <rect x="30" y="544" width="1140" height="150" rx="8" fill="#e9f6ec" stroke="#2f855a" stroke-width="2"/>
+  <text x="48" y="570" font-size="16" font-weight="bold" fill="#2f855a">SERVER — server.js (94 lines) · Node.js / Express</text>
+  <text font-size="12.5" fill="#1a2b1f">
+    <tspan x="48" y="596">Express static middleware (serves public/) + helmet</tspan>
+    <tspan x="48" y="615">• CSP; COOP = same-origin-allow-popups (dev profiletool popup) · only special MIME: application/wasm</tspan>
+    <tspan x="48" y="634">• GET /favicon.ico → 204    • GET /health → “ok” (UptimeRobot)    • GET /memstat → MEM_OK|MEM_LOW (/proc/meminfo)</tspan>
+    <tspan x="48" y="660" font-weight="bold">NO runtime build · NO database · NO subscriber backend</tspan>
+  </text>
+
+  <!-- ================= BUILD / EXTERNAL / DEPLOY ================= -->
+  <rect x="30" y="714" width="368" height="168" rx="8" fill="#fdf4e3" stroke="#b7791f" stroke-width="2"/>
+  <text x="48" y="740" font-size="15" font-weight="bold" fill="#b7791f">BUILD-TIME</text>
+  <text font-size="12" fill="#3a2e12">
+    <tspan x="48" y="762">pre-commit hook · WSL + Emscripten</tspan>
+    <tspan x="48" y="788">build-wasm.sh</tspan>
+    <tspan x="60" y="804">→ chardata-gamut.wasm</tspan>
+    <tspan x="48" y="826">build-icc-viewer-wasm.sh</tspan>
+    <tspan x="60" y="842">→ icc-viewer.wasm</tspan>
+    <tspan x="48" y="864">generate-help.js: MANUAL.md → help.html</tspan>
+  </text>
+
+  <rect x="416" y="714" width="368" height="168" rx="8" fill="#f1f1f4" stroke="#6b6b76" stroke-width="2"/>
+  <text x="434" y="740" font-size="15" font-weight="bold" fill="#5a5a66">EXTERNAL SERVICES (cross-origin)</text>
+  <text font-size="12" fill="#2b2b33">
+    <tspan x="434" y="766">colourbill.com WP plugin</tspan>
+    <tspan x="446" y="782">/admin-ajax.php (✉ Subscribe POST)</tspan>
+    <tspan x="434" y="806">GA4 analytics</tspan>
+    <tspan x="434" y="830">UptimeRobot (/health, /memstat keyword)</tspan>
+    <tspan x="434" y="858">profiletool (separate app, new tab)</tspan>
+  </text>
+
+  <rect x="802" y="714" width="368" height="168" rx="8" fill="#e4f3f4" stroke="#2c7a7b" stroke-width="2"/>
+  <text x="820" y="740" font-size="15" font-weight="bold" fill="#2c7a7b">DEPLOY</text>
+  <text font-size="12" fill="#122a2b">
+    <tspan x="820" y="766">push main → GitHub Actions</tspan>
+    <tspan x="820" y="784">→ SSH to AWS Lightsail</tspan>
+    <tspan x="820" y="806">git reset --hard</tspan>
+    <tspan x="820" y="824">npm install --omit=dev · pm2 restart</tspan>
+    <tspan x="820" y="850">chardata.colourbill.com</tspan>
+    <tspan x="820" y="868">(profiletool at /profiletool/ in prod)</tspan>
+  </text>
+
+  <!-- ================= ARROWS ================= -->
+  <!-- SPA -> gamut.js / icc-viewer.js / plotly -->
+  <line x1="606" y1="200" x2="632" y2="185" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="606" y1="230" x2="632" y2="245" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="898" y1="178" x2="914" y2="178" stroke="#444" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- gamut.js -> gamut.wasm ; icc-viewer.js -> icc.wasm -->
+  <line x1="767" y1="208" x2="500" y2="352" stroke="#7b4fb0" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="800" y1="276" x2="850" y2="352" stroke="#7b4fb0" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- browser <-> server (HTTPS) -->
+  <line x1="600" y1="524" x2="600" y2="540" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="615" y1="540" x2="615" y2="524" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="625" y="536" font-size="11" fill="#444">HTTPS: static assets + 3 endpoints</text>
+  <!-- build -> server (commits artifacts) -->
+  <line x1="214" y1="714" x2="214" y2="696" stroke="#b7791f" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+  <text x="222" y="710" font-size="10.5" fill="#8a5e16">commits .wasm + help.html</text>
+  <!-- deploy -> server -->
+  <line x1="986" y1="714" x2="986" y2="696" stroke="#2c7a7b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+
+  <!-- ================= SUMMARY TEXT ================= -->
+  <rect x="30" y="902" width="1140" height="442" rx="8" fill="#fafafa" stroke="#cccccc" stroke-width="1.5"/>
+  <text x="48" y="928" font-size="16" font-weight="bold" fill="#1a1a1a">Component summary by environment</text>
+  <text font-size="12.5" fill="#222">
+    <tspan x="48" y="956" font-weight="bold" fill="#2b6cb0">Browser / JavaScript (the app)</tspan>
+    <tspan x="48" y="975">• public/index.html — the entire SPA: UI, two parallel state objects (_gamutState for characterisation data,</tspan>
+    <tspan x="60" y="991">_iccState for ICC profiles), file ingest/sniffing (CSV, CGATS, CxF, ICC), all views (3D plot, 2D slice,</tspan>
+    <tspan x="60" y="1007">Compare, Tone Value, Estimate, G7), and the 11-language I18N dictionary. No JS build — served as-is.</tspan>
+    <tspan x="48" y="1025">• public/gamut.js, public/icc-viewer.js — thin loaders: blob-URL dynamic import; expose window.Gamut / window.IccViewer.</tspan>
+    <tspan x="48" y="1041">• plotly-2.27.0.min.js — vendored rendering library.</tspan>
+
+    <tspan x="48" y="1069" font-weight="bold" fill="#7b4fb0">Browser / WebAssembly (C++ compiled)</tspan>
+    <tspan x="48" y="1088">• Module 1 — chardata-gamut.wasm (gamut-wasm/gamut-wrapper.cpp, embeds vendored lcms2): all the math —</tspan>
+    <tspan x="60" y="1104">polynomial model fitting, 3D mesh / 2D slice generation, ICC profile A2B evaluation/transforms. Always loaded.</tspan>
+    <tspan x="48" y="1122">• Module 2 — icc-viewer.wasm (icc-viewer-wasm/wrapper.cpp, embeds IccProfLib from iccDEV): ICC header +</tspan>
+    <tspan x="60" y="1138">tag-directory display only. Lazy — loaded just on “Display File.”</tspan>
+
+    <tspan x="48" y="1166" font-weight="bold" fill="#2f855a">Server / Node.js</tspan>
+    <tspan x="48" y="1185">• server.js — a 94-line Express + helmet static file server. Only three live endpoints (/favicon.ico, /health,</tspan>
+    <tspan x="60" y="1201">/memstat); no DB, no build step, no app logic.</tspan>
+
+    <tspan x="48" y="1229" font-weight="bold" fill="#b7791f">Build-time (not running in either env above)</tspan>
+    <tspan x="48" y="1248">• Pre-commit hook + scripts/* regenerate the two .wasm artifacts (WSL + Emscripten) and public/help.html</tspan>
+    <tspan x="60" y="1264">(from MANUAL.md), since Lightsail has no toolchain.</tspan>
+
+    <tspan x="48" y="1292" font-weight="bold" fill="#5a5a66">External (cross-origin)</tspan>
+    <tspan x="48" y="1311">• WordPress plugin on colourbill.com handles the Subscribe form; GA4 for analytics; UptimeRobot watches /health and</tspan>
+    <tspan x="60" y="1327">/memstat; profiletool (separate app) receives profile bytes via one-way, origin-pinned postMessage.</tspan>
+  </text>
+</svg>

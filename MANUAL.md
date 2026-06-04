@@ -10,7 +10,7 @@ A characterisation dataset typically associates device ink percentages (CYAN, MA
 
 - **Explore a single dataset or profile** — browse the data table, visualise the colour gamut in 3D L\*a\*b\* space, examine a 2D slice at any L\*, a\*, or b\* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L\*a\*b\* for any device colorant combination.
 - **Compare two datasets, two profiles, or one of each** — see a row-by-row ΔE / ΔL\* / ΔC\* / ΔH\* / Δh\* table for matched patches, with summary statistics (mean, min, max, std dev), and view both gamuts and tone value curves overlaid on the same charts.
-- **Work with spectral data** — if spectral reflectance columns are present, CharData computes L\*a\*b\* from them using a selectable illuminant (D50/D65), observer (2°/10°), and M-condition (M0/M1/M2), and can display the spectral curve for any clicked data point.
+- **Work with spectral data** — if spectral reflectance columns are present, CharData computes L\*a\*b\* from them using a selectable illuminant (D50, D65, A, LED-B1, F11), observer (2°/10°), and M-condition (M0/M1/M2), and can display the spectral curve for any clicked data point.
 - **Switch rendering intent** — for ICC profiles, change between Perceptual / Relative Colorimetric / Saturation / Absolute Colorimetric and have every view (3D shell, 2D slice, comparison table, tone curves, estimate) recompute against the new transform.
 
 The suggested workflow is to load an entire directory of characterisation files via the File Select panel, then pick individual files to explore or compare.
@@ -211,11 +211,11 @@ Controls how L\*a\*b\* is derived when spectral columns are present. These setti
 
 | Setting | Options |
 |---|---|
-| Illuminant | D50 (default), D65 |
+| Illuminant | D50 (default), D65, A, LED-B1, F11 |
 | Standard Observer | 2° (default), 10° |
 | M-Condition | M0 (default), M1 (forces D50), M2 (UV cut) |
 
-Changing any of these settings immediately reprocesses all loaded spectral files.
+Lab is computed using the ICC [colorimetry-data](https://registry.color.org/colorimetry-data/) illuminant × observer weighting tables (380–780 nm at 10 nm, normalised so the perfect reflector has Y = 100), so values match the reference CMM. Changing any of these settings immediately reprocesses all loaded spectral files.
 
 ### Model
 
