@@ -8940,10 +8940,10 @@ or ICC profiles</span>
 
       // Build per-dataset projected-point scatter traces (orthogonal projection
       // of points within ±thickness of `value` along the chosen axis).
-      // Polygon (and thus plot) coord mapping (matches WASM buildSlice):
+      // Plot coord mapping (L* is kept vertical for the a*/b* slices):
       //   L-slice: filter on z (L*); plot (x=a*, y=b*)   → src.x, src.y
-      //   a-slice: filter on x (a*); plot (x=L*, y=b*)   → src.z, src.y
-      //   b-slice: filter on y (b*); plot (x=L*, y=a*)   → src.z, src.x
+      //   a-slice: filter on x (a*); plot (x=b*, y=L*)   → src.y, src.z
+      //   b-slice: filter on y (b*); plot (x=a*, y=L*)   → src.x, src.z
       const { thickness, falloff, showPoints } = _sliceState;
       const _hexToRgb = h => {
         const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h || '');
@@ -8953,8 +8953,8 @@ or ICC profiles</span>
         const c = _gamutState[spec.slot].cachedXYZ;
         if (!c || !c.x || !c.x.length) return null;
         const filterArr = axis === 'L' ? c.z : axis === 'a' ? c.x : c.y;
-        const xArr      = axis === 'L' ? c.x : c.z;
-        const yArr      = (axis === 'b') ? c.x : c.y;
+        const xArr      = axis === 'L' ? c.x : axis === 'a' ? c.y : c.x;
+        const yArr      = axis === 'L' ? c.y : c.z;
         const px = [], py = [], pcolors = [], psizes = [];
         const [r, g, bl] = _hexToRgb(spec.color);
         const _bright = c => Math.round(c + (255 - c) * 0.3);
@@ -9003,8 +9003,11 @@ or ICC profiles</span>
         }
         const hull = result.polygon;
         if (!hull || hull.length < 3) return empty;
-        const hx = hull.map(p => p[0]).concat([hull[0][0]]);
-        const hy = hull.map(p => p[1]).concat([hull[0][1]]);
+        // WASM polygon coords: L-slice→(a*,b*), a/b-slice→(L*,chroma).
+        // For a/b we swap so chroma is on x and L* stays vertical.
+        const ux = axis === 'L' ? 0 : 1, uy = axis === 'L' ? 1 : 0;
+        const hx = hull.map(p => p[ux]).concat([hull[0][ux]]);
+        const hy = hull.map(p => p[uy]).concat([hull[0][uy]]);
         return {
           type: 'scatter', x: hx, y: hy, name: spec.name, mode: 'lines',
           fill: 'toself', fillcolor: spec.color + '33',
@@ -9014,13 +9017,13 @@ or ICC profiles</span>
 
       // Compute slice plot axis ranges from cached scatter data, recomputed each
       // time so switching modes gives correctly-sized bounds for that mode.
-      // WASM polygon coords: L-slice→(a*,b*), a-slice→(L*,b*), b-slice→(L*,a*)
+      // Plot axes: L-slice→(x=a*, y=b*); a/b-slice→(x=chroma, y=L*).
       let xLo = Infinity, xHi = -Infinity, yLo = Infinity, yHi = -Infinity;
       ['a', 'b', 'img'].forEach(slot => {
         const c = _gamutState[slot] && _gamutState[slot].cachedXYZ;
         if (!c) return;
-        const xArr = (axis === 'L') ? c.x : c.z;   // a* for L-slice, L* otherwise
-        const yArr = (axis === 'b') ? c.x : c.y;   // a* for b-slice, b* otherwise
+        const xArr = axis === 'L' ? c.x : axis === 'a' ? c.y : c.x;  // a*(L), b*(a), a*(b)
+        const yArr = axis === 'L' ? c.y : c.z;                       // b*(L), L* otherwise
         for (const v of xArr) { if (v < xLo) xLo = v; if (v > xHi) xHi = v; }
         for (const v of yArr) { if (v < yLo) yLo = v; if (v > yHi) yHi = v; }
       });
@@ -9029,8 +9032,8 @@ or ICC profiles</span>
         const d = (hi - lo) * 0.05 || 5;
         return [lo - d, hi + d];
       };
-      const xAxisRange = _padRange(xLo, xHi, axis === 'L' ? -128 : 0, axis === 'L' ? 128 : 100);
-      const yAxisRange = _padRange(yLo, yHi, -128, 128);
+      const xAxisRange = _padRange(xLo, xHi, -128, 128);
+      const yAxisRange = _padRange(yLo, yHi, axis === 'L' ? -128 : 0, axis === 'L' ? 128 : 100);
 
       const _th2 = getPlotTheme();
       const layout = {
