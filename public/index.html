@@ -3899,7 +3899,9 @@ or ICC profiles</span>
     let _exportDirHandle = null;
 
     // Tone Value section persistent state (survives result re-renders)
-    let _tvSectionOpen = true;
+    // Default collapsed: the section starts closed when first created for a
+    // dataset; the user's manual toggle is then preserved across re-renders.
+    let _tvSectionOpen = false;
     let _tvCtrlCollapsed = false;
     let _tvCbStates = {};          // {checkbox-id: checked}
     let _tvDatasetKey = '';        // changes when dataset/method/filter changes
