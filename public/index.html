@@ -10765,6 +10765,14 @@ or ICC profiles</span>
       const form = document.getElementById('subscribe-form');
       const submitBtn = form.querySelector('button[type="submit"]');
       _setSubscribeStatus('', '');
+
+      const emailEl = form.querySelector('input[name="email"]');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((emailEl.value || '').trim())) {
+        _setSubscribeStatus('Please enter a valid email address.', 'error');
+        emailEl.focus();
+        return;
+      }
+
       if (submitBtn) submitBtn.disabled = true;
 
       const data = new FormData(form);
