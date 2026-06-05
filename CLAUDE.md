@@ -143,6 +143,14 @@ Drift audit: `node scripts/check-translations.js` compares each xlsx column 0 ag
 
 Footer link "✉ Subscribe" opens a modal that POSTs cross-origin to the WordPress plugin at `https://colourbill.com/wp-admin/admin-ajax.php?action=cb_subscribe`. There is **no chardata-side backend** for subscribers — the list, moderation UI, and release-send flow all live in the WP plugin. The CSP `connectSrc` includes `https://colourbill.com` to permit the POST. Submit handler is `submitSubscribe()` near the modal markup; the hidden `t0` input is stamped on modal open for the server's time-trap (rejects <1.5s submits). Full architecture: `~/colourbill_WP/wordpress/wp-content/plugins/colourbill-customizations/SUBSCRIBERS.md`.
 
+### Analytics (GA4)
+
+The only third-party tracking on the site is **Google Analytics 4**, measurement ID `G-WJN2XTVMG8`. The gtag snippet (async `googletagmanager.com/gtag/js` loader + inline `dataLayer`/`gtag('config', …)` bootstrap) lives in two places:
+- `public/index.html` (head, ~line 43) — hand-maintained.
+- `public/help.html` (head, ~line 7) — **generated**; the snippet is emitted by `scripts/generate-help.js` (~line 937), not hand-edited. Change the ID there, not in `help.html`.
+
+CSP allows it explicitly: `scriptSrc` includes `https://www.googletagmanager.com`; `connectSrc` includes `https://www.google-analytics.com` and `https://region1.google-analytics.com` (the beacon endpoints). If you rotate the measurement ID, update both HTML/generator copies — and if a GA endpoint changes, the CSP hosts too. This is the **only** outbound telemetry; the subscribe POST (above) is the only other outbound data flow.
+
 ### Help / MANUAL.md
 
 `public/help.html` is **auto-generated** from `MANUAL.md` via `scripts/generate-help.js`. The pre-commit hook runs the generator when `MANUAL.md` (or the generator) is staged, and *aborts the commit* if `public/help.html` is hand-edited. Edit `MANUAL.md` instead.
