@@ -33,6 +33,19 @@
   const LAB_PRETTY = { L: 'L*', a: 'a*', b: 'b*' };
   const pretty = (label) => { const tail = String(label).split('_').pop(); return LAB_PRETTY[tail] || tail; };
 
+  // Localized label lookup — delegates to the host page's translation function
+  // (window.t) when present, falling back to the English default otherwise. The
+  // ICC viewer's labels live in the same I18N dictionary as the rest of the app
+  // (keys prefixed `icc_viz_`); t() returns the bare key when one is missing, so
+  // the `!== key` guard keeps the English fallback in that case.
+  function tr(key, fallback) {
+    if (typeof window.t === 'function') {
+      const v = window.t(key);
+      if (v != null && v !== key) return v;
+    }
+    return fallback;
+  }
+
   // ── small DOM helpers ──────────────────────────────────────────────────────
   function el(tag, cls, text) {
     const n = document.createElement(tag);
@@ -172,7 +185,7 @@
     return { section, body };
   }
 
-  function loadingNode() { return el('div', 'iccviz-loading', 'Loading…'); }
+  function loadingNode() { return el('div', 'iccviz-loading', tr('icc_viz_loading', 'Loading…')); }
   function errorNode(msg) { return el('div', 'iccviz-itemerr', msg); }
 
   function warningsNode(items) {
@@ -320,10 +333,10 @@
     const frag = document.createDocumentFragment();
     const swatch = (color) => { const s = el('span', 'iccviz-gswatch'); s.style.background = color; return s; };
     frag.appendChild(swatch('#e8ebef'));
-    frag.appendChild(document.createTextNode('Neutral = in gamut'));
+    frag.appendChild(document.createTextNode(tr('icc_viz_in_gamut', 'Neutral = in gamut')));
     frag.appendChild(document.createTextNode('   ·   '));
     frag.appendChild(swatch('rgb(155,12,12)'));
-    frag.appendChild(document.createTextNode('Red = out of gamut'));
+    frag.appendChild(document.createTextNode(tr('icc_viz_out_gamut', 'Red = out of gamut')));
     return frag;
   }
 
@@ -421,29 +434,29 @@
 
       // top row: direction + mode toggle
       const topRow = el('div', 'iccviz-evaltop');
-      topRow.appendChild(el('span', 'iccviz-evaldir', info.srcIsPcs ? 'PCS → Device' : 'Device → PCS'));
+      topRow.appendChild(el('span', 'iccviz-evaldir', info.srcIsPcs ? tr('icc_viz_pcs_to_device', 'PCS → Device') : tr('icc_viz_device_to_pcs', 'Device → PCS')));
       const toggle = el('div', 'iccviz-modetoggle');
-      const floatBtn = el('button', 'iccviz-modebtn', 'Float'); floatBtn.type = 'button';
-      const gridBtn = el('button', 'iccviz-modebtn', 'Grid'); gridBtn.type = 'button';
+      const floatBtn = el('button', 'iccviz-modebtn', tr('icc_viz_float', 'Float')); floatBtn.type = 'button';
+      const gridBtn = el('button', 'iccviz-modebtn', tr('icc_viz_grid', 'Grid')); gridBtn.type = 'button';
       gridBtn.disabled = !hasGrid;
-      if (!hasGrid) gridBtn.title = 'No CLUT grid';
+      if (!hasGrid) gridBtn.title = tr('icc_viz_no_clut_grid', 'No CLUT grid');
       toggle.appendChild(floatBtn); toggle.appendChild(gridBtn);
       topRow.appendChild(toggle);
       host.appendChild(topRow);
 
       const cols = el('div', 'iccviz-evalcols');
       const inCol = el('div', 'iccviz-evalcol');
-      inCol.appendChild(el('div', 'iccviz-evalcolhead', 'Input · ' + info.srcSpace));
+      inCol.appendChild(el('div', 'iccviz-evalcolhead', tr('icc_viz_input', 'Input') + ' · ' + info.srcSpace));
       const outCol = el('div', 'iccviz-evalcol');
-      outCol.appendChild(el('div', 'iccviz-evalcolhead', 'Output · ' + info.dstSpace));
+      outCol.appendChild(el('div', 'iccviz-evalcolhead', tr('icc_viz_output', 'Output') + ' · ' + info.dstSpace));
       cols.appendChild(inCol); cols.appendChild(outCol);
       host.appendChild(cols);
 
       // output rows (built once, values updated live)
       const outHead = el('div', 'iccviz-outheadrow');
       outHead.appendChild(el('span', 'iccviz-chlabel'));
-      outHead.appendChild(el('span', 'iccviz-outcol iccviz-outcolhead', 'Human'));
-      outHead.appendChild(el('span', 'iccviz-outcol iccviz-outcolhead', 'Norm'));
+      outHead.appendChild(el('span', 'iccviz-outcol iccviz-outcolhead', tr('icc_viz_human', 'Human')));
+      outHead.appendChild(el('span', 'iccviz-outcol iccviz-outcolhead', tr('icc_viz_norm', 'Norm')));
       outCol.appendChild(outHead);
       const outHumanCells = [], outNormCells = [];
       info.dstLabels.forEach((label) => {
@@ -521,17 +534,18 @@
   // Mirrors the original _toggleIccTagDetail behaviour, now as a reusable node.
   function dataDump(bytes, tag) {
     const frag = document.createDocumentFragment();
-    const pre = el('pre', null, tag.description ? tag.description : '(No content)');
-    const loading = el('div', 'iccviz-dumploading', 'Loading full description…');
+    const noContent = tr('icc_viz_no_content', '(No content)');
+    const pre = el('pre', null, tag.description ? tag.description : noContent);
+    const loading = el('div', 'iccviz-dumploading', tr('icc_viz_loading_desc', 'Loading full description…'));
     frag.appendChild(pre); frag.appendChild(loading);
     window.IccViewer.describeTag(bytes, tag.id).then((full) => {
       if (!pre.isConnected) return;
-      pre.textContent = full || '(No content)';
+      pre.textContent = full || noContent;
       loading.remove();
     }).catch((e) => {
       if (!loading.isConnected) return;
       loading.className = 'iccviz-dumperr';
-      loading.textContent = 'Could not load full description: ' + (e.message || String(e));
+      loading.textContent = tr('icc_viz_load_desc_error', 'Could not load full description: ') + (e.message || String(e));
     });
     return frag;
   }
@@ -556,7 +570,7 @@
     }
 
     if (tag.id === 'wtpt' && chromaDesc) {
-      const c = collapsible('Chromaticity', true);
+      const c = collapsible(tr('icc_viz_chromaticity', 'Chromaticity'), true);
       c.body.appendChild(graphView(bytes, chromaDesc.id, 'white'));
       container.appendChild(c.section);
       container.appendChild(dump());
@@ -564,7 +578,7 @@
     }
 
     if (COLORANT_HL[tag.id] && chromaDesc) {
-      const c = collapsible('Chromaticity', true);
+      const c = collapsible(tr('icc_viz_chromaticity', 'Chromaticity'), true);
       c.body.appendChild(graphView(bytes, chromaDesc.id, COLORANT_HL[tag.id]));
       container.appendChild(c.section);
       container.appendChild(dump());
@@ -574,11 +588,11 @@
     if (TRC_TAGS.has(tag.id)) {
       const trc = descriptors.find((d) => d.kind === KIND.Curve1D);
       if (trc) {
-        const c = collapsible('Tone curve', true);
+        const c = collapsible(tr('icc_viz_tone_curve', 'Tone curve'), true);
         c.body.appendChild(graphView(bytes, trc.id));
         container.appendChild(c.section);
       }
-      const tbl = collapsible('Curve table', false);
+      const tbl = collapsible(tr('icc_viz_curve_table', 'Curve table'), false);
       tbl.body.appendChild(dump());
       container.appendChild(tbl.section);
       return;
@@ -587,11 +601,11 @@
     const ab = descriptors.find((d) => d.kind === KIND.NamedColorsAB);
     const xy = descriptors.find((d) => d.kind === KIND.NamedColorsXY);
     if (ab || xy) {
-      const c = collapsible('Scatter', true);
+      const c = collapsible(tr('icc_viz_scatter', 'Scatter'), true);
       if (ab) c.body.appendChild(graphView(bytes, ab.id));
       if (xy) c.body.appendChild(graphView(bytes, xy.id));
       container.appendChild(c.section);
-      const tbl = collapsible('Tables', false);
+      const tbl = collapsible(tr('icc_viz_tables', 'Tables'), false);
       tbl.body.appendChild(dump());
       container.appendChild(tbl.section);
       return;
@@ -614,37 +628,37 @@
     const infoPromise = window.IccViewer.tagEvalInfo(bytes, tag.id).catch(() => null);
 
     if (inputCurves.length || outputCurves.length) {
-      const c = collapsible('Curves', !isGamut);
+      const c = collapsible(tr('icc_viz_curves', 'Curves'), !isGamut);
       if (inputCurves.length) {
-        c.body.appendChild(el('div', 'iccviz-subhead', 'Input curves'));
+        c.body.appendChild(el('div', 'iccviz-subhead', tr('icc_viz_input_curves', 'Input curves')));
         c.body.appendChild(combinedCurves(bytes, inputCurves, infoPromise, 'src'));
       }
       if (outputCurves.length) {
-        c.body.appendChild(el('div', 'iccviz-subhead', 'Output curves'));
+        c.body.appendChild(el('div', 'iccviz-subhead', tr('icc_viz_output_curves', 'Output curves')));
         c.body.appendChild(combinedCurves(bytes, outputCurves, infoPromise, 'dst'));
       }
       container.appendChild(c.section);
     }
 
     if (clut) {
-      const c = collapsible(isGamut ? 'Gamut' : 'CLUT', true);
+      const c = collapsible(isGamut ? tr('icc_viz_gamut', 'Gamut') : tr('icc_viz_clut', 'CLUT'), true);
       c.body.appendChild(rasterView(bytes, clut.id, isGamut));
       container.appendChild(c.section);
     }
 
     if (gamutDesc) {
-      const c = collapsible('Gamut', true);
+      const c = collapsible(tr('icc_viz_gamut', 'Gamut'), true);
       c.body.appendChild(rasterView(bytes, gamutDesc.id, true));
       container.appendChild(c.section);
     }
 
     if (!isGamut) {
-      const c = collapsible('Evaluate', true);
+      const c = collapsible(tr('icc_viz_evaluate', 'Evaluate'), true);
       c.body.appendChild(tagEvaluator(bytes, tag));
       container.appendChild(c.section);
     }
 
-    const data = collapsible('Data', false);
+    const data = collapsible(tr('icc_viz_data', 'Data'), false);
     data.body.appendChild(dump());
     container.appendChild(data.section);
   }
