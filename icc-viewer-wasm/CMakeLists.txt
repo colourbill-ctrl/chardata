@@ -18,6 +18,17 @@ if(NOT EXISTS "${ICCPROFLIB_DIR}/IccProfile.h")
   message(FATAL_ERROR "IccProfLib headers not found at ${ICCPROFLIB_DIR}")
 endif()
 
+# ── Locate the shared IccVizModel engine ────────────────────────────────────
+# The data-first visualization engine (tone curves / chromaticity / named-colour
+# scatters / CLUT raster) lives in profiletool, parallel to iccDEV. We reference
+# it directly rather than forking a copy, so chardata and profiletool share one
+# engine. Only the app-side binding (plot-wrapper.cpp) is vendored here.
+# Overridable via -DICCVIZ_ROOT.
+set(ICCVIZ_ROOT "/home/colour/code/profiletool/iccviz" CACHE PATH "Root of the IccVizModel engine")
+if(NOT EXISTS "${ICCVIZ_ROOT}/IccVizModel.cpp")
+  message(FATAL_ERROR "IccVizModel engine not found at ${ICCVIZ_ROOT}")
+endif()
+
 # Mirror Build/Cmake/IccProfLib/CMakeLists.txt's authoritative source list.
 set(ICCPROFLIB_SOURCES
   IccApplyBPC.cpp IccArrayBasic.cpp IccArrayFactory.cpp IccCAM.cpp IccCmm.cpp
@@ -53,10 +64,18 @@ file(CREATE_LINK
   SYMBOLIC)
 
 # ── Target ──────────────────────────────────────────────────────────────────
-add_executable(icc-viewer wrapper.cpp ${ICCPROFLIB_SOURCES})
+# One module exposes both bindings: wrapper.cpp (validateProfile/describeTag)
+# and plot-wrapper.cpp (enumerate/renderGraph/renderRaster/tagEvalInfo/evaluateTag,
+# backed by the shared IccVizModel engine).
+add_executable(icc-viewer
+  wrapper.cpp
+  plot-wrapper.cpp
+  "${ICCVIZ_ROOT}/IccVizModel.cpp"
+  ${ICCPROFLIB_SOURCES})
 
 target_include_directories(icc-viewer PRIVATE
   "${ICCPROFLIB_DIR}"
+  "${ICCVIZ_ROOT}"
   "${CMAKE_CURRENT_BINARY_DIR}/generated"
   "${CMAKE_CURRENT_BINARY_DIR}/third-party")
 
@@ -74,7 +93,9 @@ target_link_options(icc-viewer PRIVATE
   -sEXPORT_NAME=createIccViewerModule
   -sENVIRONMENT=web,worker,node
   -sALLOW_MEMORY_GROWTH=1
-  -sINITIAL_MEMORY=16MB
+  # 32MB initial (was 16) to give the CLUT-raster flatten headroom — matches
+  # profiletool's iccplot target now that the viz engine shares this module.
+  -sINITIAL_MEMORY=32MB
   -sMAXIMUM_MEMORY=512MB
   -sSTACK_SIZE=1MB
   # CSP-safe: no eval() / new Function() — matches chardata-gamut.

@@ -147,7 +147,7 @@ Click a section header (▾) to collapse or expand that section; the state persi
 - **Drag and drop** files from your file system directly onto a Dataset panel or anywhere inside the File Select panel.
 - **Drag a card** from the File Select panel onto Dataset A or Dataset B to assign it.
 - **Click a card** to assign it to the next available slot (Explore mode → A; Compare mode → first empty of A / B).
-- Click **Display File** (after a file loads) to view its contents. For CSV / CGATS / CxF, this shows the raw text. For ICC profiles, it opens an in-page viewer with **Header** and **Tags** tabs, where each tag row expands inline to show its full type-specific description (loaded on demand). The ICC viewer also has a **Launch editor** button that opens the profile in [profiletool](https://chardata.colourbill.com/profiletool/) in a new tab — useful for inspecting tag XML/JSON or making round-trip edits. The profile bytes are passed to profiletool in-browser via `postMessage`, no upload involved.
+- Click **Display File** (after a file loads) to view its contents. For CSV / CGATS / CxF, this shows the raw text. For ICC profiles, it opens an in-page viewer with **Header** and **Tags** tabs, where each tag row expands inline to show its full type-specific description (loaded on demand). When a tag carries plottable data, the expanded row also shows **inline visualizations** above the text: tone-reproduction curves (TRC, and the A/B/M curves of a LUT tag, with colour-coded legends you can toggle), CIE 1931 chromaticity charts for the white point and RGB colorants, the CLUT lattice image, the colour-coded out-of-gamut map, and named-colour / colorant scatters — plus, for transform (`A2B*` / `B2A*` / `preview`) tags, a **single-point evaluator** that applies the tag's transform to one colour you set with sliders. The **Offset / Size / Pad** columns can be shown in hexadecimal or decimal via the [Number format](#number-format) setting. The ICC viewer also has a **Launch editor** button that opens the profile in [profiletool](https://chardata.colourbill.com/profiletool/) in a new tab — useful for inspecting tag XML/JSON or making round-trip edits. The profile bytes are passed to profiletool in-browser via `postMessage`, no upload involved.
 
 Once a file loads, the slot panel shows:
 
@@ -229,6 +229,10 @@ Controls how the polynomial model in the [Estimate section](#4-5-estimate-sectio
 ### Background
 
 Switches the app between **Light**, **Dark**, and **System** (follows OS preference) themes.
+
+### Number format
+
+Sets how the **Offset**, **Size**, and **Pad** columns are displayed in the ICC profile [Display File](#2-loading-datasets) viewer's **Tags** tab: **Hexadecimal** (default — ICC byte offsets are conventionally read in hex, with a `0x` prefix) or **Decimal**. The choice is remembered between sessions and applies the moment you change it.
 
 ### Language
 

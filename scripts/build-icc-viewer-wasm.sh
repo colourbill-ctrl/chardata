@@ -20,10 +20,14 @@ SRC_DIR="$PROJECT_ROOT/icc-viewer-wasm"
 BUILD_DIR="$SRC_DIR/build"
 OUT_DIR="$PROJECT_ROOT/public/wasm"
 ICCDEV_ROOT="${ICCDEV_ROOT:-/home/colour/code/iccdev}"
+# The data-first visualization engine (IccVizModel) is shared with profiletool,
+# referenced in place rather than forked. Override with ICCVIZ_ROOT=...
+ICCVIZ_ROOT="${ICCVIZ_ROOT:-/home/colour/code/profiletool/iccviz}"
 
 echo "=== chardata icc-viewer WASM build ==="
 echo "Project root : $PROJECT_ROOT"
 echo "iccDEV root  : $ICCDEV_ROOT"
+echo "iccviz root  : $ICCVIZ_ROOT"
 echo "Source dir   : $SRC_DIR"
 echo "Build dir    : $BUILD_DIR"
 echo "Output dir   : $OUT_DIR"
@@ -46,6 +50,12 @@ if [[ ! -f "$ICCDEV_ROOT/IccProfLib/IccProfile.h" ]]; then
   exit 1
 fi
 
+if [[ ! -f "$ICCVIZ_ROOT/IccVizModel.cpp" ]]; then
+  echo "ERROR: IccVizModel engine not found at $ICCVIZ_ROOT"
+  echo "       set ICCVIZ_ROOT=/path/to/profiletool/iccviz"
+  exit 1
+fi
+
 echo "Emscripten: $(emcc --version | head -1)"
 echo ""
 
@@ -53,7 +63,8 @@ mkdir -p "$BUILD_DIR" "$OUT_DIR"
 
 emcmake cmake -S "$SRC_DIR" -B "$BUILD_DIR" \
   -DCMAKE_BUILD_TYPE=Release \
-  -DICCDEV_ROOT="$ICCDEV_ROOT"
+  -DICCDEV_ROOT="$ICCDEV_ROOT" \
+  -DICCVIZ_ROOT="$ICCVIZ_ROOT"
 
 cmake --build "$BUILD_DIR" -j"$(nproc)"
 

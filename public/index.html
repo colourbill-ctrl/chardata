@@ -39,6 +39,7 @@
   </script>
   <script src="gamut.js"></script>
   <script src="icc-viewer.js"></script>
+  <script src="icc-viz.js"></script>
   <script src="lib/utif.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-WJN2XTVMG8"></script>
   <script>
@@ -871,6 +872,98 @@
     .icc-tag-detail .loading { color: #888; font-style: italic; font-size: 12px; padding: 4px 0; }
     .icc-tag-detail .err     { color: #b91c1c; font-size: 12px; padding: 4px 0; }
 
+    /* ── inline per-tag visualizations (icc-viz.js) ────────────────────────── */
+    .iccviz-loading { color: #889; font-size: 12px; padding: 6px 0; }
+    .iccviz-itemerr { color: #b3401f; font-size: 12px; padding: 6px 0; }
+    .iccviz-itemwarn { color: #8a6d00; background: #fff8e1; border: 1px solid #f0e0a0;
+                       border-radius: 4px; font-size: 12px; padding: 4px 8px; margin: 4px 0; white-space: pre-line; }
+    .iccviz-dumploading { color: #888; font-style: italic; font-size: 12px; padding: 4px 0; }
+    .iccviz-dumperr { color: #b91c1c; font-size: 12px; padding: 4px 0; }
+
+    /* collapsible section */
+    .iccviz-section { margin: 10px 0 0; border: 1px solid #e2e6ee; border-radius: 8px;
+                      background: #fff; overflow: hidden; }
+    .iccviz-cheader { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 12px;
+                      background: none; border: 0; font: inherit; font-weight: 600; font-size: 13px;
+                      color: #223; cursor: pointer; text-align: left; }
+    .iccviz-cheader:hover { background: #f1f4f9; }
+    .iccviz-caret { display: inline-block; font-size: 9px; color: #889; transition: transform 0.15s ease; }
+    .iccviz-caret.open { transform: rotate(90deg); }
+    .iccviz-cbody { padding: 4px 12px 12px; border-top: 1px solid #eef1f6; }
+    .iccviz-subhead { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+                      color: #889; margin: 8px 0 4px; }
+    .iccviz-subhead:first-child { margin-top: 2px; }
+
+    /* graph svg */
+    .iccviz-graphwrap { width: 100%; }
+    .iccviz-svg { width: 100%; max-width: 560px; height: auto; display: block; }
+    .iccviz-frame { fill: none; stroke: #d6dbe6; stroke-width: 1; }
+    .iccviz-grid  { stroke: #eef1f6; stroke-width: 0.5; }
+    .iccviz-axisval   { font-size: 9px; fill: #889; }
+    .iccviz-axislabel { font-size: 11px; fill: #445; }
+    .iccviz-desclabel { font-size: 9px; fill: #99a; }
+    .iccviz-ptlabel   { font-size: 8px; }
+    .iccviz-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; max-width: 560px; }
+    .iccviz-legenditem { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: #445;
+                         background: none; border: 0; padding: 2px 4px; cursor: pointer; border-radius: 4px; }
+    .iccviz-legenditem:hover { background: #eef1f6; }
+    .iccviz-legendoff { opacity: 0.4; }
+    .iccviz-legendoff .iccviz-swatch { background: transparent !important; }
+    .iccviz-swatch { width: 11px; height: 11px; border-radius: 2px; border: 1px solid currentColor; flex: none; }
+
+    /* raster canvas */
+    .iccviz-rasterwrap { display: inline-block; }
+    .iccviz-raster { image-rendering: pixelated; width: 256px; max-width: 100%; height: auto;
+                     border: 1px solid #e2e6ee;
+                     background: repeating-conic-gradient(#f3f4f7 0% 25%, #fff 0% 50%) 50% / 16px 16px; }
+    .iccviz-rastermeta { font-size: 11px; color: #889; margin-top: 4px; }
+    .iccviz-gswatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+                      border: 1px solid rgba(0,0,0,.25); vertical-align: middle; margin-right: 4px; }
+
+    /* evaluator */
+    .iccviz-eval { font-size: 12px; }
+    .iccviz-evaltop { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+                      flex-wrap: wrap; margin-bottom: 10px; }
+    .iccviz-evaldir { font-weight: 600; font-size: 12px; color: #445; }
+    .iccviz-modetoggle { display: inline-flex; border: 1px solid #d6dbe6; border-radius: 6px; overflow: hidden; }
+    .iccviz-modebtn { border: 0; background: #fff; color: #445; font: inherit; font-size: 11px;
+                      padding: 4px 10px; cursor: pointer; }
+    .iccviz-modebtn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .iccviz-modeon { background: #4a90e2; color: #fff; }
+    .iccviz-evalcols { display: flex; flex-wrap: wrap; gap: 18px 28px; }
+    .iccviz-evalcol { flex: 1 1 220px; min-width: 0; }
+    .iccviz-evalcolhead { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+                          color: #889; margin-bottom: 6px; }
+    .iccviz-evalrow { display: grid; grid-template-columns: 28px 1fr 56px; align-items: center; gap: 8px; margin: 3px 0; }
+    .iccviz-chlabel { font-weight: 600; color: #445; }
+    .iccviz-slider { width: 100%; }
+    .iccviz-num { width: 56px; padding: 1px 4px; font-size: 12px; text-align: right;
+                  border: 1px solid #ccc; border-radius: 3px; background: #fff; color: #223; }
+    .iccviz-nodeidx { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; color: #889; text-align: right; }
+    .iccviz-outheadrow, .iccviz-outrow { display: grid; grid-template-columns: 28px 1fr 1fr; align-items: center; gap: 8px; }
+    .iccviz-outheadrow { margin-bottom: 2px; }
+    .iccviz-outrow { margin: 3px 0; }
+    .iccviz-outcol { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; text-align: right; color: #223; }
+    .iccviz-outcolhead { font-family: inherit; font-size: 10px; font-weight: 700; text-transform: uppercase;
+                         letter-spacing: 0.03em; color: #889; }
+
+    body.dark .iccviz-section { background: #1e2430; border-color: #2c3442; }
+    body.dark .iccviz-cheader { color: #cfd6e2; }
+    body.dark .iccviz-cheader:hover { background: #283040; }
+    body.dark .iccviz-cbody { border-top-color: #2c3442; }
+    body.dark .iccviz-frame { stroke: #2c3442; }
+    body.dark .iccviz-grid  { stroke: #20262f; }
+    body.dark .iccviz-axisval, body.dark .iccviz-desclabel { fill: #8893a3; }
+    body.dark .iccviz-axislabel { fill: #aeb6c2; }
+    body.dark .iccviz-legenditem { color: #cfd6e2; }
+    body.dark .iccviz-legenditem:hover { background: #2c3442; }
+    body.dark .iccviz-raster { border-color: #2c3442; }
+    body.dark .iccviz-evaldir, body.dark .iccviz-chlabel { color: #cfd6e2; }
+    body.dark .iccviz-num, body.dark .iccviz-modebtn { background: #232a36; border-color: #2c3442; color: #d6dbe6; }
+    body.dark .iccviz-modeon { background: #4a90e2; color: #fff; }
+    body.dark .iccviz-outcol { color: #d6dbe6; }
+    body.dark .iccviz-itemwarn { background: #2a2410; border-color: #4a4220; color: #d8c87a; }
+
     /* Narrow viewports — drop offset/size/pad columns into a single meta line,
        expand the modal to fill the screen, and stack tag rows. */
     @media (max-width: 720px) {
@@ -1269,6 +1362,14 @@ or ICC profiles</span>
       </div>
 
       <div class="blade-section">
+        <div class="blade-label" data-i18n="number_format">Number format</div>
+        <select id="icc-num-base" class="blade-select" onchange="onIccNumBaseChange(this.value)">
+          <option value="hex" data-i18n="hex">Hexadecimal</option>
+          <option value="dec" data-i18n="decimal">Decimal</option>
+        </select>
+      </div>
+
+      <div class="blade-section">
         <div class="blade-label" data-i18n="language">Language</div>
         <select id="lang-select" class="blade-select" onchange="onLangChange(this.value)">
           <option value="system" id="lang-opt-system">System default</option>
@@ -1317,6 +1418,7 @@ or ICC profiles</span>
     // ── Internationalisation ───────────────────────────────────────────────
     const I18N = {
       en: {
+        number_format:'Number format', hex:'Hexadecimal', decimal:'Decimal',
         sub_link:'Subscribe',
         sub_link_title:'Get notified about new chardata releases',
         sub_title:'Get notified about new releases',
@@ -1501,6 +1603,7 @@ or ICC profiles</span>
         image_detail_fine:'Fine',
       },
       fr: {
+        number_format:'Format des nombres', hex:'Hexadécimal', decimal:'Décimal',
         measurement_only_notice:'Données de mesure uniquement (aucun colorant dispositif) : nuage de points 3D et coupe 2D, tableau de données et comparaison par étiquette disponibles ; coquille gamut, extraction, valeur de ton, estimation et validation désactivées.',
         sample_name:'Échantillon',
         cxf_malformed:'Le fichier CxF n’est pas un XML bien formé.',
@@ -1680,6 +1783,7 @@ or ICC profiles</span>
         image_detail_fine:'Fin',
       },
       de: {
+        number_format:'Zahlenformat', hex:'Hexadezimal', decimal:'Dezimal',
         measurement_only_notice:'Nur Messdaten (keine Gerätefarbmittel): 3D- und 2D-Schnitt-Punktwolke, Datentabelle und etikettenbasierter Vergleich verfügbar; Gamut-Hülle, Extrahieren, Tonwert, Schätzung und Validierung deaktiviert.',
         sample_name:'Probe',
         cxf_malformed:'CxF-Datei ist kein wohlgeformtes XML.',
@@ -1859,6 +1963,7 @@ or ICC profiles</span>
         image_detail_fine:'Fein',
       },
       it: {
+        number_format:'Formato numerico', hex:'Esadecimale', decimal:'Decimale',
         measurement_only_notice:'Solo dati di misura (nessun colorante dispositivo): nuvola di punti 3D e sezione 2D, tabella dati e confronto per etichetta disponibili; guscio gamut, estrazione, valore di tono, stima e validazione disabilitati.',
         sample_name:'Campione',
         cxf_malformed:'Il file CxF non è un XML ben formato.',
@@ -2038,6 +2143,7 @@ or ICC profiles</span>
         image_detail_fine:'Fine',
       },
       es: {
+        number_format:'Formato numérico', hex:'Hexadecimal', decimal:'Decimal',
         measurement_only_notice:'Solo datos de medición (sin colorantes dispositivo): nube de puntos 3D y corte 2D, tabla de datos y comparación por etiqueta disponibles; capa del gama, extracción, valor de tono, estimación y validación deshabilitados.',
         sample_name:'Muestra',
         cxf_malformed:'El archivo CxF no es XML bien formado.',
@@ -2217,6 +2323,7 @@ or ICC profiles</span>
         image_detail_fine:'Fino',
       },
       'pt-PT': {
+        number_format:'Formato numérico', hex:'Hexadecimal', decimal:'Decimal',
         measurement_only_notice:'Apenas dados de medição (sem colorantes do dispositivo): nuvem de pontos 3D e corte 2D, tabela de dados e comparação por etiqueta disponíveis; invólucro de gama, extração, valor de tom, estimativa e validação desativados.',
         sample_name:'Amostra',
         cxf_malformed:'O ficheiro CxF não é XML bem formado.',
@@ -2396,6 +2503,7 @@ or ICC profiles</span>
         image_detail_fine:'Fino',
       },
       'pt-BR': {
+        number_format:'Formato numérico', hex:'Hexadecimal', decimal:'Decimal',
         measurement_only_notice:'Apenas dados de medição (sem colorantes do dispositivo): nuvem de pontos 3D e corte 2D, tabela de dados e comparação por rótulo disponíveis; superfície do gamut, extração, valor tonal, estimativa e validação desabilitados.',
         sample_name:'Amostra',
         cxf_malformed:'O arquivo CxF não é XML bem formado.',
@@ -2575,6 +2683,7 @@ or ICC profiles</span>
         image_detail_fine:'Fino',
       },
       'zh-CN': {
+        number_format:'数字格式', hex:'十六进制', decimal:'十进制',
         measurement_only_notice:'仅测量数据（无设备色度）：可用 3D 和 2D 切片点云、数据表以及按标签匹配的比较；色域外壳、提取、阶调值、估算和验证已禁用。',
         sample_name:'样本',
         cxf_malformed:'CxF 文件不是格式正确的 XML。',
@@ -2754,6 +2863,7 @@ or ICC profiles</span>
         image_detail_fine:'精细',
       },
       'zh-TW': {
+        number_format:'數字格式', hex:'十六進位', decimal:'十進位',
         measurement_only_notice:'僅測量數據（無設備色度）：可用 3D 與 2D 切片點雲、數據表以及按標籤匹配的比較；色域外殼、提取、階調值、估算與驗證已停用。',
         sample_name:'樣本',
         cxf_malformed:'CxF 檔案不是格式正確的 XML。',
@@ -2933,6 +3043,7 @@ or ICC profiles</span>
         image_detail_fine:'精細',
       },
       ja: {
+        number_format:'数値形式', hex:'16 進数', decimal:'10 進数',
         measurement_only_notice:'測定データのみ（デバイス色材なし）：3D および 2D スライスの点群、データ表、ラベル一致比較が利用可能。ガマットシェル、抽出、トーンバリュー、推定、検証は無効です。',
         sample_name:'サンプル',
         cxf_malformed:'CxF ファイルが整形式 XML ではありません。',
@@ -3112,6 +3223,7 @@ or ICC profiles</span>
         image_detail_fine:'細かい',
       },
       ko: {
+        number_format:'숫자 형식', hex:'16진수', decimal:'10진수',
         measurement_only_notice:'측정 데이터 전용(디바이스 색재 없음): 3D 및 2D 슬라이스 점군, 데이터 표, 레이블 일치 비교 사용 가능. 색역 셸, 추출, 톤 밸류, 추정, 검증은 비활성화됩니다.',
         sample_name:'샘플',
         cxf_malformed:'CxF 파일이 올바른 형식의 XML이 아닙니다.',
@@ -3291,6 +3403,7 @@ or ICC profiles</span>
         image_detail_fine:'정밀',
       },
       sv: {
+        number_format:'Talformat', hex:'Hexadecimal', decimal:'Decimal',
         measurement_only_notice:'Endast mätdata (inga enhetsfärgämnen): 3D- och 2D-snittpunktmoln, datatabell och etikettmatchad jämförelse tillgängliga; gamutskal, extrahering, tonvärde, uppskattning och validering är inaktiverade.',
         sample_name:'Prov',
         cxf_malformed:'CxF-filen är inte välformad XML.',
@@ -4024,6 +4137,13 @@ or ICC profiles</span>
       } else {
         document.body.classList.toggle('dark', savedTheme === 'dark');
       }
+    })();
+
+    // Reflect saved ICC number-base preference in its blade select. Reads
+    // localStorage directly (not _iccNumBase, which is declared later → TDZ).
+    (function() {
+      const sel = document.getElementById('icc-num-base');
+      if (sel) sel.value = (localStorage.getItem('iccNumBase') === 'dec') ? 'dec' : 'hex';
     })();
 
     // Persist ΔE method
@@ -4797,7 +4917,7 @@ or ICC profiles</span>
       const bytes = new Uint8Array(raw.buffer);
       try {
         const data = await window.IccViewer.validateProfile(bytes);
-        _iccViewerState = { slot, bytes, data };
+        _iccViewerState = { slot, bytes, data, viz: undefined, vizPromise: null };
         document.getElementById('icc-viewer-subtitle').textContent =
           (data.sizeBytes != null ? data.sizeBytes.toLocaleString() + ' bytes' : '') +
           (data.libraryVersion ? ' · IccProfLib ' + data.libraryVersion : '');
@@ -4883,6 +5003,28 @@ or ICC profiles</span>
       wrap.innerHTML = html;
     }
 
+    // Numeric display base for the ICC viewer's Offset / Size / Pad columns.
+    // Persisted in localStorage; default 'hex' (ICC byte offsets are conventionally
+    // read in hexadecimal, matching profiletool). 'dec' keeps the thousands-grouped
+    // decimal chardata showed before this setting existed.
+    let _iccNumBase = (localStorage.getItem('iccNumBase') === 'dec') ? 'dec' : 'hex';
+
+    // Format an integer per the active base. Hex carries a 0x prefix with the sign
+    // kept outside it (negative pad overlap → "-0x4"); decimal is thousands-grouped.
+    function _iccFmtInt(n) {
+      if (typeof n !== 'number' || !Number.isFinite(n)) return n == null ? '' : String(n);
+      if (_iccNumBase === 'hex') return (n < 0 ? '-0x' : '0x') + Math.abs(n).toString(16);
+      return n.toLocaleString();
+    }
+
+    function onIccNumBaseChange(val) {
+      _iccNumBase = (val === 'dec') ? 'dec' : 'hex';
+      localStorage.setItem('iccNumBase', _iccNumBase);
+      // Re-render the tag table in place if the viewer is open (collapses any
+      // expanded row — acceptable for a display-format toggle).
+      if (_iccViewerState && _iccViewerState.data) _renderIccTags(_iccViewerState.data.tags || []);
+    }
+
     function _renderIccTags(tags) {
       const wrap = document.getElementById('icc-tags-panel');
       if (!tags.length) {
@@ -4903,14 +5045,14 @@ or ICC profiles</span>
           '<div class="name"><span class="caret">▶</span> ' + _escapeHtml(t.name || '—') + '</div>' +
           '<div class="id">' + _escapeHtml(t.id || '') + '</div>' +
           '<div class="type">' + _escapeHtml(typeLabel) + '</div>' +
-          '<div class="off">' + (t.offset != null ? t.offset.toLocaleString() : '') + '</div>' +
-          '<div class="size">' + (t.size  != null ? t.size.toLocaleString()  : '') + '</div>' +
-          '<div class="pad ' + padCls + '">' + (t.pad != null ? t.pad : '') + '</div>' +
+          '<div class="off">' + (t.offset != null ? _iccFmtInt(t.offset) : '') + '</div>' +
+          '<div class="size">' + (t.size  != null ? _iccFmtInt(t.size)  : '') + '</div>' +
+          '<div class="pad ' + padCls + '">' + (t.pad != null ? _iccFmtInt(t.pad) : '') + '</div>' +
           '<div class="meta">' +
             '<span class="id-inline">' + _escapeHtml(t.id || '') + '</span>' +
-            ' · ' + (t.size != null ? t.size.toLocaleString() + 'B' : '?') +
-            ' · off ' + (t.offset != null ? t.offset.toLocaleString() : '?') +
-            ' · pad <span class="' + (padCls ? 'pad-' + padCls : '') + '">' + (t.pad != null ? t.pad : '?') + '</span>' +
+            ' · ' + (t.size != null ? _iccFmtInt(t.size) + 'B' : '?') +
+            ' · off ' + (t.offset != null ? _iccFmtInt(t.offset) : '?') +
+            ' · pad <span class="' + (padCls ? 'pad-' + padCls : '') + '">' + (t.pad != null ? _iccFmtInt(t.pad) : '?') + '</span>' +
           '</div>' +
           '</div>' +
           '<div class="icc-tag-detail" id="icc-tag-detail-' + i + '" hidden></div>';
@@ -4934,19 +5076,30 @@ or ICC profiles</span>
       }
       detail.hidden = false;
       row.classList.add('open');
-      const tag = _iccViewerState && _iccViewerState.data.tags[i];
+      const state = _iccViewerState;
+      const tag = state && state.data.tags[i];
       if (!tag) { detail.innerHTML = '<div class="err">No tag data.</div>'; return; }
-      // Show verbosity-75 dump immediately, then upgrade to verbosity-100 lazily.
-      const initial = tag.description ? tag.description : '(No content)';
-      detail.innerHTML = '<pre>' + _escapeHtml(initial) + '</pre>' +
-                         '<div class="loading" id="icc-tag-detail-loading-' + i + '">Loading full description…</div>';
-      try {
-        const full = await window.IccViewer.describeTag(_iccViewerState.bytes, tag.id);
-        if (detail.hidden) return;  // user collapsed while we were fetching
-        detail.innerHTML = '<pre>' + _escapeHtml(full || '(No content)') + '</pre>';
-      } catch (e) {
-        const loadEl = document.getElementById('icc-tag-detail-loading-' + i);
-        if (loadEl) loadEl.outerHTML = '<div class="err">Could not load full description: ' + _escapeHtml(e.message || String(e)) + '</div>';
+
+      // Enumerate the profile's visualizations the first time any tag is opened
+      // (deferred so the WASM viz engine isn't exercised for users who only skim
+      // the tag list). Cached per profile; best-effort — on failure every tag
+      // simply falls back to the plain Describe() dump.
+      if (state.viz === undefined && !state.vizPromise) {
+        state.vizPromise = window.IccViz.enumerate(state.bytes)
+          .then(v => { state.viz = v; return v; })
+          .catch(() => { state.viz = null; return null; });
+      }
+      const renderDetail = (viz) => {
+        if (detail.hidden) return;  // user collapsed while we were waiting
+        window.IccViz.renderTagDetail(detail, { bytes: state.bytes, tag, viz });
+      };
+      if (state.viz !== undefined) {
+        renderDetail(state.viz);
+      } else {
+        // Show the dump immediately while enumerate resolves; renderTagDetail
+        // replaces it (it re-renders the dump itself) once viz is known.
+        detail.innerHTML = '<div class="loading">Loading…</div>';
+        state.vizPromise.then(renderDetail);
       }
     }
 
