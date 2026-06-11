@@ -1502,6 +1502,7 @@ or ICC profiles</span>
         has_spectral:'File contains spectral data. Click on data points to display spectral graph.',
         no_spectral_file:'Colorimetric only. No spectral data found in file.',
         measurement_only_notice:'Measurement-only data (no device colorants): 3D and 2D-slice point cloud, data table, and label-matched compare are available; gamut shell, extract, tone value, estimate, and validation are disabled.',
+        cxfx4_notice:'Spot ink characterisation (CxF/X-4): tint levels are loaded as device colorant values; gamut shell, estimate, and model generation are disabled.',
         sample_name:'Sample',
         cxf_malformed:'CxF file is not well-formed XML.',
         cxf_no_objects:'CxF file contains no colour objects.',
@@ -1606,6 +1607,7 @@ or ICC profiles</span>
       fr: {
         number_format:'Format des nombres', hex:'Hexadécimal', decimal:'Décimal',
         measurement_only_notice:'Données de mesure uniquement (aucun colorant dispositif) : nuage de points 3D et coupe 2D, tableau de données et comparaison par étiquette disponibles ; coquille gamut, extraction, valeur de ton, estimation et validation désactivées.',
+        cxfx4_notice:'Caractérisation d’encre d’accompagnement (CxF/X-4) : les niveaux de teinte sont chargés comme valeurs de colorant dispositif ; coquille gamut, estimation et génération de modèle désactivées.',
         sample_name:'Échantillon',
         cxf_malformed:'Le fichier CxF n’est pas un XML bien formé.',
         cxf_no_objects:'Le fichier CxF ne contient aucun objet couleur.',
@@ -1787,6 +1789,7 @@ or ICC profiles</span>
       de: {
         number_format:'Zahlenformat', hex:'Hexadezimal', decimal:'Dezimal',
         measurement_only_notice:'Nur Messdaten (keine Gerätefarbmittel): 3D- und 2D-Schnitt-Punktwolke, Datentabelle und etikettenbasierter Vergleich verfügbar; Gamut-Hülle, Extrahieren, Tonwert, Schätzung und Validierung deaktiviert.',
+        cxfx4_notice:'Sonderfarben-Charakterisierung (CxF/X-4): Tonwertstufen werden als Gerätefarbmittelwerte geladen; Gamut-Hülle, Schätzung und Modellerzeugung deaktiviert.',
         sample_name:'Probe',
         cxf_malformed:'CxF-Datei ist kein wohlgeformtes XML.',
         cxf_no_objects:'CxF-Datei enthält keine Farbobjekte.',
@@ -1968,6 +1971,7 @@ or ICC profiles</span>
       it: {
         number_format:'Formato numerico', hex:'Esadecimale', decimal:'Decimale',
         measurement_only_notice:'Solo dati di misura (nessun colorante dispositivo): nuvola di punti 3D e sezione 2D, tabella dati e confronto per etichetta disponibili; guscio gamut, estrazione, valore di tono, stima e validazione disabilitati.',
+        cxfx4_notice:'Caratterizzazione di inchiostro spot (CxF/X-4): i livelli di tinta sono caricati come valori di colorante dispositivo; guscio gamut, stima e generazione del modello disabilitati.',
         sample_name:'Campione',
         cxf_malformed:'Il file CxF non è un XML ben formato.',
         cxf_no_objects:'Il file CxF non contiene oggetti colore.',
@@ -2149,6 +2153,7 @@ or ICC profiles</span>
       es: {
         number_format:'Formato numérico', hex:'Hexadecimal', decimal:'Decimal',
         measurement_only_notice:'Solo datos de medición (sin colorantes dispositivo): nube de puntos 3D y corte 2D, tabla de datos y comparación por etiqueta disponibles; capa del gama, extracción, valor de tono, estimación y validación deshabilitados.',
+        cxfx4_notice:'Caracterización de tinta plana (CxF/X-4): los niveles de tinte se cargan como valores de colorante dispositivo; capa del gama, estimación y generación de modelo deshabilitadas.',
         sample_name:'Muestra',
         cxf_malformed:'El archivo CxF no es XML bien formado.',
         cxf_no_objects:'El archivo CxF no contiene objetos de color.',
@@ -2330,6 +2335,7 @@ or ICC profiles</span>
       'pt-PT': {
         number_format:'Formato numérico', hex:'Hexadecimal', decimal:'Decimal',
         measurement_only_notice:'Apenas dados de medição (sem colorantes do dispositivo): nuvem de pontos 3D e corte 2D, tabela de dados e comparação por etiqueta disponíveis; invólucro de gama, extração, valor de tom, estimativa e validação desativados.',
+        cxfx4_notice:'Caracterização de tinta direta (CxF/X-4): os níveis de tom são carregados como valores de colorante do dispositivo; invólucro de gama, estimativa e geração de modelo desativados.',
         sample_name:'Amostra',
         cxf_malformed:'O ficheiro CxF não é XML bem formado.',
         cxf_no_objects:'O ficheiro CxF não contém objetos de cor.',
@@ -2511,6 +2517,7 @@ or ICC profiles</span>
       'pt-BR': {
         number_format:'Formato numérico', hex:'Hexadecimal', decimal:'Decimal',
         measurement_only_notice:'Apenas dados de medição (sem colorantes do dispositivo): nuvem de pontos 3D e corte 2D, tabela de dados e comparação por rótulo disponíveis; superfície do gamut, extração, valor tonal, estimativa e validação desabilitados.',
+        cxfx4_notice:'Caracterização de tinta especial (CxF/X-4): os níveis de tom são carregados como valores de colorante do dispositivo; superfície do gamut, estimativa e geração de modelo desabilitadas.',
         sample_name:'Amostra',
         cxf_malformed:'O arquivo CxF não é XML bem formado.',
         cxf_no_objects:'O arquivo CxF não contém objetos de cor.',
@@ -2692,6 +2699,7 @@ or ICC profiles</span>
       'zh-CN': {
         number_format:'数字格式', hex:'十六进制', decimal:'十进制',
         measurement_only_notice:'仅测量数据（无设备色度）：可用 3D 和 2D 切片点云、数据表以及按标签匹配的比较；色域外壳、提取、阶调值、估算和验证已禁用。',
+        cxfx4_notice:'专色油墨特性化（CxF/X-4）：网点百分比作为设备色度值加载；色域外壳、估算和模型生成已禁用。',
         sample_name:'样本',
         cxf_malformed:'CxF 文件不是格式正确的 XML。',
         cxf_no_objects:'CxF 文件不包含任何颜色对象。',
@@ -2873,6 +2881,7 @@ or ICC profiles</span>
       'zh-TW': {
         number_format:'數字格式', hex:'十六進位', decimal:'十進位',
         measurement_only_notice:'僅測量數據（無設備色度）：可用 3D 與 2D 切片點雲、數據表以及按標籤匹配的比較；色域外殼、提取、階調值、估算與驗證已停用。',
+        cxfx4_notice:'特別色油墨特性化（CxF/X-4）：網點百分比作為設備色度值載入；色域外殼、估算與模型生成已停用。',
         sample_name:'樣本',
         cxf_malformed:'CxF 檔案不是格式正確的 XML。',
         cxf_no_objects:'CxF 檔案不包含任何顏色物件。',
@@ -3054,6 +3063,7 @@ or ICC profiles</span>
       ja: {
         number_format:'数値形式', hex:'16 進数', decimal:'10 進数',
         measurement_only_notice:'測定データのみ（デバイス色材なし）：3D および 2D スライスの点群、データ表、ラベル一致比較が利用可能。ガマットシェル、抽出、トーンバリュー、推定、検証は無効です。',
+        cxfx4_notice:'特色インキ特性化（CxF/X-4）：網点パーセントはデバイス色材値として読み込まれます。ガマットシェル、推定、モデル生成は無効です。',
         sample_name:'サンプル',
         cxf_malformed:'CxF ファイルが整形式 XML ではありません。',
         cxf_no_objects:'CxF ファイルにカラーオブジェクトが含まれていません。',
@@ -3235,6 +3245,7 @@ or ICC profiles</span>
       ko: {
         number_format:'숫자 형식', hex:'16진수', decimal:'10진수',
         measurement_only_notice:'측정 데이터 전용(디바이스 색재 없음): 3D 및 2D 슬라이스 점군, 데이터 표, 레이블 일치 비교 사용 가능. 색역 셸, 추출, 톤 밸류, 추정, 검증은 비활성화됩니다.',
+        cxfx4_notice:'별색 잉크 특성화(CxF/X-4): 망점 비율이 디바이스 색재 값으로 로드됩니다. 색역 셸, 추정, 모델 생성은 비활성화됩니다.',
         sample_name:'샘플',
         cxf_malformed:'CxF 파일이 올바른 형식의 XML이 아닙니다.',
         cxf_no_objects:'CxF 파일에 색상 객체가 없습니다.',
@@ -3416,6 +3427,7 @@ or ICC profiles</span>
       sv: {
         number_format:'Talformat', hex:'Hexadecimal', decimal:'Decimal',
         measurement_only_notice:'Endast mätdata (inga enhetsfärgämnen): 3D- och 2D-snittpunktmoln, datatabell och etikettmatchad jämförelse tillgängliga; gamutskal, extrahering, tonvärde, uppskattning och validering är inaktiverade.',
+        cxfx4_notice:'Dekorfärgskarakterisering (CxF/X-4): tonvärdesnivåer läses in som enhetsfärgämnesvärden; gamutskal, uppskattning och modellgenerering är inaktiverade.',
         sample_name:'Prov',
         cxf_malformed:'CxF-filen är inte välformad XML.',
         cxf_no_objects:'CxF-filen innehåller inga färgobjekt.',
@@ -3686,8 +3698,8 @@ or ICC profiles</span>
         return;
       }
 
-      // Type label (CSV literal stays as-is; CGATS gets re-localized).
-      if (typeEl) typeEl.textContent = s.isCSV ? 'CSV' : t('type_char_dataset');
+      // Type label (CSV / CxF literals stay as-is; CGATS gets re-localized).
+      if (typeEl) typeEl.textContent = s.typeLabel || (s.isCSV ? 'CSV' : t('type_char_dataset'));
       // Row count
       if (rowsEl) rowsEl.textContent = (s.filterType != null && s.rowsBefore !== s.rowsAfter)
         ? t('loaded_rows_dedup', {n: s.rowsBefore, m: s.rowsAfter, method: s.filterType})
@@ -3705,6 +3717,8 @@ or ICC profiles</span>
         }
         const moDiv = validEl.querySelector('.i18n-meas-only');
         if (moDiv) moDiv.textContent = t('measurement_only_notice');
+        const x4Div = validEl.querySelector('.i18n-x4-notice');
+        if (x4Div) x4Div.textContent = t('cxfx4_notice');
       }
       // Colorants + spectral status
       if (colorantsEl) {
@@ -4065,7 +4079,7 @@ or ICC profiles</span>
       });
       if (isExplore && state.a) {
         renderExplore();
-        if (!_estimateModel && !state.a.measurementOnly) generateEstimateModel();
+        if (!_estimateModel && !state.a.measurementOnly && !state.a.noModel) generateEstimateModel();
       } else if (!(!isExplore && state.a && state.b)) renderPlot();
     }
 
@@ -4255,10 +4269,12 @@ or ICC profiles</span>
       return { headers, rows };
     }
 
-    // --- CxF/X-3 (ISO 17972-3, Color Exchange Format — XML) ---------------------
+    // --- CxF/X-3 (ISO 17972-3) + CxF/X-4 (ISO 17972-4, spot ink) — XML ----------
     // Real-world CxF files use the `cc:` namespace prefix; we parse prefix-agnostically
     // via getElementsByTagNameNS('*', localName). Device colorant values are frequently
     // absent (measurement-only files keyed by patch Name) — that's handled downstream.
+    // CxF/X-4 files carry a SpotInkCharacterisation custom resource instead; parseCxF
+    // converts its tint-level map into 1–2 device colorants (see block in parseCxF).
     function _cxfChild(el, localName) {
       if (!el) return null;
       for (const c of el.children) if (c.localName === localName) return c;
@@ -4279,15 +4295,18 @@ or ICC profiles</span>
     function parseCxF(text) {
       const doc = new DOMParser().parseFromString(text, 'application/xml');
 
-      // ColorSpecification Id → spectral increment (nm). Default 10nm when absent.
-      const incMap = {};
+      // ColorSpecification Id → spectral {start, inc} in nm. Increment defaults
+      // to 10nm when absent. StartWL usually sits on each ReflectanceSpectrum,
+      // but some files (e.g. CxF/X-4) only declare it here on WavelengthRange.
+      const wlMap = {};
       const specs = doc.getElementsByTagNameNS('*', 'ColorSpecification');
       for (const sp of specs) {
         const id = sp.getAttribute('Id');
         const wr = _cxfDesc(sp, 'WavelengthRange');
         if (id && wr) {
+          const start = parseFloat(wr.getAttribute('StartWL'));
           const inc = parseFloat(wr.getAttribute('Increment'));
-          if (!isNaN(inc) && inc > 0) incMap[id] = inc;
+          wlMap[id] = { start, inc: (!isNaN(inc) && inc > 0) ? inc : NaN };
         }
       }
 
@@ -4301,7 +4320,8 @@ or ICC profiles</span>
       const records = [];                  // { name, colorants:{}, lab:{}, spectral:{} }
 
       for (const obj of objs) {
-        const rec = { name: obj.getAttribute('Name') || obj.getAttribute('Id') || '', colorants: {}, lab: {}, spectral: {} };
+        const rec = { name: obj.getAttribute('Name') || obj.getAttribute('Id') || '', id: obj.getAttribute('Id') || '',
+                      colorants: {}, lab: {}, spectral: {} };
         if (rec.name) anyName = true;
 
         // CIELab (first block per Object — single measurement condition)
@@ -4311,11 +4331,14 @@ or ICC profiles</span>
           if (L !== null && A !== null && B !== null) { rec.lab = { L, A, B }; anyLab = true; }
         }
 
-        // Reflectance spectrum (first block)
+        // Reflectance spectrum (first block). StartWL from the element itself,
+        // falling back to the referenced ColorSpecification's WavelengthRange.
         const spec = _cxfDesc(obj, 'ReflectanceSpectrum');
         if (spec) {
-          const startWL = parseFloat(spec.getAttribute('StartWL'));
-          const inc = incMap[spec.getAttribute('ColorSpecification')] || 10;
+          const wl = wlMap[spec.getAttribute('ColorSpecification')] || {};
+          let startWL = parseFloat(spec.getAttribute('StartWL'));
+          if (isNaN(startWL)) startWL = wl.start;
+          const inc = wl.inc || 10;
           const vals = spec.textContent.trim().split(/\s+/).filter(v => v.length);
           if (!isNaN(startWL) && vals.length) {
             vals.forEach((v, i) => {
@@ -4351,6 +4374,46 @@ or ICC profiles</span>
         records.push(rec);
       }
 
+      // --- CxF/X-4 (ISO 17972-4, spot ink characterisation) ------------------
+      // A SpotInkCharacterisation custom resource maps sample Objects to tint
+      // levels (0..100 %) of one named spot ink, over one background (X-4a/b:
+      // substrate) or two (X-4: substrate + process black). Treat as a
+      // characterisation dataset: the ink is one device colorant (value = tint
+      // level) and, when both backgrounds are present, the black backing is a
+      // second colorant at 0 (substrate) or 100 (process black).
+      let cxfVariant = null;
+      const sic = doc.getElementsByTagNameNS('*', 'SpotInkCharacterisation')[0];
+      if (sic) {
+        const byId = new Map(records.map(r => [r.id, r]));
+        const sets = [...sic.getElementsByTagNameNS('*', 'MeasurementSet')];
+        const bgCol = 'PROCESS_BLACK';
+        let inkCol = (sic.getAttribute('SpotInkName') || '').trim().toUpperCase() || 'INK';
+        // Dodge names the colorant detector would reject (LAB…, SAMPLE…) and
+        // a literal collision with the backing column.
+        if (!isDeviceColorant(inkCol) || inkCol === bgCol) inkCol = 'INK_' + inkCol;
+        const twoBg = sets.length > 1;
+        let intermediate = false;
+        const x4Records = [];
+        for (const set of sets) {
+          const bgVal = /black/i.test(set.getAttribute('Background') || '') ? '100' : '0';
+          for (const m of set.getElementsByTagNameNS('*', 'Measurement')) {
+            const tint = parseFloat(m.getAttribute('TintLevel'));
+            const rec = byId.get(m.getAttribute('ObjectRef'));
+            if (!rec || isNaN(tint)) continue;
+            if (tint > 0 && tint < 100) intermediate = true;
+            const colorants = { [inkCol]: String(tint) };
+            if (twoBg) colorants[bgCol] = bgVal;
+            x4Records.push({ ...rec, colorants });
+          }
+        }
+        if (x4Records.length) {
+          records.length = 0; records.push(...x4Records);
+          colorantOrder.length = 0; colorantOrder.push(inkCol);
+          if (twoBg) colorantOrder.push(bgCol);
+          cxfVariant = twoBg ? 'CxF/X-4' : (intermediate ? 'CxF/X-4a' : 'CxF/X-4b');
+        }
+      }
+
       const nmSorted = [...nmSeen].sort((a, b) => a - b);
       const headers = [];
       if (anyName) headers.push('SAMPLE_NAME');
@@ -4368,7 +4431,7 @@ or ICC profiles</span>
         return rec.colorants[h] ?? '';
       }));
 
-      return { headers, rows };
+      return { headers, rows, cxfVariant };
     }
 
     function validateCxF(text) {
@@ -4785,7 +4848,13 @@ or ICC profiles</span>
         }
       }
 
-      let { headers, rows } = standardizeData(isCxF ? parseCxF(text) : isCSV ? parseCSV(text) : parseCGATS(text));
+      const parsed = isCxF ? parseCxF(text) : isCSV ? parseCSV(text) : parseCGATS(text);
+      // CxF/X-4 (spot ink characterisation): refine the type label now that the
+      // parse has identified the variant, and remember that no polynomial model
+      // can be fitted from 1–2-colorant tint-ramp data.
+      const cxfVariant = (isCxF && parsed.cxfVariant) || null;
+      if (cxfVariant) typeEl.textContent = cxfVariant;
+      let { headers, rows } = standardizeData(parsed);
 
       // Compute LAB from spectral if LAB columns are absent
       const hasLab = ['LAB_L', 'LAB_A', 'LAB_B'].every(c => headers.includes(c));
@@ -4829,9 +4898,13 @@ or ICC profiles</span>
         if (measurementOnly) {
           validEl.innerHTML += `<div class="cgats-warn i18n-meas-only">${t('measurement_only_notice')}</div>`;
         }
+        if (cxfVariant) {
+          validEl.innerHTML += `<div class="cgats-warn i18n-x4-notice">${t('cxfx4_notice')}</div>`;
+        }
         validEl.className = 'validation';
         state[slot] = { headers, rows: dedupedRows, colorants, name: fileName, usedSpectralLab, hasSpectral,
-                        measurementOnly, rowsBefore, rowsAfter, filterType: dedupEnabled ? filterType : null, isCSV };
+                        measurementOnly, rowsBefore, rowsAfter, filterType: dedupEnabled ? filterType : null, isCSV,
+                        typeLabel: isCxF ? (cxfVariant || 'CxF/X-3') : null, noModel: !!cxfVariant };
         _gamutState[slot].shellOn = false;
         _gamutState[slot].pointsOn = true;
         _gamutState[slot].hueOn = false;
@@ -6846,6 +6919,7 @@ or ICC profiles</span>
       }));
 
       const measOnly = !!a.measurementOnly;
+      const noModel = !!a.noModel; // CxF/X-4 spot ink: tables/plots/TV yes, model-based Estimate no
       const labelIdx = getLabelCol(a.headers);
       const showLabel = measOnly && labelIdx !== -1;
 
@@ -6925,7 +6999,8 @@ or ICC profiles</span>
             <tbody id="exp-table-body" style="font-family:monospace;color:#333;"></tbody>
           </table>
         </div>
-        ${measOnly ? '' : `${buildTvSectionHTML(false)}
+        ${measOnly ? '' : buildTvSectionHTML(false)}
+        ${(measOnly || noModel) ? '' : `
         <div onclick="toggleEstimate()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
           <span data-i18n="estimate">Estimate</span><span id="est-arrow">&#9658;</span>
         </div>
@@ -6944,7 +7019,7 @@ or ICC profiles</span>
       renderExpTable();
       renderPlot();
       if (!measOnly) {
-        updateEstimate();
+        if (!noModel) updateEstimate();
         buildTvColorantCheckboxes();
         renderTvChart();
       }
@@ -8173,13 +8248,13 @@ or ICC profiles</span>
       const gamutPanelHTML = (spec) => {
         const gs = _gamutState[spec.slot];
         const li = gs.lighting;
-        const measOnly = spec.slot !== 'img' && spec.data && spec.data.measurementOnly;
+        const noShell = spec.slot !== 'img' && spec.data && (spec.data.measurementOnly || spec.data.noModel);
         return `<div class="gamut-panel" id="gamut-panel-${spec.slot}" style="display:${gs.panelOpen ? 'flex' : 'none'};">
-          ${measOnly ? '' : `<div class="gamut-panel-row"><label><input type="checkbox" id="gs-shell-cb-${spec.slot}" onchange="setShellOn('${spec.slot}',this.checked)"${gs.shellOn ? ' checked' : ''}> <span data-i18n="show_shell">Show gamut shell</span></label></div>`}
+          ${noShell ? '' : `<div class="gamut-panel-row"><label><input type="checkbox" id="gs-shell-cb-${spec.slot}" onchange="setShellOn('${spec.slot}',this.checked)"${gs.shellOn ? ' checked' : ''}> <span data-i18n="show_shell">Show gamut shell</span></label></div>`}
           <div class="gamut-panel-row"><label><input type="checkbox" id="gs-points-cb-${spec.slot}" onchange="setPointsOn('${spec.slot}',this.checked)"${gs.pointsOn ? ' checked' : ''}> <span data-i18n="show_points">Show data points</span></label></div>
           <div class="gamut-panel-row"><label><input type="checkbox" id="gs-hue-cb-${spec.slot}" onchange="setHueOn('${spec.slot}',this.checked)"${gs.hueOn ? ' checked' : ''}> <span data-i18n="color_hue">Color by hue angle</span></label></div>
           <div class="gamut-panel-row"><label><input type="checkbox" id="gs-value-cb-${spec.slot}" onchange="setValueOn('${spec.slot}',this.checked)"${gs.valueOn ? ' checked' : ''}> <span data-i18n="color_value">Color by value</span></label></div>
-          ${measOnly ? '' : `<div class="gamut-panel-row">
+          ${noShell ? '' : `<div class="gamut-panel-row">
             <span data-i18n="opacity">Opacity</span>
             <input type="range" id="gs-alpha-r-${spec.slot}" min="0" max="100" value="${gs.alpha}" onchange="setGamutAlpha('${spec.slot}',+this.value)">
             <input type="number" id="gs-alpha-n-${spec.slot}" min="0" max="100" value="${gs.alpha}" onchange="setGamutAlpha('${spec.slot}',+this.value)">
@@ -8736,7 +8811,7 @@ or ICC profiles</span>
 
     // Fit the model via WASM and refresh the Estimate section content.
     function generateEstimateModel() {
-      if (!state.a) return;
+      if (!state.a || state.a.noModel) return;
       const wrap = document.getElementById('est-wrap');
 
       if (state.a.dataType === 'icc') {
@@ -8889,7 +8964,8 @@ or ICC profiles</span>
       _gamutState[slot].cachedXYZ = { x, y, z };
 
       // Fit polynomial model via WASM (if colorants are available and Gamut is loaded).
-      if (!window.Gamut || !data.colorants || data.colorants.length === 0) return;
+      // CxF/X-4 spot-ink data (noModel) keeps its point cloud but is never fitted.
+      if (!window.Gamut || data.noModel || !data.colorants || data.colorants.length === 0) return;
       const iC = data.colorants.map(c => data.headers.indexOf(c));
       if (iC.some(i => i < 0)) return;
 

@@ -97,7 +97,7 @@ button.cd-uihint::after { content:"\2317"; font-size:0.85em; opacity:0.65; margi
   <p class="subtitle">Browser-based colour characterisation data explorer and comparator</p>
 
 <p><strong>CharData</strong> is a browser-based tool for exploring and comparing colour characterisation datasets and ICC profiles. It runs entirely in your browser with no installation required — all data stays local to the browser, with no upload to any server — and works on both desktop and mobile. CharData pairs with <a href="https://chardata.colourbill.com/profiletool/" style="color:#1a73e8;font-weight:bold;text-decoration:none;">profiletool</a>, a companion in-browser ICC profile inspector and editor: when an ICC profile slot is open, the <strong>Launch editor</strong> button hands the loaded profile directly to profiletool in a new tab for header / tag inspection or full editing — same browser session, no upload.</p>
-<p>A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L*a*b* colorimetry and, optionally, spectral reflectance. CharData accepts these files in <strong>CGATS/IT8</strong>, <strong>CSV</strong>, and <strong>CxF/X-3</strong> formats. CharData also accepts <strong>ICC profiles</strong> (output, input, display, and colorspace classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.</p>
+<p>A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L*a*b* colorimetry and, optionally, spectral reflectance. CharData accepts these files in <strong>CGATS/IT8</strong>, <strong>CSV</strong>, <strong>CxF/X-3</strong>, and <strong>CxF/X-4</strong> (spot ink characterisation) formats. CharData also accepts <strong>ICC profiles</strong> (output, input, display, and colorspace classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.</p>
 <p><strong>What you can do with CharData:</strong></p>
 <ul>
 <li><strong>Explore a single dataset or profile</strong> — browse the data table, visualise the colour gamut in 3D L*a*b* space, examine a 2D slice at any L*, a*, or b* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L*a*b* for any device colorant combination.</li>
@@ -266,7 +266,7 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <text x="283.5" y="181" text-anchor="end" class="t3">Dataset boxes — in the main canvas (drag a card here)</text><line x1="89" y1="23" x2="83" y2="4" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="83" y="1" text-anchor="end" class="t3">File Select pane</text><line x1="625" y1="31" x2="702" y2="4" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,2"/>
 <text x="702" y="1" text-anchor="start" class="t3">Settings panel</text>
-</svg><p>CharData accepts <strong>CSV</strong>, <strong>CGATS/IT8</strong>, and <strong>CxF/X-3</strong> text files. CGATS is also published as <strong>ISO 28178</strong> — these are the same format. CxF/X-3 (ISO 17972-3, the <em>Color Exchange Format</em>) is the XML format produced by X-Rite i1Profiler, BabelColor PatchTool, and similar tools.</p>
+</svg><p>CharData accepts <strong>CSV</strong>, <strong>CGATS/IT8</strong>, <strong>CxF/X-3</strong>, and <strong>CxF/X-4</strong> text files. CGATS is also published as <strong>ISO 28178</strong> — these are the same format. CxF/X-3 (ISO 17972-3, the <em>Color Exchange Format</em>) is the XML format produced by X-Rite i1Profiler, BabelColor PatchTool, and similar tools. CxF/X-4 (ISO 17972-4) is the spot-ink-characterisation variant of the same XML format — see <a href="#cxf-x-4-files-spot-ink-characterisation">CxF/X-4 files</a>.</p>
 <h3 id="required-columns">Required columns</h3>
 <p>Every file must contain L*a*b* columns (or spectral data from which they are computed). A device colorant column is needed for the full feature set, but is not required to load the file — see <a href="#measurement-only-datasets">Measurement-only datasets</a> below.</p>
 <table><thead>
@@ -287,6 +287,16 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <tr><td><code>DeviceColorValues</code> → <code>ColorCMYK</code> / <code>ColorCMYKPlusN</code> / <code>ColorRGB</code></td><td>device colorant columns (0–100)</td></tr>
 </tbody></table>
 <p>The first measurement block per object is used (one measurement condition). Many CxF files in the wild — measurement-only QC files and converted output targets — carry no device colorant values; these load as <a href="#measurement-only-datasets">measurement-only datasets</a>. CxF is also available as an <strong>Export</strong> format (via the Extract → Export controls in Explore mode), writing a full CxF/X-3 document with <code>ColorCMYK</code>/<code>ColorCMYKPlusN</code>, <code>ColorCIELab</code>, <code>ReflectanceSpectrum</code>, and a <code>ColorSpecification</code> derived from the current illuminant / observer / M-condition.</p>
+<h3 id="cxf-x-4-files-spot-ink-characterisation">CxF/X-4 files (spot ink characterisation)</h3>
+<p>CxF/X-4 (ISO 17972-4) communicates the characterisation of a <strong>single spot ink</strong> as a set of tint patches. Each measured object is tied to a <strong>tint level</strong> (0–100 % coverage) through the file's <code>SpotInkCharacterisation</code> resource. The standard defines three conformance levels, all of which CharData accepts and labels in the file panel:</p>
+<table><thead>
+<tr><th>Variant</th><th>Contents</th></tr></thead><tbody>
+<tr><td><strong>CxF/X-4</strong></td><td>Full characterisation: a tint ramp printed on the substrate <strong>and</strong> a second ramp printed over black</td></tr>
+<tr><td><strong>CxF/X-4a</strong></td><td>Single-background characterisation: one tint ramp on the substrate</td></tr>
+<tr><td><strong>CxF/X-4b</strong></td><td>Single-patch characterisation: just the solid (100 %) and the substrate (0 %)</td></tr>
+</tbody></table>
+<p>CharData loads these as characterisation datasets with <strong>one or two device colorants</strong>: the spot ink itself (column named after the file's ink name, value = tint level) and — for full CxF/X-4 — a <code>PROCESS_BLACK</code> column that is 0 for the substrate ramp and 100 for the over-black ramp. Colour comes from each object's spectral reflectance (Lab is computed per the <a href="#spectral-lab">Spectral → LAB</a> settings) or its CIELab values.</p>
+<p>The point cloud, 2D slice, data table, Tone Value chart, Extract/Export, and Compare all work as for any other characterisation data. Because one or two tint ramps don't sample enough of a colour space to fit a useful polynomial model, the gamut <strong>shell</strong> and <strong>Estimate</strong> are unavailable for CxF/X-4 data.</p>
 <h3 id="measurement-only-datasets">Measurement-only datasets</h3>
 <p>A file that has L*a*b* and/or spectral data but <strong>no device colorant columns</strong> (common in CxF, but also possible in CGATS/CSV) loads as a <em>measurement-only</em> dataset. For these, CharData can:</p>
 <ul>
@@ -342,7 +352,7 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <table><thead>
 <tr><th>Section</th><th>Contains</th></tr></thead><tbody>
 <tr><td><strong>Standard datasets</strong></td><td>Built-in industry reference datasets (FOGRA, IFRA, APTEC, ISO 15339 / CRPC, EUROSB, JapanColor) shipped with the app. Click any entry to load it as if it were a local file, or drag an entry directly onto Dataset A or Dataset B. Once loaded it also appears in the Characterization data section below. Defaults to collapsed.</td></tr>
-<tr><td><strong>Characterization data</strong></td><td>CSV, CGATS/IT8, and CxF/X-3 files (your own or loaded from Standard datasets)</td></tr>
+<tr><td><strong>Characterization data</strong></td><td>CSV, CGATS/IT8, CxF/X-3, and CxF/X-4 files (your own or loaded from Standard datasets)</td></tr>
 <tr><td><strong>ICC Profiles</strong></td><td><code>.icc</code> / <code>.icm</code> binary profiles</td></tr>
 </tbody></table>
 <p>Click a section header (▾) to collapse or expand that section; the state persists between sessions. The button at the top loads files of either kind — CharData detects each file's type and routes it into the correct section automatically.</p>
@@ -358,6 +368,7 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <tr><td>CSV</td><td>File name, type <strong>CSV</strong>, row count, validation, device colorants, spectral status</td></tr>
 <tr><td>CGATS / ISO 28178</td><td>File name, type <strong>Characterization dataset</strong>, row count, validation, device colorants, spectral status</td></tr>
 <tr><td>CxF/X-3</td><td>File name, type <strong>CxF/X-3</strong>, row count, validation, device colorants (or "none" for measurement-only), spectral status</td></tr>
+<tr><td>CxF/X-4</td><td>As CxF/X-3, but typed <strong>CxF/X-4</strong> / <strong>X-4a</strong> / <strong>X-4b</strong> by conformance level, with the spot ink (and <code>PROCESS_BLACK</code> backing, if present) as device colorants</td></tr>
 <tr><td>ICC profile</td><td>File name, type <strong>ICC Profile</strong>, color space + colorants, <strong>Rendering intent</strong> dropdown</td></tr>
 </tbody></table>
 <p>Row counts, CGATS header warnings, and the "Colorimetric only" message are not shown for ICC profiles — they don't apply.</p>
