@@ -3723,7 +3723,7 @@ or ICC profiles</span>
       // Colorants + spectral status
       if (colorantsEl) {
         let html = s.colorants.length
-          ? t('device_colorants') + ' ' + s.colorants.join(', ')
+          ? t('device_colorants') + ' ' + s.colorants.map(escapeHtml).join(', ')
           : t('no_device_colorants');
         html += s.hasSpectral
           ? `<br><span style="color:#4a90e2;">${t('has_spectral')}</span>`
@@ -6967,10 +6967,10 @@ or ICC profiles</span>
             <div style="display:flex;flex-direction:column;gap:6px;">
               <div style="font-size:11px;color:#888;" data-i18n="remove_colorants_hint">Remove selected colorants from data.</div>
               <div style="border:1px solid #ddd;border-radius:6px;padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-              ${a.colorants.map(c =>
-                '<div id="colorant-chip-' + c + '" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:12px;background:' + (_pendingColorantDeletes.has(c) ? '#fde8e8' : '#f0f0f0') + ';border:1px solid ' + (_pendingColorantDeletes.has(c) ? '#e74c3c' : '#ccc') + ';transition:background 0.1s,border-color 0.1s;">'
-                + '<span>' + c + '</span>'
-                + '<button onclick="toggleColorantDelete(\'' + c + '\')" title="' + t('remove_item',{item:c}) + '" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:none;border:none;padding:0;cursor:pointer;color:#999;margin-left:2px;border-radius:2px;" onmouseover="this.style.color=\'#e74c3c\'" onmouseout="this.style.color=\'#999\'">'
+              ${a.colorants.map((c, i) =>
+                '<div id="colorant-chip-' + i + '" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:12px;background:' + (_pendingColorantDeletes.has(c) ? '#fde8e8' : '#f0f0f0') + ';border:1px solid ' + (_pendingColorantDeletes.has(c) ? '#e74c3c' : '#ccc') + ';transition:background 0.1s,border-color 0.1s;">'
+                + '<span>' + escapeHtml(c) + '</span>'
+                + '<button onclick="toggleColorantDelete(' + i + ')" title="' + t('remove_item',{item:c}) + '" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:none;border:none;padding:0;cursor:pointer;color:#999;margin-left:2px;border-radius:2px;" onmouseover="this.style.color=\'#e74c3c\'" onmouseout="this.style.color=\'#999\'">'
                 + '<svg width="9" height="11" viewBox="0 0 11 13" fill="currentColor"><rect x="1" y="2.5" width="9" height="1.2" rx="0.5"/><rect x="3.5" y="0.5" width="4" height="2" rx="0.5"/><path d="M2 4.2l.55 7.3h5.9l.55-7.3z"/></svg>'
                 + '</button></div>'
               ).join('')}
@@ -7118,13 +7118,17 @@ or ICC profiles</span>
       applyTranslations();
     }
 
-    function toggleColorantDelete(colorant) {
+    function toggleColorantDelete(idx) {
+      // idx-keyed (not name-keyed) so untrusted colorant names never reach an
+      // HTML attribute or inline-handler string — see SECURITY-FOLLOWUPS.md #4/#5.
+      const colorant = state.a && state.a.colorants ? state.a.colorants[idx] : undefined;
+      if (colorant === undefined) return;
       if (_pendingColorantDeletes.has(colorant)) {
         _pendingColorantDeletes.delete(colorant);
       } else {
         _pendingColorantDeletes.add(colorant);
       }
-      const chip = document.getElementById('colorant-chip-' + colorant);
+      const chip = document.getElementById('colorant-chip-' + idx);
       if (!chip) return;
       const pending = _pendingColorantDeletes.has(colorant);
       chip.style.background = pending ? '#fde8e8' : '#f0f0f0';

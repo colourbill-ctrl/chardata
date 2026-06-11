@@ -55,7 +55,27 @@ static std::string formatSpectralRange(const icSpectralRange& r) {
   return std::string(buf);
 }
 
+// Reject obviously-bad sizes before IccProfLib parses untrusted bytes — mirrors
+// the 32 MB / 128-byte guard in gamut-wrapper.cpp's loadIccProfile. Returns a
+// JSON error string when the input is out of range, or an empty string when OK.
+static std::string iccSizeGuard(std::size_t len) {
+  // Typical ICC files are <2 MB; cap at 32 MB to protect the WASM heap from DoS
+  // via a maliciously huge profile.
+  if (len > 32u * 1024u * 1024u) {
+    return json{{"error", "profile too large (>32 MB)"}}.dump();
+  }
+  // ICC v2/v4 header is 128 bytes minimum (the magic check at offset 36 also
+  // requires this); reject obviously-truncated input.
+  if (len < 128) {
+    return json{{"error", "profile too small (<128 bytes)"}}.dump();
+  }
+  return std::string();
+}
+
 static std::string validateBytes(const std::uint8_t* data, std::size_t len) {
+  std::string sizeErr = iccSizeGuard(len);
+  if (!sizeErr.empty()) return sizeErr;
+
   std::string sReport;
   icValidateStatus nStatus = icValidateOK;
   CIccProfile* pProfile = ValidateIccProfile(
@@ -234,6 +254,9 @@ static std::string describeTagBytes(const std::uint8_t* data, std::size_t len,
       (static_cast<icUInt32Number>(static_cast<unsigned char>(tagSig[1])) << 16) |
       (static_cast<icUInt32Number>(static_cast<unsigned char>(tagSig[2])) <<  8) |
       (static_cast<icUInt32Number>(static_cast<unsigned char>(tagSig[3])));
+
+  std::string sizeErr = iccSizeGuard(len);
+  if (!sizeErr.empty()) return sizeErr;
 
   std::string sReport;
   icValidateStatus nStatus = icValidateOK;

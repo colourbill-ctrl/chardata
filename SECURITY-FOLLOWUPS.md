@@ -67,6 +67,70 @@ silently-updated transitive dependencies between deploys. Switched to
 `npm ci --omit=dev` so the committed `package-lock.json` is the source
 of truth.
 
+## Resolved in 1.9.x review (2026-06-11)
+
+Full-codebase scan (chardata + profiletool) plus live header/TLS/dependency
+review. Two genuinely exploitable XSS sinks found in chardata — both
+escaping-convention regressions in code added *after* the 1.4.0 sweep.
+
+### 7. Stored XSS in Extract "remove colorant" chips ✓ DONE
+
+`renderExplore()` (`public/index.html` ~6970) interpolated a device-colorant
+name (CSV/CGATS column header or CxF `SpotInkName` — attacker-controlled) into
+three sinks unescaped at once: the `id` attribute, the chip `<span>`, and an
+inline `onclick="toggleColorantDelete('…')"` **JS-string literal**. A CSV header
+like `');alert(document.cookie)//` broke out of the handler string and executed
+on click — the exact name-keyed-handler anti-pattern #4/#5 were supposed to have
+eliminated (the Extract chip control in the same Explore view was missed).
+
+Fix: index-keyed the handler (`toggleColorantDelete(idx)` resolves the name
+internally via `state.a.colorants[idx]`, mirroring `onEstimateInput`), `id` is
+now `colorant-chip-<idx>`, and the visible `<span>` goes through `escapeHtml`.
+Verified end-to-end (headless): payload renders as inert text, no execution on
+click, delete-toggle still works.
+
+### 8. XSS in file-panel colorant line on language switch ✓ DONE
+
+`refreshPanelUI()` (`public/index.html` ~3725) wrote `s.colorants.join(', ')`
+into `colorantsEl.innerHTML` unescaped — the re-localization path (only caller:
+`onLangChange`) forgot the `escapeHtml` that the first-render path at ~4941
+already applies. Trigger: load a malicious file, then change UI language.
+Fix: `s.colorants.map(escapeHtml).join(', ')`. Verified (French switch, no exec).
+
+### 9. ICC-viewer WASM size guard ✓ DONE
+
+`icc-viewer-wasm/wrapper.cpp` handed bytes straight to `ValidateIccProfile`
+with no wrapper-level cap (unlike `gamut-wrapper.cpp`). Added a shared
+`iccSizeGuard` (32 MB / 128-byte, matching the lcms2 path) to `validateBytes`
+and `describeTagBytes`. WASM rebuilt + committed; valid profiles still display
+(verified with a FOGRA39L CMYK profile — 81×81 CLUT raster paints).
+
+### 10. Shared IccVizModel CLUT-raster hardening ✓ DONE
+
+`iccviz/IccVizModel.cpp` (the engine shared with profiletool via `window.IccViz`)
+`buildClutRaster`: tile-count and image-buffer geometry are profile-derived and
+were computed in `int`/`size_t` (32-bit on wasm32) — a positive overflow could
+land on a small value that escaped the `<=0` guards and under-sized the buffer.
+Fixed: 64-bit accumulation with overflow bail on the tile loop, a `uint64_t`
+buffer-size ceiling (256 MB) before `assign`, a zero-divisor guard on the
+row-alignment modulus, a null check on `GetData(0)`, and `strnlen`-bounded
+construction of the colorant/named-colour label strings. Unreachable behind the
+input cap today, but no longer relies on an implicit upstream invariant. Built
+into both chardata (`icc-viewer.wasm`) and profiletool (`iccplot.wasm`).
+
+### 11. Deploy workflow action SHA-pin + least privilege ✓ DONE
+
+`.github/workflows/deploy.yml` pinned `appleboy/ssh-action@v1.0.3` by **mutable
+tag** while handing it `SSH_PRIVATE_KEY`. Pinned to the commit SHA
+(`029f5b4…`, matching profiletool's SHA-pin convention) and added
+`permissions: {}` (the job never uses `GITHUB_TOKEN`).
+
+### 12. express/qs DoS advisory ✓ DONE
+
+`npm audit fix` bumped express 4.21→4.22.2 / qs→6.15.2 (GHSA-q8mj-m7cp-5q26).
+Not practically reachable on a static file server, but cleared to keep the
+audit green. `package.json` unchanged; lockfile only.
+
 ## Still deferred
 
 ### lcms2 vendored-submodule tracking
