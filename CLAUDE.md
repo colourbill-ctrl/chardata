@@ -182,6 +182,38 @@ Either step failing aborts the commit.
 
 Pushes to `main` auto-deploy to AWS Lightsail via `.github/workflows/deploy.yml`: SSH in, `git fetch && reset --hard`, `npm install --omit=dev`, restart pm2. No server-side build. Live at `chardata.colourbill.com`. Required GitHub Actions secrets: `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`.
 
+The displayed version comes from `version.txt`, which the deploy regenerates from `git describe --tags --abbrev=0` — so **the git tag is the source of truth for the live version**, not `package.json`. The workflow also triggers on tag pushes; pushing `main` and the tag together is the normal release flow (the `deploy-lightsail` concurrency group cancels the `main` run and lets the tag run win, which is what stamps `version.txt`).
+
+> **Lightsail SSH host:** `chardata.colourbill.com` is now Cloudflare-proxied (port 22 is not exposed). The `SSH_HOST` secret and the local `~/.ssh/config` `chardata` alias must point at the **Lightsail origin IP `54.203.184.14`**, never the hostname. See `profiletool/CLAUDE.md` for the full gotcha.
+
+### Releasing (runbook)
+
+Patch release that just rebuilds the bundled IccProfLib WASM against the latest iccDEV (the common case — picking up upstream leak/hardening fixes):
+
+```bash
+# 1. Build the icc-viewer WASM against a CLEAN iccDEV master (not a feature/test branch)
+git -C ~/code/iccdev worktree add --detach /tmp/iccdev-clean origin/master
+source ~/emsdk-install/emsdk/emsdk_env.sh
+ICCDEV_ROOT=/tmp/iccdev-clean scripts/build-icc-viewer-wasm.sh   # writes public/wasm/icc-viewer.{mjs,wasm}
+git -C ~/code/iccdev worktree remove /tmp/iccdev-clean --force
+
+# 2. Bump the version in BOTH package.json and package-lock.json (root "version" + packages."" only;
+#    leave dependency version fields like ipaddr.js alone). Use a patch bump for a pure library rebuild.
+
+# 3. Commit only the intended files (NOT the repo's untracked manual_test*/about_me* scratch files):
+git add package.json package-lock.json public/wasm/icc-viewer.mjs public/wasm/icc-viewer.wasm
+git commit            # subject convention: "X.Y.Z: <summary>"; trailer Co-Authored-By: Claude ...
+
+# 4. Tag + push main + tag (both trigger the deploy; tag run stamps version.txt):
+git tag -a X.Y.Z -F <same message>
+git push origin main && git push origin X.Y.Z
+
+# 5. GitHub release (these ARE the release notes — there is no CHANGELOG file):
+gh release create X.Y.Z --title "X.Y.Z — <summary>" --notes-file <notes.md>
+```
+
+The pre-commit hook only rebuilds WASM when `gamut-wasm/` or `icc-viewer-wasm/` **source** is staged; staging just `public/wasm/*` artifacts (as above) leaves the hook a no-op, so your manual clean-iccDEV build ships as-is. Verify after deploy: `curl -fsS https://chardata.colourbill.com/version.txt` → `X.Y.Z`.
+
 ### Deferred hardening
 
 `SECURITY-FOLLOWUPS.md` (repo root) is the rolling security log. The 1.4.0 and 1.6.0 findings (CSP enable, `escapeHtml` sweep, max-file-size guard, Estimate/Explore XSS sinks, `npm ci` supply-chain pin) are all resolved and recorded there. Still deferred: tracking the vendored **lcms2** submodule for upstream CVE bumps, and adding a CSP `report-uri` / `report-to` endpoint so production violations are observable. Read the file before claiming a fresh security pass is complete.
