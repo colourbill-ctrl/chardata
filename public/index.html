@@ -287,6 +287,7 @@
       /* Hide desktop toggle strips */
       #fs-blade-toggle, #blade-toggle, #blade-help-btn, #blade-contact-btn { display: none !important; }
       #fs-resize-handle { display: none !important; }
+      .plot-resize-handle { display: none !important; }
       /* Show mobile controls */
       #mobile-fab-files { display: flex; }
       #mobile-hamburger { display: flex; }
@@ -555,6 +556,25 @@
     body.dark #file-select-blade:not(.collapsed) #fs-resize-handle { border-left-color: #3a3b40; }
     #file-select-blade.collapsed #fs-resize-handle { cursor: pointer; }
     body.fs-resizing { cursor: ew-resize !important; user-select: none !important; }
+    /* Horizontal drag handle on the bottom edge of a plot's graphing area — lets
+       the user change the plot height (aspect ratio). Mirrors #fs-resize-handle's
+       3-dots grip + hover highlight, rotated to a horizontal row of dots. */
+    .plot-resize-handle {
+      height: 7px; width: 100%; flex-shrink: 0;
+      cursor: ns-resize;
+      background-color: transparent;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='3' viewBox='0 0 22 3'><circle cx='2' cy='1.5' r='1' fill='%23999'/><circle cx='8' cy='1.5' r='1' fill='%23999'/><circle cx='14' cy='1.5' r='1' fill='%23999'/><circle cx='20' cy='1.5' r='1' fill='%23999'/></svg>");
+      border-top: 1px solid #e3e6ea;
+      transition: background-color 0.15s;
+    }
+    .plot-resize-handle:hover, .plot-resize-handle.dragging {
+      background-color: #4a90e2;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='3' viewBox='0 0 22 3'><circle cx='2' cy='1.5' r='1' fill='white'/><circle cx='8' cy='1.5' r='1' fill='white'/><circle cx='14' cy='1.5' r='1' fill='white'/><circle cx='20' cy='1.5' r='1' fill='white'/></svg>");
+    }
+    body.dark .plot-resize-handle { border-top-color: #3a3b40; }
+    body.plot-resizing { cursor: ns-resize !important; user-select: none !important; }
     .file-card {
       background: #fafafa;
       border-top: 1px solid #e8e8e8;
@@ -655,6 +675,10 @@
     .slice-controls label { display:flex; align-items:center; gap:4px; cursor:pointer; }
     .slice-controls input[type=range] { width:90px; }
     .slice-controls input[type=number] { width:46px; padding:1px 3px; font-size:11px; border:1px solid #ccc; border-radius:3px; }
+    #slice-reset-zoom { font-size:11px; padding:2px 8px; border:1px solid #ccc; border-radius:3px; background:#f7f8fa; color:#555; cursor:pointer; }
+    #slice-reset-zoom:hover { background:#eef3fb; border-color:#4a90e2; color:#4a90e2; }
+    body.dark #slice-reset-zoom { background:#2a2b2e; color:#ccc; border-color:#444; }
+    body.dark #slice-reset-zoom:hover { background:#33353a; border-color:#4a90e2; color:#8ec0f0; }
 
     /* ── Tone Value section ── */
     #tv-ctrl-col { overflow: hidden; }
@@ -1218,6 +1242,7 @@ or ICC profiles</span>
       <div style="position:relative;">
         <div id="plot" style="width:100%;height:600px;"></div>
       </div>
+      <div id="plot-resize-handle" class="plot-resize-handle" data-i18n-title="drag_to_resize" title="Drag to resize"></div>
       <div id="plot-controls-box" style="border-top:1px solid #ddd;font-size:12px;color:#555;">
         <div onclick="togglePlotControls()" style="cursor:pointer;padding:5px 10px;font-weight:bold;display:inline-flex;align-items:center;gap:6px;user-select:none;">
           <span id="plot-controls-arrow">&#9660;</span><span data-i18n="controls">Controls</span>
@@ -1265,8 +1290,10 @@ or ICC profiles</span>
         <label><input type="radio" name="slice-falloff" value="hard" onchange="setSliceFalloff('hard')"> <span data-i18n="hard">Hard</span></label>
         <label><input type="radio" name="slice-falloff" value="soft" checked onchange="setSliceFalloff('soft')"> <span data-i18n="soft">Soft</span></label>
         <label style="margin-left:8px;"><input type="checkbox" id="slice-show-pts" checked onchange="setSliceShowPoints(this.checked)"> <span data-i18n="show_data_points">Show data points</span></label>
+        <button id="slice-reset-zoom" onclick="resetSliceZoom()" style="margin-left:8px;" data-i18n="reset_zoom">Reset zoom</button>
       </div>
       <div id="slice-plot" style="width:100%;height:420px;"></div>
+      <div id="slice-resize-handle" class="plot-resize-handle" data-i18n-title="drag_to_resize" title="Drag to resize"></div>
     </div>
   </div>
 
@@ -1580,6 +1607,7 @@ or ICC profiles</span>
         image_err_pdf_filter:'PDF image filter is not supported. Re-save the PDF with JPEG or ZIP compression.',
         close_file_select:'Close file select',
         drag_to_resize:'Drag to resize',
+        reset_zoom:'Reset zoom',
         contact_btn:'Contact',
         remove_file_tip:'Remove file',
         rendering_intent_label:'Rendering intent:',
@@ -1762,6 +1790,7 @@ or ICC profiles</span>
         image_err_pdf_filter:'Filtre d’image PDF non pris en charge. Réenregistrez le PDF avec une compression JPEG ou ZIP.',
         close_file_select:'Fermer la sélection de fichiers',
         drag_to_resize:'Glisser pour redimensionner',
+        reset_zoom:'Réinitialiser le zoom',
         contact_btn:'Contact',
         remove_file_tip:'Supprimer le fichier',
         rendering_intent_label:'Intention de rendu :',
@@ -1944,6 +1973,7 @@ or ICC profiles</span>
         image_err_pdf_filter:'PDF-Bildfilter nicht unterstützt. PDF mit JPEG- oder ZIP-Komprimierung erneut speichern.',
         close_file_select:'Dateiauswahl schließen',
         drag_to_resize:'Ziehen zum Ändern der Größe',
+        reset_zoom:'Zoom zurücksetzen',
         contact_btn:'Kontakt',
         remove_file_tip:'Datei entfernen',
         rendering_intent_label:'Rendering-Intent:',
@@ -2126,6 +2156,7 @@ or ICC profiles</span>
         image_err_pdf_filter:'Filtro immagine PDF non supportato. Salva nuovamente il PDF con compressione JPEG o ZIP.',
         close_file_select:'Chiudi selezione file',
         drag_to_resize:'Trascina per ridimensionare',
+        reset_zoom:'Reimposta zoom',
         contact_btn:'Contatto',
         remove_file_tip:'Rimuovi file',
         rendering_intent_label:'Intento di rendering:',
@@ -2308,6 +2339,7 @@ or ICC profiles</span>
         image_err_pdf_filter:'Filtro de imagen del PDF no compatible. Vuelva a guardar el PDF con compresión JPEG o ZIP.',
         close_file_select:'Cerrar selección de archivos',
         drag_to_resize:'Arrastrar para cambiar el tamaño',
+        reset_zoom:'Restablecer zoom',
         contact_btn:'Contacto',
         remove_file_tip:'Eliminar archivo',
         rendering_intent_label:'Propósito de representación:',
@@ -2490,6 +2522,7 @@ or ICC profiles</span>
         image_err_pdf_filter:'Filtro de imagem do PDF não suportado. Volte a guardar o PDF com compressão JPEG ou ZIP.',
         close_file_select:'Fechar seleção de ficheiros',
         drag_to_resize:'Arrastar para redimensionar',
+        reset_zoom:'Repor zoom',
         contact_btn:'Contacto',
         remove_file_tip:'Remover ficheiro',
         rendering_intent_label:'Intenção de processamento:',
@@ -2672,6 +2705,7 @@ or ICC profiles</span>
         image_err_pdf_filter:'Filtro de imagem do PDF não suportado. Salve o PDF novamente com compressão JPEG ou ZIP.',
         close_file_select:'Fechar seleção de arquivos',
         drag_to_resize:'Arrastar para redimensionar',
+        reset_zoom:'Redefinir zoom',
         contact_btn:'Contato',
         remove_file_tip:'Remover arquivo',
         rendering_intent_label:'Intenção de renderização:',
@@ -2854,6 +2888,7 @@ or ICC profiles</span>
         image_err_pdf_filter:'不支持的 PDF 图像过滤器。请使用 JPEG 或 ZIP 压缩重新保存 PDF。',
         close_file_select:'关闭文件选择',
         drag_to_resize:'拖动以调整大小',
+        reset_zoom:'重置缩放',
         contact_btn:'联系',
         remove_file_tip:'删除文件',
         rendering_intent_label:'渲染意图：',
@@ -3036,6 +3071,7 @@ or ICC profiles</span>
         image_err_pdf_filter:'不支援的 PDF 影像濾鏡。請使用 JPEG 或 ZIP 壓縮重新儲存 PDF。',
         close_file_select:'關閉檔案選擇',
         drag_to_resize:'拖曳以調整大小',
+        reset_zoom:'重置縮放',
         contact_btn:'聯絡',
         remove_file_tip:'刪除檔案',
         rendering_intent_label:'渲染意圖：',
@@ -3218,6 +3254,7 @@ or ICC profiles</span>
         image_err_pdf_filter:'PDF の画像フィルターはサポートされていません。JPEG または ZIP 圧縮で PDF を保存し直してください。',
         close_file_select:'ファイル選択を閉じる',
         drag_to_resize:'ドラッグしてサイズ変更',
+        reset_zoom:'ズームをリセット',
         contact_btn:'お問い合わせ',
         remove_file_tip:'ファイルを削除',
         rendering_intent_label:'レンダリングインテント：',
@@ -3400,6 +3437,7 @@ or ICC profiles</span>
         image_err_pdf_filter:'지원되지 않는 PDF 이미지 필터입니다. JPEG 또는 ZIP 압축으로 PDF를 다시 저장하세요.',
         close_file_select:'파일 선택 닫기',
         drag_to_resize:'드래그하여 크기 조정',
+        reset_zoom:'확대/축소 초기화',
         contact_btn:'문의',
         remove_file_tip:'파일 제거',
         rendering_intent_label:'렌더링 의도:',
@@ -3587,6 +3625,7 @@ or ICC profiles</span>
         image_err_pdf_filter:'PDF-bildfiltret stöds inte. Spara om PDF:en med JPEG- eller ZIP-komprimering.',
         close_file_select:'Stäng filval',
         drag_to_resize:'Dra för att ändra storlek',
+        reset_zoom:'Återställ zoom',
         contact_btn:'Kontakt',
         remove_file_tip:'Ta bort fil',
         rendering_intent_label:'Renderingsintention:',
@@ -3878,7 +3917,10 @@ or ICC profiles</span>
     let _plotColors  = [];       // per-trace dot color, set during renderPlot
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
     let _nSpecs = 0;             // number of datasets; shell traces at 0.._nSpecs-1, scatter at _nSpecs..2*_nSpecs-1
-    const _sliceState = { axis: 'L', value: 50, thickness: 1, falloff: 'soft', showPoints: true };
+    const _sliceState = { axis: 'L', value: 50, thickness: 1, falloff: 'soft', showPoints: true, zoom: 1 };
+    // Base (zoom=1) axis ranges from the last renderSlicePlot, so scroll-wheel zoom
+    // can rescale without re-running the WASM slice build. null until first render.
+    let _sliceBaseRange = null;
     const _sliceVisible = { a: true, b: true };
     const _gamutState = {
       a: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null, panelOpen: false,
@@ -5621,6 +5663,64 @@ or ICC profiles</span>
       };
       handle.addEventListener('pointerup', stop);
       handle.addEventListener('pointercancel', stop);
+    })();
+
+    // Scroll-wheel zoom for the Gamut Slice plot. The handler reads the consts /
+    // helpers declared later in this scope — they're initialised by the time a wheel
+    // event fires, so referencing them here is safe.
+    (function setupSliceWheelZoom() {
+      const sliceEl = document.getElementById('slice-plot');
+      if (!sliceEl) return;
+      sliceEl.addEventListener('wheel', e => {
+        if (!_sliceBaseRange) return;            // nothing plotted yet
+        e.preventDefault();                      // don't scroll the page
+        const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+        _sliceState.zoom = Math.min(_SLICE_ZOOM_MAX, Math.max(_SLICE_ZOOM_MIN, _sliceState.zoom * factor));
+        _applySliceZoom();
+      }, { passive: false });
+    })();
+
+    // Bottom-edge drag handles that let the user change a plot's height (aspect
+    // ratio). Mirrors setupFsResize: 3-dots grip, dragging highlight, sticky size.
+    // Auto-scaling of the data is untouched — only the canvas box changes.
+    (function setupPlotResize() {
+      if (_isMobile) return;
+      const setup = (handleId, plotId, storageKey, minH, maxH) => {
+        const handle = document.getElementById(handleId);
+        const plotEl = document.getElementById(plotId);
+        if (!handle || !plotEl) return;
+        const saved = parseInt(localStorage.getItem(storageKey) || '', 10);
+        if (saved && saved >= minH && saved <= maxH) plotEl.style.height = saved + 'px';
+        let dragging = false, startY = 0, startH = 0;
+        handle.addEventListener('pointerdown', e => {
+          dragging = true;
+          startY = e.clientY;
+          startH = plotEl.getBoundingClientRect().height;
+          handle.setPointerCapture(e.pointerId);
+          handle.classList.add('dragging');
+          document.body.classList.add('plot-resizing');
+        });
+        handle.addEventListener('pointermove', e => {
+          if (!dragging) return;
+          const h = Math.min(maxH, Math.max(minH, startH + (e.clientY - startY)));
+          plotEl.style.height = h + 'px';
+          if (plotEl._fullLayout && window.Plotly) Plotly.Plots.resize(plotEl);
+        });
+        const stop = e => {
+          if (!dragging) return;
+          dragging = false;
+          try { handle.releasePointerCapture(e.pointerId); } catch (_) {}
+          handle.classList.remove('dragging');
+          document.body.classList.remove('plot-resizing');
+          const h = parseInt(plotEl.style.height, 10);
+          if (h) localStorage.setItem(storageKey, String(h));
+          window.dispatchEvent(new Event('resize'));
+        };
+        handle.addEventListener('pointerup', stop);
+        handle.addEventListener('pointercancel', stop);
+      };
+      setup('plot-resize-handle', 'plot', 'plot3dHeight', 200, 1600);
+      setup('slice-resize-handle', 'slice-plot', 'sliceHeight', 200, 1600);
     })();
 
     // Mobile sheets + hamburger
@@ -9131,6 +9231,30 @@ or ICC profiles</span>
       renderSlicePlot();
     }
 
+    // ── Gamut-slice scroll-wheel zoom ────────────────────────────────────────
+    // Zoom keeps the auto-scaled range as its basis (data still drives the bounds);
+    // the factor only shrinks/grows the half-extent around the range centre, so
+    // "leave auto-scaling alone" still holds. zoom > 1 = zoomed in.
+    const _SLICE_ZOOM_MIN = 0.2, _SLICE_ZOOM_MAX = 20;
+    function _zoomRange(range, zoom) {
+      const c = (range[0] + range[1]) / 2;
+      const half = (range[1] - range[0]) / 2 / (zoom || 1);
+      return [c - half, c + half];
+    }
+    // Rescale the live plot to the current zoom via relayout — no WASM rebuild.
+    function _applySliceZoom() {
+      const sliceEl = document.getElementById('slice-plot');
+      if (!sliceEl || !_sliceBaseRange || !sliceEl._fullLayout || !window.Plotly) return;
+      Plotly.relayout(sliceEl, {
+        'xaxis.range': _zoomRange(_sliceBaseRange.x, _sliceState.zoom),
+        'yaxis.range': _zoomRange(_sliceBaseRange.y, _sliceState.zoom)
+      });
+    }
+    function resetSliceZoom() {
+      _sliceState.zoom = 1;
+      _applySliceZoom();
+    }
+
     async function renderSlicePlot() {
       const sectionEl = document.getElementById('slice-section');
       const sliceEl = document.getElementById('slice-plot');
@@ -9295,11 +9419,17 @@ or ICC profiles</span>
       const xAxisRange = _padRange(xLo, xHi, -128, 128);
       const yAxisRange = _padRange(yLo, yHi, axis === 'L' ? -128 : 0, axis === 'L' ? 128 : 100);
 
+      // Remember the auto-scaled (zoom=1) ranges so the scroll-wheel zoom can rescale
+      // them via relayout without a WASM rebuild, then apply the current zoom factor.
+      _sliceBaseRange = { x: xAxisRange.slice(), y: yAxisRange.slice() };
+      const zoomedX = _zoomRange(xAxisRange, _sliceState.zoom);
+      const zoomedY = _zoomRange(yAxisRange, _sliceState.zoom);
+
       const _th2 = getPlotTheme();
       const layout = {
         margin: { t: 20, r: 20, b: 50, l: 50 },
-        xaxis: { title: xlabel, range: xAxisRange, color: _th2.tickColor, gridcolor: _th2.gridColor, linecolor: _th2.lineColor, zerolinecolor: _th2.gridColor },
-        yaxis: { title: ylabel, range: yAxisRange, color: _th2.tickColor, gridcolor: _th2.gridColor, linecolor: _th2.lineColor, zerolinecolor: _th2.gridColor },
+        xaxis: { title: xlabel, range: zoomedX, color: _th2.tickColor, gridcolor: _th2.gridColor, linecolor: _th2.lineColor, zerolinecolor: _th2.gridColor },
+        yaxis: { title: ylabel, range: zoomedY, color: _th2.tickColor, gridcolor: _th2.gridColor, linecolor: _th2.lineColor, zerolinecolor: _th2.gridColor },
         showlegend: false,
         paper_bgcolor: _th2.paperBg,
         plot_bgcolor: _th2.plotBg,
