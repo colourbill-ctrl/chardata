@@ -214,6 +214,8 @@ gh release create X.Y.Z --title "X.Y.Z — <summary>" --notes-file <notes.md>
 
 The pre-commit hook only rebuilds WASM when `gamut-wasm/` or `icc-viewer-wasm/` **source** is staged; staging just `public/wasm/*` artifacts (as above) leaves the hook a no-op, so your manual clean-iccDEV build ships as-is. Verify after deploy: `curl -fsS https://chardata.colourbill.com/version.txt` → `X.Y.Z`.
 
+> **Why stage only artifacts:** if you stage `icc-viewer-wasm/` source, the hook rebuilds the WASM by linking IccProfLib straight from `ICCDEV_ROOT` (default `~/code/iccdev`) **as it is checked out at that moment** — which is frequently a dirty feature branch, not master. That once baked an unreleased `ci-refactor-cmake-pr1264` checkout into a release build. The hook now **aborts** the auto-rebuild unless `~/code/iccdev` is a clean `master` (override: `ALLOW_DIRTY_ICCDEV=1`); the runbook's build-clean-then-stage-only-artifacts flow sidesteps it entirely.
+
 ### Deferred hardening
 
 `SECURITY-FOLLOWUPS.md` (repo root) is the rolling security log. The 1.4.0 and 1.6.0 findings (CSP enable, `escapeHtml` sweep, max-file-size guard, Estimate/Explore XSS sinks, `npm ci` supply-chain pin) are all resolved and recorded there. Still deferred: tracking the vendored **lcms2** submodule for upstream CVE bumps, and adding a CSP `report-uri` / `report-to` endpoint so production violations are observable. Read the file before claiming a fresh security pass is complete.

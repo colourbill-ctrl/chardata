@@ -27,6 +27,33 @@ if echo "$STAGED" | grep -qE '^gamut-wasm/'; then
 fi
 
 if echo "$STAGED" | grep -qE '^icc-viewer-wasm/'; then
+    # Guard against shipping a WASM baked from the wrong iccDEV. The build links
+    # IccProfLib straight from ICCDEV_ROOT (default ~/code/iccdev) AS IT IS RIGHT
+    # NOW — so if that tree is on a feature branch or has uncommitted changes, the
+    # rebuilt artifact silently inherits them. This bit us once: a dirty
+    # ci-refactor-cmake-pr1264 checkout got baked into a release build. Refuse the
+    # auto-rebuild unless iccDEV is a clean `master` (override with
+    # ALLOW_DIRTY_ICCDEV=1 if you truly mean to use the current tree).
+    ICCDEV_ROOT="${ICCDEV_ROOT:-/home/colour/code/iccdev}"
+    if [ "${ALLOW_DIRTY_ICCDEV:-0}" != "1" ] && git -C "$ICCDEV_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+        ICCDEV_BRANCH=$(git -C "$ICCDEV_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null)
+        ICCDEV_DIRTY=$(git -C "$ICCDEV_ROOT" status --porcelain 2>/dev/null)
+        if [ "$ICCDEV_BRANCH" != "master" ] || [ -n "$ICCDEV_DIRTY" ]; then
+            echo ""
+            echo "ERROR: staging icc-viewer-wasm source triggers a WASM rebuild, but the"
+            echo "       iccDEV checkout at $ICCDEV_ROOT is not a clean master:"
+            echo "         branch: ${ICCDEV_BRANCH:-<unknown>}   dirty: $([ -n "$ICCDEV_DIRTY" ] && echo yes || echo no)"
+            echo ""
+            echo "       The baked WASM would inherit that tree's IccProfLib state. Either:"
+            echo "         - build manually against a clean base (e.g. a git worktree at"
+            echo "           origin/master) and stage ONLY public/wasm/icc-viewer.{mjs,wasm}"
+            echo "           so this hook no-ops — see the Releasing runbook in CLAUDE.md;"
+            echo "         - check iccDEV out to a clean master; or"
+            echo "         - re-run with ALLOW_DIRTY_ICCDEV=1 to use the current tree on purpose."
+            echo "       Commit aborted."
+            exit 1
+        fi
+    fi
     echo "icc-viewer-wasm source changed — rebuilding ICC viewer WASM..."
     if [ -n "$WSL_DISTRO_NAME" ] || grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null; then
         scripts/build-icc-viewer-wasm.sh
