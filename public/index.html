@@ -1338,6 +1338,14 @@ or ICC profiles</span>
       <div style="font-size:11px;font-weight:bold;color:#aaa;text-transform:uppercase;letter-spacing:0.04em;" data-i18n="spectral_lab">Spectral → LAB</div>
 
       <div class="blade-section">
+        <div class="blade-label" data-i18n="colorimetry_source">Colorimetry Source</div>
+        <select id="colorimetry-source" class="blade-select" onchange="onColorimetrySourceChange(this.value)">
+          <option value="spectral" data-i18n="prefer_spectral">Prefer spectral</option>
+          <option value="file" data-i18n="use_file_lab">Use file LAB</option>
+        </select>
+      </div>
+
+      <div class="blade-section">
         <div class="blade-label" data-i18n="illuminant">Illuminant</div>
         <select id="illuminant" class="blade-select">
           <option value="D50">D50</option>
@@ -1522,6 +1530,9 @@ or ICC profiles</span>
         cgats_header_warning:'File header is not standard CGATS (first line does not contain \u201cCGATS\u201d or \u201cISO28178\u201d)',
         valid:'\u2713 Valid',
         lab_from_spectral:'LAB computed from spectral ({ill} / {obs} / {mc})',
+        colorimetry_source:'Colorimetry Source', prefer_spectral:'Prefer spectral', use_file_lab:'Use file LAB',
+        lab_both_spectral:'File has both spectral and LAB; using LAB computed from spectral per preference.',
+        lab_both_file:'File has both spectral and LAB; using the file’s LAB per preference.',
         missing_cols:'Missing: {cols}',
         loaded_rows:'Loaded {n} rows.',
         loaded_rows_dedup:'Loaded {n} rows, reduced to {m} rows by filtering duplicates ({method}).',
@@ -1716,6 +1727,9 @@ or ICC profiles</span>
         cgats_header_warning:'L\u2019en-t\u00eate du fichier n\u2019est pas un CGATS standard (la premi\u00e8re ligne ne contient pas \u201cCGATS\u201d ou \u201cISO28178\u201d)',
         valid:'\u2713 Valide',
         lab_from_spectral:'LAB calculé depuis spectral ({ill} / {obs} / {mc})',
+        colorimetry_source:'Source colorimétrique', prefer_spectral:'Préférer le spectral', use_file_lab:'Utiliser le LAB du fichier',
+        lab_both_spectral:'Le fichier contient spectral et LAB ; LAB calculé depuis le spectral selon la préférence.',
+        lab_both_file:'Le fichier contient spectral et LAB ; utilisation du LAB du fichier selon la préférence.',
         missing_cols:'Manquant\u00a0: {cols}',
         loaded_rows:'{n} lignes chargées.',
         loaded_rows_dedup:'{n} lignes chargées, réduites à {m} par filtrage des doublons ({method}).',
@@ -1899,6 +1913,9 @@ or ICC profiles</span>
         cgats_header_warning:'Dateikopfzeile entspricht nicht Standard-CGATS (erste Zeile enth\u00e4lt weder \u201eCGATS\u201c noch \u201eISO28178\u201c)',
         valid:'\u2713 Gültig',
         lab_from_spectral:'LAB aus Spektraldaten ({ill} / {obs} / {mc})',
+        colorimetry_source:'Farbmetrik-Quelle', prefer_spectral:'Spektral bevorzugen', use_file_lab:'LAB aus Datei verwenden',
+        lab_both_spectral:'Datei enthält Spektral- und LAB-Daten; LAB aus Spektraldaten gemäß Einstellung.',
+        lab_both_file:'Datei enthält Spektral- und LAB-Daten; LAB aus Datei gemäß Einstellung.',
         missing_cols:'Fehlend: {cols}',
         loaded_rows:'{n} Zeilen geladen.',
         loaded_rows_dedup:'{n} Zeilen geladen, auf {m} durch Duplikatfilter ({method}) reduziert.',
@@ -2082,6 +2099,9 @@ or ICC profiles</span>
         cgats_header_warning:'L\u2019intestazione del file non \u00e8 CGATS standard (la prima riga non contiene \u201cCGATS\u201d o \u201cISO28178\u201d)',
         valid:'\u2713 Valido',
         lab_from_spectral:'LAB calcolato dallo spettrale ({ill} / {obs} / {mc})',
+        colorimetry_source:'Sorgente colorimetrica', prefer_spectral:'Preferisci spettrale', use_file_lab:'Usa LAB del file',
+        lab_both_spectral:'Il file contiene spettrale e LAB; LAB calcolato dallo spettrale secondo la preferenza.',
+        lab_both_file:'Il file contiene spettrale e LAB; uso del LAB del file secondo la preferenza.',
         missing_cols:'Mancante: {cols}',
         loaded_rows:'{n} righe caricate.',
         loaded_rows_dedup:'{n} righe caricate, ridotte a {m} filtrando i duplicati ({method}).',
@@ -2265,6 +2285,9 @@ or ICC profiles</span>
         cgats_header_warning:'El encabezado del archivo no es CGATS est\u00e1ndar (la primera l\u00ednea no contiene \u201cCGATS\u201d ni \u201cISO28178\u201d)',
         valid:'\u2713 Válido',
         lab_from_spectral:'LAB calculado desde espectral ({ill} / {obs} / {mc})',
+        colorimetry_source:'Origen colorimétrico', prefer_spectral:'Preferir espectral', use_file_lab:'Usar LAB del archivo',
+        lab_both_spectral:'El archivo tiene espectral y LAB; LAB calculado desde el espectral según la preferencia.',
+        lab_both_file:'El archivo tiene espectral y LAB; usando el LAB del archivo según la preferencia.',
         missing_cols:'Faltante: {cols}',
         loaded_rows:'{n} filas cargadas.',
         loaded_rows_dedup:'{n} filas cargadas, reducidas a {m} filtrando duplicados ({method}).',
@@ -2448,6 +2471,9 @@ or ICC profiles</span>
         cgats_header_warning:'O cabe\u00e7alho do ficheiro n\u00e3o \u00e9 CGATS padr\u00e3o (a primeira linha n\u00e3o cont\u00e9m \u201cCGATS\u201d ou \u201cISO28178\u201d)',
         valid:'\u2713 Válido',
         lab_from_spectral:'LAB calculado a partir do espectral ({ill} / {obs} / {mc})',
+        colorimetry_source:'Origem colorimétrica', prefer_spectral:'Preferir espectral', use_file_lab:'Usar LAB do ficheiro',
+        lab_both_spectral:'O ficheiro tem espectral e LAB; LAB calculado a partir do espectral conforme a preferência.',
+        lab_both_file:'O ficheiro tem espectral e LAB; a usar o LAB do ficheiro conforme a preferência.',
         missing_cols:'Em falta: {cols}',
         loaded_rows:'{n} linhas carregadas.',
         loaded_rows_dedup:'{n} linhas carregadas, reduzidas a {m} filtrando duplicados ({method}).',
@@ -2631,6 +2657,9 @@ or ICC profiles</span>
         cgats_header_warning:'O cabe\u00e7alho do arquivo n\u00e3o \u00e9 CGATS padr\u00e3o (a primeira linha n\u00e3o cont\u00e9m \u201cCGATS\u201d ou \u201cISO28178\u201d)',
         valid:'\u2713 Válido',
         lab_from_spectral:'LAB calculado a partir do espectral ({ill} / {obs} / {mc})',
+        colorimetry_source:'Origem colorimétrica', prefer_spectral:'Preferir espectral', use_file_lab:'Usar LAB do ficheiro',
+        lab_both_spectral:'O ficheiro tem espectral e LAB; LAB calculado a partir do espectral conforme a preferência.',
+        lab_both_file:'O ficheiro tem espectral e LAB; a usar o LAB do ficheiro conforme a preferência.',
         missing_cols:'Faltando: {cols}',
         loaded_rows:'{n} linhas carregadas.',
         loaded_rows_dedup:'{n} linhas carregadas, reduzidas a {m} filtrando duplicatas ({method}).',
@@ -2814,6 +2843,9 @@ or ICC profiles</span>
         cgats_header_warning:'文件头不符合标准 CGATS（第一行不包含 \u201cCGATS\u201d 或 \u201cISO28178\u201d）',
         valid:'\u2713 有效',
         lab_from_spectral:'LAB 由光谱计算 ({ill} / {obs} / {mc})',
+        colorimetry_source:'色度来源', prefer_spectral:'优先光谱', use_file_lab:'使用文件 LAB',
+        lab_both_spectral:'文件同时包含光谱和 LAB；按偏好使用由光谱计算的 LAB。',
+        lab_both_file:'文件同时包含光谱和 LAB；按偏好使用文件中的 LAB。',
         missing_cols:'缺少: {cols}',
         loaded_rows:'已加载 {n} 行。',
         loaded_rows_dedup:'已加载 {n} 行，过滤重复后减至 {m} 行（{method}）。',
@@ -2997,6 +3029,9 @@ or ICC profiles</span>
         cgats_header_warning:'檔案標頭不符合標準 CGATS（第一行不包含 \u201cCGATS\u201d 或 \u201cISO28178\u201d）',
         valid:'\u2713 有效',
         lab_from_spectral:'LAB 由光譜計算 ({ill} / {obs} / {mc})',
+        colorimetry_source:'色度來源', prefer_spectral:'優先光譜', use_file_lab:'使用檔案 LAB',
+        lab_both_spectral:'檔案同時包含光譜與 LAB；依偏好使用由光譜計算的 LAB。',
+        lab_both_file:'檔案同時包含光譜與 LAB；依偏好使用檔案中的 LAB。',
         missing_cols:'缺少: {cols}',
         loaded_rows:'已載入 {n} 行。',
         loaded_rows_dedup:'已載入 {n} 行，過濾重複後減至 {m} 行（{method}）。',
@@ -3180,6 +3215,9 @@ or ICC profiles</span>
         cgats_header_warning:'\u30d5\u30a1\u30a4\u30eb\u30d8\u30c3\u30c0\u30fc\u304c\u6a19\u6e96 CGATS \u3067\u306f\u3042\u308a\u307e\u305b\u3093\uff081 \u884c\u76ee\u306b\u300cCGATS\u300d\u307e\u305f\u306f\u300cISO28178\u300d\u304c\u542b\u307e\u308c\u3066\u3044\u307e\u305b\u3093\uff09',
         valid:'\u2713 有効',
         lab_from_spectral:'LAB を分光から算出 ({ill} / {obs} / {mc})',
+        colorimetry_source:'測色値のソース', prefer_spectral:'分光を優先', use_file_lab:'ファイルの LAB を使用',
+        lab_both_spectral:'ファイルに分光と LAB の両方があります。設定に従い分光から算出した LAB を使用します。',
+        lab_both_file:'ファイルに分光と LAB の両方があります。設定に従いファイルの LAB を使用します。',
         missing_cols:'不足: {cols}',
         loaded_rows:'{n} 行を読み込みました。',
         loaded_rows_dedup:'{n} 行読み込み、重複フィルター後 {m} 行に削減 ({method})。',
@@ -3363,6 +3401,9 @@ or ICC profiles</span>
         cgats_header_warning:'\ud30c\uc77c \ud5e4\ub354\uac00 \ud45c\uc900 CGATS\uac00 \uc544\ub2d9\ub2c8\ub2e4 (\uccab \ubc88\uc9f8 \uc904\uc5d0 \u201cCGATS\u201d \ub610\ub294 \u201cISO28178\u201d\uc774 \uc5c6\uc74c)',
         valid:'\u2713 유효',
         lab_from_spectral:'LAB 분광에서 계산됨 ({ill} / {obs} / {mc})',
+        colorimetry_source:'측색값 소스', prefer_spectral:'분광 우선', use_file_lab:'파일 LAB 사용',
+        lab_both_spectral:'파일에 분광과 LAB가 모두 있습니다. 설정에 따라 분광에서 계산한 LAB를 사용합니다.',
+        lab_both_file:'파일에 분광과 LAB가 모두 있습니다. 설정에 따라 파일의 LAB를 사용합니다.',
         missing_cols:'누락: {cols}',
         loaded_rows:'{n}개 행 로드됨。',
         loaded_rows_dedup:'{n}개 행 로드, 중복 필터링 후 {m}개로 감소 ({method})。',
@@ -3546,6 +3587,9 @@ or ICC profiles</span>
         cgats_header_warning:'Filhuvudet är inte standard-CGATS (första raden innehåller inte \u201cCGATS\u201d eller \u201cISO28178\u201d)',
         valid:'\u2713 Giltig',
         lab_from_spectral:'LAB beräknat från spektral ({ill} / {obs} / {mc})',
+        colorimetry_source:'Kolorimetrikälla', prefer_spectral:'Föredra spektral', use_file_lab:'Använd filens LAB',
+        lab_both_spectral:'Filen har både spektral och LAB; LAB beräknat från spektral enligt inställning.',
+        lab_both_file:'Filen har både spektral och LAB; använder filens LAB enligt inställning.',
         missing_cols:'Saknas: {cols}',
         loaded_rows:'Läste in {n} rader.',
         loaded_rows_dedup:'Läste in {n} rader, reducerade till {m} rader genom filtrering av dubbletter ({method}).',
@@ -3754,6 +3798,8 @@ or ICC profiles</span>
           const mc  = document.getElementById('m-cond').value;
           lsDiv.textContent = t('lab_from_spectral', {ill, obs, mc});
         }
+        const lbDiv = validEl.querySelector('.i18n-lab-both');
+        if (lbDiv && s.labSourceNotice) lbDiv.textContent = t(s.labSourceNotice === 'both_spectral' ? 'lab_both_spectral' : 'lab_both_file');
         const moDiv = validEl.querySelector('.i18n-meas-only');
         if (moDiv) moDiv.textContent = t('measurement_only_notice');
         const x4Div = validEl.querySelector('.i18n-x4-notice');
@@ -4201,6 +4247,20 @@ or ICC profiles</span>
       document.getElementById(id).addEventListener('change', reprocessSpectral)
     );
 
+    // Colorimetry-source preference: when it flips, reprocess every loaded slot
+    // that carries spectral data (the preference only changes the outcome when a
+    // file has spectral — with or without its own LAB), not just slots that
+    // happened to use spectral LAB last time.
+    function onColorimetrySourceChange(val) {
+      localStorage.setItem('colorimetrySource', val === 'file' ? 'file' : 'spectral');
+      ['a', 'b'].forEach(slot => {
+        if (_rawFileData[slot] && state[slot] && state[slot].hasSpectral) {
+          setPanelName(slot, _rawFileData[slot].fileName);
+          processFileText(slot, _rawFileData[slot].text, _rawFileData[slot].fileName);
+        }
+      });
+    }
+
     // Apply initial mode (explore is default)
     applyMode();
 
@@ -4222,6 +4282,12 @@ or ICC profiles</span>
     (function() {
       const sel = document.getElementById('icc-num-base');
       if (sel) sel.value = (localStorage.getItem('iccNumBase') === 'dec') ? 'dec' : 'hex';
+    })();
+
+    // Reflect saved colorimetry-source preference (default 'spectral').
+    (function() {
+      const sel = document.getElementById('colorimetry-source');
+      if (sel) sel.value = (localStorage.getItem('colorimetrySource') === 'file') ? 'file' : 'spectral';
     })();
 
     // Persist ΔE method
@@ -4898,13 +4964,31 @@ or ICC profiles</span>
       if (cxfVariant) typeEl.textContent = cxfVariant;
       let { headers, rows } = standardizeData(parsed);
 
-      // Compute LAB from spectral if LAB columns are absent
+      // Decide which colorimetry to use. The 'colorimetrySource' preference is
+      // 'spectral' (default — derive LAB from the spectrum when present) or 'file'
+      // (use the LAB already in the file). The preference only changes the outcome
+      // when a file carries BOTH spectral and its own LAB; otherwise we fall back
+      // to whichever exists.
       const hasLab = ['LAB_L', 'LAB_A', 'LAB_B'].every(c => headers.includes(c));
       const hasSpectral = headers.some(h => /_NM$/i.test(h));
+      const preferSpectral = (localStorage.getItem('colorimetrySource') === 'file') ? false : true;
       let usedSpectralLab = false;
-      if (!hasLab && hasSpectral) {
+      let labSourceNotice = null; // 'both_spectral' | 'both_file' — only when the file has both
+      if (hasSpectral && (!hasLab || preferSpectral)) {
+        // Compute LAB from the spectrum. If the file also shipped LAB columns and
+        // we're overriding them, drop those first so injectSpectralLab's appended
+        // columns are the authoritative ones (no duplicate LAB_* headers).
+        if (hasLab) {
+          const labIdx = ['LAB_L', 'LAB_A', 'LAB_B'].map(c => headers.indexOf(c));
+          rows = rows.map(row => row.filter((_, i) => !labIdx.includes(i)));
+          headers = headers.filter((_, i) => !labIdx.includes(i));
+          labSourceNotice = 'both_spectral';
+        }
         ({ headers, rows } = injectSpectralLab(headers, rows));
         usedSpectralLab = true;
+      } else if (hasSpectral && hasLab) {
+        // Both present, but the preference is to use the file's own colorimetry.
+        labSourceNotice = 'both_file';
       }
 
       const colorants = headers.filter(isDeviceColorant);
@@ -4936,6 +5020,9 @@ or ICC profiles</span>
           const mc  = document.getElementById('m-cond').value;
           validEl.innerHTML += `<div class="cgats-warn i18n-lab-spectral">${t('lab_from_spectral', {ill, obs, mc})}</div>`;
         }
+        if (labSourceNotice) {
+          validEl.innerHTML += `<div class="cgats-warn i18n-lab-both">${t(labSourceNotice === 'both_spectral' ? 'lab_both_spectral' : 'lab_both_file')}</div>`;
+        }
         const measurementOnly = colorants.length === 0;
         if (measurementOnly) {
           validEl.innerHTML += `<div class="cgats-warn i18n-meas-only">${t('measurement_only_notice')}</div>`;
@@ -4945,6 +5032,7 @@ or ICC profiles</span>
         }
         validEl.className = 'validation';
         state[slot] = { headers, rows: dedupedRows, colorants, name: fileName, usedSpectralLab, hasSpectral,
+                        labSourceNotice,
                         measurementOnly, rowsBefore, rowsAfter, filterType: dedupEnabled ? filterType : null, isCSV,
                         typeLabel: isCxF ? (cxfVariant || 'CxF/X-3') : null, noModel: !!cxfVariant };
         _gamutState[slot].shellOn = false;

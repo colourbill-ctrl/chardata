@@ -226,11 +226,14 @@ Controls how L\*a\*b\* is derived when spectral columns are present. These setti
 
 | Setting | Options |
 |---|---|
+| Colorimetry Source | Prefer spectral (default), Use file LAB |
 | Illuminant | D50 (default), D65, A, LED-B1, F11 |
 | Standard Observer | 2° (default), 10° |
 | M-Condition | M0 (default), M1 (forces D50), M2 (UV cut) |
 
-Lab is computed using the ICC [colorimetry-data](https://registry.color.org/colorimetry-data/) illuminant × observer weighting tables (380–780 nm at 10 nm, normalised so the perfect reflector has Y = 100), so values match the reference CMM. Changing any of these settings immediately reprocesses all loaded spectral files.
+**Colorimetry Source** decides what to do when a file carries *both* measured L\*a\*b\* columns and spectral reflectance. **Prefer spectral** (the default) recomputes L\*a\*b\* from the spectrum using the illuminant / observer / M-condition below; **Use file LAB** keeps the L\*a\*b\* values already in the file. When a file has only one of the two, the setting is ignored and CharData uses whatever is present (computing from spectral if there is no LAB, or using the file's LAB if there is no spectral). When a file has both, the file panel reports which source was used so the choice is never silent.
+
+The remaining settings (Illuminant, Standard Observer, M-Condition) apply whenever L\*a\*b\* is computed from spectral. Lab is computed using the ICC [colorimetry-data](https://registry.color.org/colorimetry-data/) illuminant × observer weighting tables (380–780 nm at 10 nm, normalised so the perfect reflector has Y = 100), so values match the reference CMM. Changing any of these settings immediately reprocesses all loaded spectral files.
 
 ### Model
 

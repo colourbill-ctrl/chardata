@@ -448,11 +448,13 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 <p>Controls how L*a*b* is derived when spectral columns are present. These settings have no effect on files without spectral data.</p>
 <table><thead>
 <tr><th>Setting</th><th>Options</th></tr></thead><tbody>
+<tr><td>Colorimetry Source</td><td>Prefer spectral (default), Use file LAB</td></tr>
 <tr><td>Illuminant</td><td>D50 (default), D65, A, LED-B1, F11</td></tr>
 <tr><td>Standard Observer</td><td>2° (default), 10°</td></tr>
 <tr><td>M-Condition</td><td>M0 (default), M1 (forces D50), M2 (UV cut)</td></tr>
 </tbody></table>
-<p>Lab is computed using the ICC <a href="https://registry.color.org/colorimetry-data/">colorimetry-data</a> illuminant × observer weighting tables (380–780 nm at 10 nm, normalised so the perfect reflector has Y = 100), so values match the reference CMM. Changing any of these settings immediately reprocesses all loaded spectral files.</p>
+<p><strong>Colorimetry Source</strong> decides what to do when a file carries <em>both</em> measured L*a*b* columns and spectral reflectance. <strong>Prefer spectral</strong> (the default) recomputes L*a*b* from the spectrum using the illuminant / observer / M-condition below; <strong>Use file LAB</strong> keeps the L*a*b* values already in the file. When a file has only one of the two, the setting is ignored and CharData uses whatever is present (computing from spectral if there is no LAB, or using the file's LAB if there is no spectral). When a file has both, the file panel reports which source was used so the choice is never silent.</p>
+<p>The remaining settings (Illuminant, Standard Observer, M-Condition) apply whenever L*a*b* is computed from spectral. Lab is computed using the ICC <a href="https://registry.color.org/colorimetry-data/">colorimetry-data</a> illuminant × observer weighting tables (380–780 nm at 10 nm, normalised so the perfect reflector has Y = 100), so values match the reference CMM. Changing any of these settings immediately reprocesses all loaded spectral files.</p>
 <h3 id="model">Model</h3>
 <p>Controls how the polynomial model in the <a href="#4-5-estimate-section">Estimate section</a> is fitted to the dataset.</p>
 <table><thead>
