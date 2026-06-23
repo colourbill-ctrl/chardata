@@ -316,13 +316,170 @@
   }
 
   // ── RasterCanvas (port of viz/RasterCanvas.jsx) ─────────────────────────────
+  // Interactive CLUT-lattice / gamut image: zoom toolbar + Ctrl/⌘-wheel (toward
+  // cursor), click-drag pan, reset-to-fit, and a corner grip to resize the
+  // display box (size persisted to localStorage; non-finite values rejected).
+  const RASTER_MIN_ZOOM = 0.25, RASTER_MAX_ZOOM = 64, RASTER_STEP = 1.25;
+  const RASTER_DEF_W = 360, RASTER_DEF_H = 320;
+  const RASTER_MIN_W = 240, RASTER_MIN_H = 180, RASTER_MAX_W = 1400, RASTER_MAX_H = 1200;
+  const RASTER_SIZE_KEY = 'chardata.rasterSize';
+  const rclamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+  function loadRasterSize() {
+    try {
+      const s = JSON.parse(localStorage.getItem(RASTER_SIZE_KEY));
+      if (s && Number.isFinite(s.w) && Number.isFinite(s.h))
+        return { w: rclamp(s.w, RASTER_MIN_W, RASTER_MAX_W), h: rclamp(s.h, RASTER_MIN_H, RASTER_MAX_H) };
+    } catch (e) { /* ignore malformed/blocked storage */ }
+    return { w: RASTER_DEF_W, h: RASTER_DEF_H };
+  }
+
   function rasterCanvas(raster, captionNode) {
     const wrap = el('div', 'iccviz-rasterwrap');
+
+    // The canvas bitmap is always the raster's NATIVE pixel size (drawn once);
+    // zoom/pan are a pure CSS transform. `zoom` is relative to a "fit" baseline
+    // (baseFit) that contains the native image in the viewport, so 100% == fit.
+    let size = loadRasterSize();
+    let zoom = 1, pan = { x: 0, y: 0 }, baseFit = 1;
+    let drag = null, resizing = null;
+
+    // Toolbar.
+    const toolbar = el('div', 'iccviz-rtoolbar');
+    const pct = el('button', 'iccviz-rpct', '100%');
+    pct.type = 'button';
+    pct.title = tr('icc_viz_reset_fit', 'Reset to fit');
+    pct.setAttribute('aria-label', tr('icc_viz_reset_fit', 'Reset to fit'));
+    const zbtn = (glyph, key, fallback, fn) => {
+      const b = el('button', 'iccviz-rzbtn', glyph);
+      b.type = 'button';
+      b.title = tr(key, fallback); b.setAttribute('aria-label', tr(key, fallback));
+      b.addEventListener('click', fn);
+      return b;
+    };
+    const updatePct = () => { pct.textContent = Math.round(zoom * 100) + '%'; };
+
+    // Viewport (clips), canvas, and resize grip.
+    const viewport = el('div', 'iccviz-rviewport');
+    viewport.style.width = size.w + 'px';
+    viewport.style.height = size.h + 'px';
     const canvas = el('canvas', 'iccviz-raster');
     canvas.width = raster.width;
     canvas.height = raster.height;
     canvas.getContext('2d').putImageData(new ImageData(raster.rgba, raster.width, raster.height), 0, 0);
-    wrap.appendChild(canvas);
+    const grip = el('div', 'iccviz-rgrip');
+    grip.title = tr('icc_viz_resize', 'Drag to resize');
+    grip.setAttribute('aria-label', tr('icc_viz_resize', 'Resize image area'));
+
+    const applyTransform = () => {
+      canvas.style.transform =
+        'translate(' + pan.x + 'px,' + pan.y + 'px) scale(' + (baseFit * zoom) + ')';
+    };
+    const measureFit = () =>
+      Math.min(viewport.clientWidth / raster.width, viewport.clientHeight / raster.height) || 1;
+    const clampPan = (p, z) => {
+      const s = baseFit * z;
+      const axis = (v, ext) => rclamp(v, Math.min(0, ext), Math.max(0, ext));
+      return {
+        x: axis(p.x, viewport.clientWidth - raster.width * s),
+        y: axis(p.y, viewport.clientHeight - raster.height * s),
+      };
+    };
+    const centerPan = (z) => {
+      const s = baseFit * z;
+      return {
+        x: (viewport.clientWidth - raster.width * s) / 2,
+        y: (viewport.clientHeight - raster.height * s) / 2,
+      };
+    };
+    // Zoom by `factor`, keeping the point (cx,cy) in viewport coords fixed.
+    const zoomAt = (cx, cy, factor) => {
+      const nz = rclamp(zoom * factor, RASTER_MIN_ZOOM, RASTER_MAX_ZOOM);
+      const ratio = nz / zoom;
+      if (ratio === 1) return;
+      pan = clampPan({ x: cx - (cx - pan.x) * ratio, y: cy - (cy - pan.y) * ratio }, nz);
+      zoom = nz;
+      applyTransform(); updatePct();
+    };
+    const zoomByButton = (factor) => zoomAt(viewport.clientWidth / 2, viewport.clientHeight / 2, factor);
+    const reset = () => { zoom = 1; pan = centerPan(1); applyTransform(); updatePct(); };
+
+    toolbar.appendChild(zbtn('−', 'icc_viz_zoom_out', 'Zoom out', () => zoomByButton(1 / RASTER_STEP)));
+    toolbar.appendChild(pct);
+    pct.addEventListener('click', reset);
+    toolbar.appendChild(zbtn('+', 'icc_viz_zoom_in', 'Zoom in', () => zoomByButton(RASTER_STEP)));
+    toolbar.appendChild(zbtn('⟳', 'icc_viz_reset_fit', 'Reset to fit', reset));
+
+    // Ctrl/⌘ + wheel zooms toward the cursor (non-passive so we can preventDefault
+    // the page scroll only while actually zooming).
+    viewport.addEventListener('wheel', (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      const rect = viewport.getBoundingClientRect();
+      zoomAt(e.clientX - rect.left, e.clientY - rect.top, Math.exp(-e.deltaY * 0.0015));
+    }, { passive: false });
+
+    // Click-drag pan.
+    viewport.addEventListener('pointerdown', (e) => {
+      if (e.target === grip) return;
+      drag = { x: e.clientX, y: e.clientY, pan };
+      viewport.setPointerCapture(e.pointerId);
+    });
+    viewport.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      pan = clampPan({ x: drag.pan.x + (e.clientX - drag.x), y: drag.pan.y + (e.clientY - drag.y) }, zoom);
+      applyTransform();
+    });
+    const endDrag = (e) => {
+      if (drag && viewport.hasPointerCapture && viewport.hasPointerCapture(e.pointerId))
+        viewport.releasePointerCapture(e.pointerId);
+      drag = null;
+    };
+    viewport.addEventListener('pointerup', endDrag);
+    viewport.addEventListener('pointercancel', endDrag);
+    viewport.addEventListener('dblclick', reset);
+
+    // Corner grip: resize the display box (stopPropagation so it never pans).
+    grip.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      grip.setPointerCapture(e.pointerId);
+      resizing = { x: e.clientX, y: e.clientY, w: size.w, h: size.h };
+    });
+    grip.addEventListener('pointermove', (e) => {
+      if (!resizing) return;
+      e.stopPropagation();
+      size = {
+        w: rclamp(resizing.w + (e.clientX - resizing.x), RASTER_MIN_W, RASTER_MAX_W),
+        h: rclamp(resizing.h + (e.clientY - resizing.y), RASTER_MIN_H, RASTER_MAX_H),
+      };
+      viewport.style.width = size.w + 'px';
+      viewport.style.height = size.h + 'px';
+      try { localStorage.setItem(RASTER_SIZE_KEY, JSON.stringify(size)); } catch (err) { /* ignore */ }
+    });
+    const gripUp = (e) => {
+      if (!resizing) return;
+      e.stopPropagation();
+      if (grip.hasPointerCapture && grip.hasPointerCapture(e.pointerId))
+        grip.releasePointerCapture(e.pointerId);
+      resizing = null;
+    };
+    grip.addEventListener('pointerup', gripUp);
+    grip.addEventListener('pointercancel', gripUp);
+
+    // Recompute the fit baseline + recenter once the viewport has layout, and on
+    // every viewport resize (window/blade/grip). At the fit baseline keep the
+    // image centred as the box grows; once zoomed in, preserve framing + clamp.
+    const ro = new ResizeObserver(() => {
+      baseFit = measureFit();
+      pan = (zoom === 1) ? centerPan(1) : clampPan(pan, zoom);
+      applyTransform();
+    });
+    ro.observe(viewport);
+
+    viewport.appendChild(canvas);
+    viewport.appendChild(grip);
+    wrap.appendChild(toolbar);
+    wrap.appendChild(viewport);
     wrap.appendChild(el('div', 'iccviz-rastermeta', raster.width + '×' + raster.height + ' · ' + raster.photometric));
     if (captionNode) { const m = el('div', 'iccviz-rastermeta'); m.appendChild(captionNode); wrap.appendChild(m); }
     return wrap;
