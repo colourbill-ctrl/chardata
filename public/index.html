@@ -1270,6 +1270,9 @@ or ICC profiles</span>
             <input type="checkbox" id="plot-opt-shell" onchange="onShellCheckboxChange(this.checked)"> <span data-i18n="show_shell">Show gamut shell</span>
           </label>
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
+            <input type="checkbox" id="plot-opt-wireframe" onchange="onWireframeCheckboxChange(this.checked)"> <span data-i18n="show_wireframe">Show gamut wireframe</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
             <input type="checkbox" id="plot-opt-points" checked onchange="onPointsCheckboxChange(this.checked)"> <span data-i18n="show_points">Show data points</span>
           </label>
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
@@ -1512,7 +1515,7 @@ or ICC profiles</span>
         local_only_note:'All data stays local to browser',
         app_subtitle:'Free browser-resident online tool',
         plot_3d:'3D Plot', controls:'Controls',
-        show_shell:'Show gamut shell', show_points:'Show data points',
+        show_shell:'Show gamut shell', show_wireframe:'Show gamut wireframe', show_points:'Show data points',
         color_hue:'Color by hue angle', color_value:'Color by value',
         show_spectral:'Show spectral data when point selected',
         computing:'Computing\u2026',
@@ -1709,7 +1712,7 @@ or ICC profiles</span>
         local_only_note:'Toutes les données restent locales au navigateur',
         app_subtitle:'Outil en ligne gratuit qui s’exécute dans votre navigateur',
         plot_3d:'Tracé 3D', controls:'Contrôles',
-        show_shell:'Afficher la coquille gamut', show_points:'Afficher les points de données',
+        show_shell:'Afficher la coquille gamut', show_wireframe:'Afficher le maillage gamut', show_points:'Afficher les points de données',
         color_hue:'Colorier par teinte', color_value:'Colorier par luminosité',
         show_spectral:'Afficher les données spectrales au clic',
         computing:'Calcul\u2026',
@@ -1895,7 +1898,7 @@ or ICC profiles</span>
         local_only_note:'Alle Daten bleiben lokal im Browser',
         app_subtitle:'Kostenloses Online-Tool, das im Browser läuft',
         plot_3d:'3D-Diagramm', controls:'Steuerung',
-        show_shell:'Gamut-Hülle anzeigen', show_points:'Datenpunkte anzeigen',
+        show_shell:'Gamut-Hülle anzeigen', show_wireframe:'Gamut-Gitternetz anzeigen', show_points:'Datenpunkte anzeigen',
         color_hue:'Nach Farbton einfärben', color_value:'Nach Helligkeit einfärben',
         show_spectral:'Spektraldaten bei Klick anzeigen',
         computing:'Berechnung\u2026',
@@ -2081,7 +2084,7 @@ or ICC profiles</span>
         local_only_note:'Tutti i dati restano locali nel browser',
         app_subtitle:'Strumento online gratuito che funziona nel browser',
         plot_3d:'Grafico 3D', controls:'Controlli',
-        show_shell:'Mostra guscio gamut', show_points:'Mostra punti dati',
+        show_shell:'Mostra guscio gamut', show_wireframe:'Mostra reticolo gamut', show_points:'Mostra punti dati',
         color_hue:'Colora per angolo di tinta', color_value:'Colora per luminosità',
         show_spectral:'Mostra dati spettrali al clic',
         computing:'Calcolo\u2026',
@@ -2267,7 +2270,7 @@ or ICC profiles</span>
         local_only_note:'Todos los datos permanecen locales en el navegador',
         app_subtitle:'Herramienta en línea gratuita que se ejecuta en el navegador',
         plot_3d:'Gráfico 3D', controls:'Controles',
-        show_shell:'Mostrar capa del gama', show_points:'Mostrar puntos de datos',
+        show_shell:'Mostrar capa del gama', show_wireframe:'Mostrar malla del gama', show_points:'Mostrar puntos de datos',
         color_hue:'Colorear por ángulo de tono', color_value:'Colorear por brillo',
         show_spectral:'Mostrar datos espectrales al seleccionar',
         computing:'Calculando\u2026',
@@ -2453,7 +2456,7 @@ or ICC profiles</span>
         local_only_note:'Todos os dados permanecem locais no navegador',
         app_subtitle:'Ferramenta online gratuita que corre no navegador',
         plot_3d:'Gráfico 3D', controls:'Controlos',
-        show_shell:'Mostrar invólucro de gama', show_points:'Mostrar pontos de dados',
+        show_shell:'Mostrar invólucro de gama', show_wireframe:'Mostrar malha de gama', show_points:'Mostrar pontos de dados',
         color_hue:'Colorir por ângulo de matiz', color_value:'Colorir por luminosidade',
         show_spectral:'Mostrar dados espectrais ao selecionar',
         computing:'A calcular\u2026',
@@ -2639,7 +2642,7 @@ or ICC profiles</span>
         local_only_note:'Todos os dados permanecem locais no navegador',
         app_subtitle:'Ferramenta online gratuita que roda no navegador',
         plot_3d:'Gráfico 3D', controls:'Controles',
-        show_shell:'Mostrar superfície do gamut', show_points:'Mostrar pontos de dados',
+        show_shell:'Mostrar superfície do gamut', show_wireframe:'Mostrar malha do gamut', show_points:'Mostrar pontos de dados',
         color_hue:'Colorir por ângulo de matiz', color_value:'Colorir por luminosidade',
         show_spectral:'Mostrar dados espectrais ao selecionar',
         computing:'Calculando\u2026',
@@ -2825,7 +2828,7 @@ or ICC profiles</span>
         local_only_note:'所有数据均保留在浏览器本地',
         app_subtitle:'免费的在线工具，完全在浏览器中运行',
         plot_3d:'3D 图表', controls:'控件',
-        show_shell:'显示色域外壳', show_points:'显示数据点',
+        show_shell:'显示色域外壳', show_wireframe:'显示色域线框', show_points:'显示数据点',
         color_hue:'按色相角着色', color_value:'按亮度着色',
         show_spectral:'点击数据点时显示光谱图',
         computing:'计算中\u2026',
@@ -3011,7 +3014,7 @@ or ICC profiles</span>
         local_only_note:'所有資料均保留在瀏覽器本機',
         app_subtitle:'免費線上工具，完全在瀏覽器中執行',
         plot_3d:'3D 圖表', controls:'控制項',
-        show_shell:'顯示色域外殼', show_points:'顯示資料點',
+        show_shell:'顯示色域外殼', show_wireframe:'顯示色域線框', show_points:'顯示資料點',
         color_hue:'按色相角著色', color_value:'按亮度著色',
         show_spectral:'點擊資料點時顯示光譜圖',
         computing:'計算中\u2026',
@@ -3197,7 +3200,7 @@ or ICC profiles</span>
         local_only_note:'すべてのデータはブラウザー内に保持されます',
         app_subtitle:'ブラウザー上で動作する無料のオンラインツール',
         plot_3d:'3D プロット', controls:'コントロール',
-        show_shell:'ガマットシェルを表示', show_points:'データポイントを表示',
+        show_shell:'ガマットシェルを表示', show_wireframe:'ガマットワイヤーフレームを表示', show_points:'データポイントを表示',
         color_hue:'色相角で色付け', color_value:'明度で色付け',
         show_spectral:'選択時に分光グラフを表示',
         computing:'計算中\u2026',
@@ -3383,7 +3386,7 @@ or ICC profiles</span>
         local_only_note:'모든 데이터는 브라우저 내에 보관됩니다',
         app_subtitle:'브라우저에서 동작하는 무료 온라인 도구',
         plot_3d:'3D 플롯', controls:'컨트롤',
-        show_shell:'색역 셸 표시', show_points:'데이터 포인트 표시',
+        show_shell:'색역 셸 표시', show_wireframe:'색역 와이어프레임 표시', show_points:'데이터 포인트 표시',
         color_hue:'색상각으로 색상 지정', color_value:'명도로 색상 지정',
         show_spectral:'포인트 선택 시 분광 데이터 표시',
         computing:'계산 중\u2026',
@@ -3569,7 +3572,7 @@ or ICC profiles</span>
         local_only_note:'All data stannar lokalt i webbläsaren',
         app_subtitle:'Gratis onlineverktyg som körs i webbläsaren',
         plot_3d:'3D-diagram', controls:'Kontroller',
-        show_shell:'Visa gamutskalet', show_points:'Visa datapunkter',
+        show_shell:'Visa gamutskalet', show_wireframe:'Visa gamutnät', show_points:'Visa datapunkter',
         color_hue:'Färga efter nyansvinkel', color_value:'Färga efter ljusstyrka',
         show_spectral:'Visa spektraldata vid val av punkt',
         computing:'Beräknar\u2026',
@@ -3980,21 +3983,21 @@ or ICC profiles</span>
     let _plotSlots   = [];       // per-trace slot key ('a','b','img'), set during renderPlot
     let _plotColors  = [];       // per-trace dot color, set during renderPlot
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
-    let _nSpecs = 0;             // number of datasets; shell traces at 0.._nSpecs-1, scatter at _nSpecs..2*_nSpecs-1
+    let _nSpecs = 0;             // number of datasets; shell traces at 0.._nSpecs-1, scatter at _nSpecs..2*_nSpecs-1, wireframe at 2*_nSpecs..3*_nSpecs-1
     const _sliceState = { axis: 'L', value: 50, thickness: 1, falloff: 'soft', showPoints: true, zoom: 1 };
     // Base (zoom=1) axis ranges from the last renderSlicePlot, so scroll-wheel zoom
     // can rescale without re-running the WASM slice build. null until first render.
     let _sliceBaseRange = null;
     const _sliceVisible = { a: true, b: true };
     const _gamutState = {
-      a: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null, panelOpen: false,
+      a: { shellOn: false, wireframeOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
-      b: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null, panelOpen: false,
+      b: { shellOn: false, wireframeOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null, panelOpen: false,
            lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } },
       // Image-derived gamut. Reuses cachedXYZ for the point cloud; no shell/model.
       // `lighting` and `meshDensity` are inert for img (the shell trace is always invisible) but the
       // shared shell-trace builder reads them unconditionally — keep the shape parallel to a/b.
-      img: { shellOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null,
+      img: { shellOn: false, wireframeOn: false, pointsOn: true, hueOn: false, valueOn: true, alpha: 70, meshDensity: 14, cachedXYZ: null, cachedModel: null, cachedMesh: null,
              lighting: { ambient: 0.6, diffuse: 0.8, specular: 0.3, roughness: 0.5 } }
     };
     _sliceVisible.img = true;
@@ -4831,7 +4834,7 @@ or ICC profiles</span>
       const perFilePointsCb = document.getElementById('gs-points-cb-' + slot);
       if (perFileShellCb)  perFileShellCb.checked  = true;
       if (perFilePointsCb) perFilePointsCb.checked = false;
-      syncShellCheckbox(); syncPointsCheckbox(); syncColorCheckboxes();
+      syncShellCheckbox(); syncWireframeCheckbox(); syncPointsCheckbox(); syncColorCheckboxes();
 
       document.getElementById('show-file-' + slot).disabled = false;  // ICC → routed to openIccViewer()
       document.getElementById('valid-' + slot).innerHTML = '<div class="valid">\u2713 ' + t('type_icc_profile') + '</div>';
@@ -5066,6 +5069,7 @@ or ICC profiles</span>
         const perFileValueCb = document.getElementById('gs-value-cb-' + slot);
         if (perFileValueCb) perFileValueCb.checked = true;
         syncShellCheckbox();
+        syncWireframeCheckbox();
         syncPointsCheckbox();
         syncColorCheckboxes();
         _gamutState[slot].cachedModel = null;
@@ -8210,6 +8214,17 @@ or ICC profiles</span>
       return `hsl(${h.toFixed(1)},90%,45%)`;
     }
 
+    // Deduped edge list for a gamut mesh: each closed-mesh edge is shared by two
+    // triangles, so a Set keyed on the unordered vertex-index pair halves the line
+    // count. Shared by the wireframe trace builder (renderPlot) and recolorPlot so
+    // both emit edges in the same order.
+    function _wireframeEdges(mesh) {
+      const seen = new Set(), edges = [];
+      const add = (p, q) => { const k = p < q ? p + ',' + q : q + ',' + p; if (!seen.has(k)) { seen.add(k); edges.push([p, q]); } };
+      mesh.triangles.forEach(t => { add(t[0], t[1]); add(t[1], t[2]); add(t[2], t[0]); });
+      return edges;
+    }
+
     function showPlotBusy() { _statusActive.plot = true;  _updateComputingBadge(); }
     function hidePlotBusy() { _statusActive.plot = false; _updateComputingBadge(); }
 
@@ -8219,6 +8234,7 @@ or ICC profiles</span>
       // Collect all updates first, then apply in two batched Plotly calls
       const scatterIdx = [], scatterColors = [];
       const shellIdx = [], shellVCs = [];
+      const wfIdx = [], wfColors = [];
       for (let i = 0; i < _nSpecs; i++) {
         const slot = _plotSlots[i] || (i === 0 ? 'a' : 'b');
         const defColor = _plotColors[i] || (i === 0 ? '#4a90e2' : '#e24a4a');
@@ -8232,24 +8248,30 @@ or ICC profiles</span>
             useHue ? hueToColor(a, bx[vi]) : useVal ? labToRgb(lx[vi], a, bx[vi]) : defColor
           ));
         }
-        // Recolor shell mesh: use vertex arrays stored from cachedMesh.
+        // Recolor shell mesh + wireframe: both derive from the same cachedMesh vertices.
         const mesh = gs.cachedMesh;
         if (mesh?.vertices?.length) {
           const ax2 = mesh.vertices.map(v => v[1]);
           const bx2 = mesh.vertices.map(v => v[2]);
           const lx2 = mesh.vertices.map(v => v[0]);
-          shellIdx.push(i);
-          shellVCs.push(ax2.map((a, vi) =>
+          const vcol = ax2.map((a, vi) =>
             useHue ? hueToColor(a, bx2[vi]) : useVal ? labToRgb(lx2[vi], a, bx2[vi]) : defColor
-          ));
+          );
+          shellIdx.push(i);
+          shellVCs.push(vcol);
+          const wc = [];
+          _wireframeEdges(mesh).forEach(([p, q]) => wc.push(vcol[p], vcol[q], vcol[q]));
+          wfIdx.push(2 * _nSpecs + i);
+          wfColors.push(wc);
         }
       }
-      if (scatterIdx.length || shellIdx.length) {
+      if (scatterIdx.length || shellIdx.length || wfIdx.length) {
         showPlotBusy();
         requestAnimationFrame(() => requestAnimationFrame(() => {
           const p1 = scatterIdx.length ? Plotly.update(plotEl, { 'marker.color': scatterColors }, {}, scatterIdx) : Promise.resolve();
           const p2 = shellIdx.length   ? Plotly.update(plotEl, { vertexcolor: shellVCs }, {}, shellIdx)           : Promise.resolve();
-          Promise.all([p1, p2]).then(hidePlotBusy);
+          const p3 = wfIdx.length      ? Plotly.update(plotEl, { 'line.color': wfColors }, {}, wfIdx)             : Promise.resolve();
+          Promise.all([p1, p2, p3]).then(hidePlotBusy);
         }));
       }
     }
@@ -8384,7 +8406,38 @@ or ICC profiles</span>
         return tr;
       });
 
-      const allTraces = [...shellTraces, ...scatterTraces];
+      // Wireframe scatter3d-lines traces — one per spec, indices 2*_nSpecs .. 3*_nSpecs-1.
+      // Drawn from the same cachedMesh triangles as the solid shell, as deduped edges,
+      // honoring hue/value coloring. Independent of the shell so it can overlay the
+      // translucent solid surface. hoverinfo:'skip' keeps line hits out of the click handler.
+      const wireframeTraces = traceSpecs.map((spec, i) => {
+        const gs = _gamutState[spec.slot];
+        const mesh = gs.cachedMesh;
+        const hasMesh = !!(mesh && mesh.vertices && mesh.vertices.length);
+        const wx = [], wy = [], wz = [], wc = [];
+        if (hasMesh) {
+          const ax = mesh.vertices.map(v => v[1]);
+          const bx = mesh.vertices.map(v => v[2]);
+          const lx = mesh.vertices.map(v => v[0]);
+          const vcol = ax.map((a, vi) =>
+            gs.hueOn ? hueToColor(a, bx[vi]) : gs.valueOn ? labToRgb(lx[vi], a, bx[vi]) : spec.color);
+          _wireframeEdges(mesh).forEach(([p, q]) => {
+            wx.push(ax[p], ax[q], null);
+            wy.push(bx[p], bx[q], null);
+            wz.push(lx[p], lx[q], null);
+            wc.push(vcol[p], vcol[q], vcol[q]);
+          });
+        }
+        return {
+          type: 'scatter3d', mode: 'lines', name: spec.name + ' wireframe', showlegend: false,
+          x: wx, y: wy, z: wz,
+          line: { color: wc.length ? wc : spec.color, width: 1.5 },
+          hoverinfo: 'skip',
+          visible: _plotVisible[i] && hasMesh && gs.wireframeOn
+        };
+      });
+
+      const allTraces = [...shellTraces, ...scatterTraces, ...wireframeTraces];
 
       // Compute fixed axis ranges from scatter data only (regardless of visibility)
       let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity, zMin = Infinity, zMax = -Infinity;
@@ -8461,6 +8514,7 @@ or ICC profiles</span>
         const noShell = spec.slot !== 'img' && spec.data && (spec.data.measurementOnly || spec.data.noModel);
         return `<div class="gamut-panel" id="gamut-panel-${spec.slot}" style="display:${gs.panelOpen ? 'flex' : 'none'};">
           ${noShell ? '' : `<div class="gamut-panel-row"><label><input type="checkbox" id="gs-shell-cb-${spec.slot}" onchange="setShellOn('${spec.slot}',this.checked)"${gs.shellOn ? ' checked' : ''}> <span data-i18n="show_shell">Show gamut shell</span></label></div>`}
+          ${noShell ? '' : `<div class="gamut-panel-row"><label><input type="checkbox" id="gs-wireframe-cb-${spec.slot}" onchange="setWireframeOn('${spec.slot}',this.checked)"${gs.wireframeOn ? ' checked' : ''}> <span data-i18n="show_wireframe">Show gamut wireframe</span></label></div>`}
           <div class="gamut-panel-row"><label><input type="checkbox" id="gs-points-cb-${spec.slot}" onchange="setPointsOn('${spec.slot}',this.checked)"${gs.pointsOn ? ' checked' : ''}> <span data-i18n="show_points">Show data points</span></label></div>
           <div class="gamut-panel-row"><label><input type="checkbox" id="gs-hue-cb-${spec.slot}" onchange="setHueOn('${spec.slot}',this.checked)"${gs.hueOn ? ' checked' : ''}> <span data-i18n="color_hue">Color by hue angle</span></label></div>
           <div class="gamut-panel-row"><label><input type="checkbox" id="gs-value-cb-${spec.slot}" onchange="setValueOn('${spec.slot}',this.checked)"${gs.valueOn ? ' checked' : ''}> <span data-i18n="color_value">Color by value</span></label></div>
@@ -8603,6 +8657,8 @@ or ICC profiles</span>
         } else {
           Plotly.update(plotEl, { visible: [false] }, {}, [shellIdx]);
         }
+        // Wireframe trace tracks dataset visibility AND its own toggle.
+        Plotly.update(plotEl, { visible: [on && gs.wireframeOn] }, {}, [2 * _nSpecs + i]);
       }
       // Refresh custom legend appearance
       const items = document.querySelectorAll('#plot-custom-legend .legend-item');
@@ -8679,6 +8735,54 @@ or ICC profiles</span>
       const slots = ['a', 'b'].filter(s => state[s]);
       if (slots.length === 0) { topCb.checked = false; topCb.indeterminate = false; return; }
       const onCount = slots.filter(s => _gamutState[s].shellOn).length;
+      if (onCount === 0) { topCb.checked = false; topCb.indeterminate = false; }
+      else if (onCount === slots.length) { topCb.checked = true; topCb.indeterminate = false; }
+      else { topCb.checked = false; topCb.indeterminate = true; }
+    }
+
+    function setWireframeOn(slot, val) {
+      _gamutState[slot].wireframeOn = val;
+      syncWireframeCheckbox();
+      const plotEl = document.getElementById('plot');
+      if (!plotEl) return;
+      const slotIdx = slot === 'a' ? 0 : 1;
+      if (slotIdx >= _nSpecs) return;
+      const gs = _gamutState[slot];
+      if (!gs.cachedXYZ?.x.length) return;
+      const visible = _plotVisible[slotIdx] && val;
+      showPlotBusy();
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        Plotly.update(plotEl, { visible: [visible] }, {}, [2 * _nSpecs + slotIdx]).then(hidePlotBusy);
+      }));
+    }
+
+    function onWireframeCheckboxChange(val) {
+      const plotEl = document.getElementById('plot');
+      const traceIdx = [], visibles = [];
+      ['a', 'b'].forEach((slot, si) => {
+        if (!state[slot]) return;
+        _gamutState[slot].wireframeOn = val;
+        const cb = document.getElementById('gs-wireframe-cb-' + slot);
+        if (cb) cb.checked = val;
+        if (si < _nSpecs) {
+          traceIdx.push(2 * _nSpecs + si);
+          visibles.push(_plotVisible[si] && val);
+        }
+      });
+      if (plotEl && traceIdx.length) {
+        showPlotBusy();
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          Plotly.update(plotEl, { visible: visibles }, {}, traceIdx).then(hidePlotBusy);
+        }));
+      }
+    }
+
+    function syncWireframeCheckbox() {
+      const topCb = document.getElementById('plot-opt-wireframe');
+      if (!topCb) return;
+      const slots = ['a', 'b'].filter(s => state[s]);
+      if (slots.length === 0) { topCb.checked = false; topCb.indeterminate = false; return; }
+      const onCount = slots.filter(s => _gamutState[s].wireframeOn).length;
       if (onCount === 0) { topCb.checked = false; topCb.indeterminate = false; }
       else if (onCount === slots.length) { topCb.checked = true; topCb.indeterminate = false; }
       else { topCb.checked = false; topCb.indeterminate = true; }
