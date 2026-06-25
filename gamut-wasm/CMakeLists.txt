@@ -1,4 +1,4 @@
-# (c) William Li 2026
+# (c) 2026 William Li
 cmake_minimum_required(VERSION 3.24)
 project(chardata-gamut-wasm VERSION 0.1.0 LANGUAGES C CXX)
 

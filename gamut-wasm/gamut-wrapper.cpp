@@ -1,4 +1,4 @@
-// (c) William Li 2026
+// (c) 2026 William Li
 /**
  * CharData WASM module — polynomial model fitting + gamut mesh generation
  * for characterisation data (CSV-sourced CMYK/RGB/N-colorant + Lab).

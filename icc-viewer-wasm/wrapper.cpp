@@ -1,4 +1,4 @@
-// (c) William Li 2026
+// (c) 2026 William Li
 /**
  * icc-viewer WASM wrapper for chardata.
  *

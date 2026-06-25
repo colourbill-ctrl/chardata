@@ -1,4 +1,4 @@
-// (c) William Li 2026
+// (c) 2026 William Li
 const express = require('express');
 const helmet  = require('helmet');
 const path    = require('path');

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (c) William Li 2026
+# (c) 2026 William Li
 # build-icc-viewer-wasm.sh — compile the chardata ICC viewer WASM module via Emscripten.
 #
 # Builds IccProfLib (from iccDEV) into a standalone .mjs/.wasm pair, lazy-loaded

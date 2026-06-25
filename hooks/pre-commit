@@ -1,5 +1,5 @@
 #!/bin/bash
-# (c) William Li 2026
+# (c) 2026 William Li
 # Pre-commit hook:
 #   1. Rebuild WASM when C++ source changes (Emscripten lives in WSL).
 #   2. Regenerate public/help.html when MANUAL.md or generate-help.js changes.

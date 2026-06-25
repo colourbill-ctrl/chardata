@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (c) William Li 2026
+# (c) 2026 William Li
 # build-wasm.sh — compile the CharData gamut WASM module via Emscripten.
 #
 # Run from WSL:

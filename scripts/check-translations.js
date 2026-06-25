@@ -1,4 +1,4 @@
-// (c) William Li 2026
+// (c) 2026 William Li
 // Audit translations/Eng-*.xlsx against the I18N dict in public/index.html.
 // Reports drift; does not modify anything.
 
