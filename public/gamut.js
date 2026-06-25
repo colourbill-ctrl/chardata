@@ -1,3 +1,4 @@
+// (c) William Li 2026
 /**
  * gamut.js — WASM loader and JS wrapper for the CharData gamut module.
  *

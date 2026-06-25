@@ -1,3 +1,5 @@
+<!-- (c) William Li 2026 -->
+
 # CharData — Colour Gamut Comparison Tool
 
 Compares characterisation data from two ICC-profiling CSV files, showing

@@ -1,3 +1,5 @@
+<!-- (c) William Li 2026 -->
+
 # Translation glossary & work estimate
 
 Notes captured 2026-05-20 while scoping a translation pass for `MANUAL.md` into

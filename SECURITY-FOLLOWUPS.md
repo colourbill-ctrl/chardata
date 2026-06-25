@@ -1,3 +1,5 @@
+<!-- (c) William Li 2026 -->
+
 # Security follow-ups
 
 ## Resolved in 1.4.0 review (2026-05-05)

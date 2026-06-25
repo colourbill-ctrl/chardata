@@ -1,3 +1,5 @@
+<!-- (c) William Li 2026 -->
+
 # CharData — Architecture
 
 A diagram of CharData's major components, grouped by the environment each runs in

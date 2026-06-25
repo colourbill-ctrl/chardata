@@ -1,3 +1,5 @@
+<!-- (c) William Li 2026 -->
+
 # CharData User Manual
 
 CharData is a browser-based tool for loading, exploring, and comparing colour characterisation datasets — the kind produced by measuring a printed test chart (e.g. IT8, P2P, ECI2002) on a spectrophotometer.

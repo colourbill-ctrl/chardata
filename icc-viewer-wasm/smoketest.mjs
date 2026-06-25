@@ -1,3 +1,4 @@
+// (c) William Li 2026
 // Quick Node-side check: load icc-viewer.mjs from public/wasm and run
 // validateProfile + describeTag on a small ICC profile from the test corpus.
 // Usage: node icc-viewer-wasm/smoketest.mjs <path-to-profile.icc>

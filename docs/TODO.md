@@ -1,3 +1,5 @@
+<!-- (c) William Li 2026 -->
+
 # CharData — deferred work
 
 Running list of work items that have been scoped but not scheduled. Each entry

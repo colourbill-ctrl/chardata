@@ -1,3 +1,4 @@
+// (c) William Li 2026
 const express = require('express');
 const helmet  = require('helmet');
 const path    = require('path');

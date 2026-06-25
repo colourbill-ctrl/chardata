@@ -1,3 +1,4 @@
+// (c) William Li 2026
 /**
  * icc-viewer.js — lazy loader for the IccProfLib-based ICC profile viewer.
  *

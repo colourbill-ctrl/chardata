@@ -1,3 +1,4 @@
+// (c) William Li 2026
 /**
  * icc-viewer WASM wrapper for chardata.
  *

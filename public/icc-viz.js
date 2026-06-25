@@ -1,3 +1,4 @@
+// (c) William Li 2026
 /**
  * icc-viz.js — inline per-tag ICC profile visualizations for the Display viewer.
  *
