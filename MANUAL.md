@@ -10,7 +10,7 @@ A characterisation dataset typically associates device ink percentages (CYAN, MA
 
 **What you can do with CharData:**
 
-- **Explore a single dataset or profile** — browse the data table, visualise the colour gamut in 3D L\*a\*b\* space, examine a 2D slice at any L\*, a\*, or b\* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L\*a\*b\* for any device colorant combination.
+- **Explore a single dataset or profile** — browse the data table, visualise the colour gamut in 3D L\*a\*b\* space (with adjustable rotation mode and sensitivity), examine a 2D slice at any L\*, a\*, or b\* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L\*a\*b\* for any device colorant combination.
 - **Compare two datasets, two profiles, or one of each** — see a row-by-row ΔE / ΔL\* / ΔC\* / ΔH\* / Δh\* table for matched patches, with summary statistics (mean, min, max, std dev) and a ΔE distribution histogram, and view both gamuts and tone value curves overlaid on the same charts.
 - **Work with spectral data** — if spectral reflectance columns are present, CharData computes L\*a\*b\* from them using a selectable illuminant (D50, D65, A, LED-B1, F11), observer (2°/10°), and M-condition (M0/M1/M2), and can display the spectral curve for any clicked data point.
 - **Switch rendering intent** — for ICC profiles, change between Perceptual / Relative Colorimetric / Saturation / Absolute Colorimetric and have every view (3D shell, 2D slice, comparison table, tone curves, estimate) recompute against the new transform.
@@ -299,6 +299,19 @@ The main control panel (above the plot) contains global settings. Each dataset a
 When both global and per-slot checkboxes are visible, the global checkbox shows an **indeterminate** state when the two slots differ. Clicking the global checkbox sets both slots to the same state.
 
 **Defaults differ by file type.** When a characterization dataset loads, the slot defaults to **gamut shell off, data points on**. When an ICC profile loads, the slot defaults to **gamut shell on, data points off** — profiles encode a continuous transform rather than a sample cloud, so the shell is the more meaningful representation. You can override either default with the per-slot checkboxes.
+
+#### Rotation
+
+The bottom of the Controls panel has a **Rotation** group that tunes how the mouse and scroll-wheel drive the 3D camera. All four settings are remembered between sessions.
+
+| Control | Description |
+|---|---|
+| Mode | **Turntable** (default) keeps the vertical axis upright as you drag-orbit; **Orbit** allows free rotation in any direction. This is the same choice as Plotly's in-frame *Turntable / Orbital rotation* toolbar buttons, surfaced here where it is easier to find. |
+| Drag rotate sensitivity | Scales how fast **click-and-drag** rotates the view (0.1–3, default 1). Lower it for finer control on large gamuts. |
+| Enable roll (horizontal scroll) | Turns the **roll** gesture — rotation about the viewing axis, driven by horizontal two-finger / shift scroll — on or off. When off, horizontal scroll does nothing. |
+| Roll sensitivity | Scales the roll speed (0.05–2, default 0.4). Roll has its own knob independent of drag sensitivity, so you can calm the roll without slowing drag-orbit. |
+
+Vertical scroll always zooms, regardless of these settings.
 
 #### Spectral popup
 

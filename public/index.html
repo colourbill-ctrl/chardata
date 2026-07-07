@@ -1286,6 +1286,26 @@ or ICC profiles</span>
           <label id="plot-opt-spectral-label" style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
             <input type="checkbox" id="plot-opt-spectral"> <span data-i18n="show_spectral">Show spectral data when point selected</span>
           </label>
+          <div style="border-top:1px solid #ddd;margin:2px 0;"></div>
+          <div style="font-weight:bold;" data-i18n="rotation">Rotation</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span data-i18n="rotation_mode">Mode:</span>
+            <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;"><input type="radio" name="plot-rot-mode" id="plot-rot-turntable" value="turntable" onchange="onPlotRotMode('turntable')"> <span data-i18n="rot_turntable">Turntable</span></label>
+            <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;"><input type="radio" name="plot-rot-mode" id="plot-rot-orbit" value="orbit" onchange="onPlotRotMode('orbit')"> <span data-i18n="rot_orbit">Orbit</span></label>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span data-i18n="drag_sensitivity">Drag rotate sensitivity:</span>
+            <input type="range" id="plot-drag-sens" min="0.1" max="3" step="0.05" value="1" oninput="onPlotDragSens(+this.value)" style="flex:1;min-width:120px;max-width:220px;">
+            <span id="plot-drag-sens-val" style="min-width:2.4em;text-align:right;font-variant-numeric:tabular-nums;">1.00</span>
+          </div>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">
+            <input type="checkbox" id="plot-roll-enabled" checked onchange="onPlotRollToggle(this.checked)"> <span data-i18n="roll_enable">Enable roll (horizontal scroll)</span>
+          </label>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span data-i18n="roll_sensitivity">Roll sensitivity:</span>
+            <input type="range" id="plot-roll-sens" min="0.05" max="2" step="0.05" value="0.4" oninput="onPlotRollSens(+this.value)" style="flex:1;min-width:120px;max-width:220px;">
+            <span id="plot-roll-sens-val" style="min-width:2.4em;text-align:right;font-variant-numeric:tabular-nums;">0.40</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1519,6 +1539,8 @@ or ICC profiles</span>
         show_shell:'Show gamut shell', show_wireframe:'Show gamut wireframe', show_points:'Show data points',
         color_hue:'Color by hue angle', color_value:'Color by value',
         show_spectral:'Show spectral data when point selected',
+        rotation:'Rotation', rotation_mode:'Mode:', rot_turntable:'Turntable', rot_orbit:'Orbit',
+        drag_sensitivity:'Drag rotate sensitivity:', roll_enable:'Enable roll (horizontal scroll)', roll_sensitivity:'Roll sensitivity:',
         computing:'Computing\u2026',
         gamut_slice:'Gamut Slice (2D)', axis:'Axis:', val:'Value:',
         thickness:'Thickness:', fall_off:'Fall-off:', hard:'Hard', soft:'Soft', show_data_points:'Show data points',
@@ -1718,6 +1740,8 @@ or ICC profiles</span>
         show_shell:'Afficher la coquille gamut', show_wireframe:'Afficher le maillage gamut', show_points:'Afficher les points de données',
         color_hue:'Colorier par teinte', color_value:'Colorier par luminosité',
         show_spectral:'Afficher les données spectrales au clic',
+        rotation:'Rotation', rotation_mode:'Mode :', rot_turntable:'Plateau', rot_orbit:'Orbite',
+        drag_sensitivity:'Sensibilité de rotation (glisser) :', roll_enable:'Activer le roulis (défilement horizontal)', roll_sensitivity:'Sensibilité du roulis :',
         computing:'Calcul\u2026',
         gamut_slice:'Tranche de gamut (2D)', axis:'Axe\u00a0:', val:'Valeur\u00a0:',
         thickness:'\u00c9paisseur\u00a0:', fall_off:'Att\u00e9nuation\u00a0:', hard:'Net', soft:'Doux', show_data_points:'Afficher les points de donn\u00e9es',
@@ -1906,6 +1930,8 @@ or ICC profiles</span>
         show_shell:'Gamut-Hülle anzeigen', show_wireframe:'Gamut-Gitternetz anzeigen', show_points:'Datenpunkte anzeigen',
         color_hue:'Nach Farbton einfärben', color_value:'Nach Helligkeit einfärben',
         show_spectral:'Spektraldaten bei Klick anzeigen',
+        rotation:'Rotation', rotation_mode:'Modus:', rot_turntable:'Drehteller', rot_orbit:'Orbit',
+        drag_sensitivity:'Empfindlichkeit Ziehen-Rotation:', roll_enable:'Rollen aktivieren (horizontales Scrollen)', roll_sensitivity:'Rollempfindlichkeit:',
         computing:'Berechnung\u2026',
         gamut_slice:'Gamut-Schnitt (2D)', axis:'Achse:', val:'Wert:',
         thickness:'Dicke:', fall_off:'Übergang:', hard:'Hart', soft:'Weich', show_data_points:'Datenpunkte anzeigen',
@@ -2094,6 +2120,8 @@ or ICC profiles</span>
         show_shell:'Mostra guscio gamut', show_wireframe:'Mostra reticolo gamut', show_points:'Mostra punti dati',
         color_hue:'Colora per angolo di tinta', color_value:'Colora per luminosità',
         show_spectral:'Mostra dati spettrali al clic',
+        rotation:'Rotazione', rotation_mode:'Modalità:', rot_turntable:'Piattaforma', rot_orbit:'Orbita',
+        drag_sensitivity:'Sensibilità rotazione (trascinamento):', roll_enable:'Abilita rollio (scorrimento orizzontale)', roll_sensitivity:'Sensibilità rollio:',
         computing:'Calcolo\u2026',
         gamut_slice:'Sezione gamut (2D)', axis:'Asse:', val:'Valore:',
         thickness:'Spessore:', fall_off:'Attenuazione:', hard:'Netto', soft:'Morbido', show_data_points:'Mostra punti dati',
@@ -2282,6 +2310,8 @@ or ICC profiles</span>
         show_shell:'Mostrar capa del gama', show_wireframe:'Mostrar malla del gama', show_points:'Mostrar puntos de datos',
         color_hue:'Colorear por ángulo de tono', color_value:'Colorear por brillo',
         show_spectral:'Mostrar datos espectrales al seleccionar',
+        rotation:'Rotación', rotation_mode:'Modo:', rot_turntable:'Plataforma', rot_orbit:'Órbita',
+        drag_sensitivity:'Sensibilidad de rotación (arrastrar):', roll_enable:'Activar giro (desplazamiento horizontal)', roll_sensitivity:'Sensibilidad de giro:',
         computing:'Calculando\u2026',
         gamut_slice:'Sección de gama (2D)', axis:'Eje:', val:'Valor:',
         thickness:'Grosor:', fall_off:'Atenuación:', hard:'Brusco', soft:'Suave', show_data_points:'Mostrar puntos de datos',
@@ -2470,6 +2500,8 @@ or ICC profiles</span>
         show_shell:'Mostrar invólucro de gama', show_wireframe:'Mostrar malha de gama', show_points:'Mostrar pontos de dados',
         color_hue:'Colorir por ângulo de matiz', color_value:'Colorir por luminosidade',
         show_spectral:'Mostrar dados espectrais ao selecionar',
+        rotation:'Rota\u00e7\u00e3o', rotation_mode:'Modo:', rot_turntable:'Prato girat\u00f3rio', rot_orbit:'\u00d3rbita',
+        drag_sensitivity:'Sensibilidade de rota\u00e7\u00e3o (arrastar):', roll_enable:'Ativar rolamento (deslocamento horizontal)', roll_sensitivity:'Sensibilidade de rolamento:',
         computing:'A calcular\u2026',
         gamut_slice:'Corte de gama (2D)', axis:'Eixo:', val:'Valor:',
         thickness:'Espessura:', fall_off:'Atenuação:', hard:'Brusco', soft:'Suave', show_data_points:'Mostrar pontos de dados',
@@ -2658,6 +2690,8 @@ or ICC profiles</span>
         show_shell:'Mostrar superfície do gamut', show_wireframe:'Mostrar malha do gamut', show_points:'Mostrar pontos de dados',
         color_hue:'Colorir por ângulo de matiz', color_value:'Colorir por luminosidade',
         show_spectral:'Mostrar dados espectrais ao selecionar',
+        rotation:'Rota\u00e7\u00e3o', rotation_mode:'Modo:', rot_turntable:'Prato girat\u00f3rio', rot_orbit:'\u00d3rbita',
+        drag_sensitivity:'Sensibilidade de rota\u00e7\u00e3o (arrastar):', roll_enable:'Ativar rolamento (rolagem horizontal)', roll_sensitivity:'Sensibilidade de rolamento:',
         computing:'Calculando\u2026',
         gamut_slice:'Corte de gamut (2D)', axis:'Eixo:', val:'Valor:',
         thickness:'Espessura:', fall_off:'Atenuação:', hard:'Brusco', soft:'Suave', show_data_points:'Mostrar pontos de dados',
@@ -2846,6 +2880,8 @@ or ICC profiles</span>
         show_shell:'显示色域外壳', show_wireframe:'显示色域线框', show_points:'显示数据点',
         color_hue:'按色相角着色', color_value:'按亮度着色',
         show_spectral:'点击数据点时显示光谱图',
+        rotation:'旋转', rotation_mode:'模式：', rot_turntable:'转盘', rot_orbit:'轨道',
+        drag_sensitivity:'拖动旋转灵敏度：', roll_enable:'启用横滚（水平滚动）', roll_sensitivity:'横滚灵敏度：',
         computing:'计算中\u2026',
         gamut_slice:'色域截面 (2D)', axis:'轴:', val:'值:',
         thickness:'厚度:', fall_off:'衰减:', hard:'硬', soft:'软', show_data_points:'显示数据点',
@@ -3034,6 +3070,8 @@ or ICC profiles</span>
         show_shell:'顯示色域外殼', show_wireframe:'顯示色域線框', show_points:'顯示資料點',
         color_hue:'按色相角著色', color_value:'按亮度著色',
         show_spectral:'點擊資料點時顯示光譜圖',
+        rotation:'旋轉', rotation_mode:'模式：', rot_turntable:'轉盤', rot_orbit:'軌道',
+        drag_sensitivity:'拖曳旋轉靈敏度：', roll_enable:'啟用翻滾（水平捲動）', roll_sensitivity:'翻滾靈敏度：',
         computing:'計算中\u2026',
         gamut_slice:'色域截面 (2D)', axis:'軸:', val:'值:',
         thickness:'厚度:', fall_off:'衰減:', hard:'硬', soft:'軟', show_data_points:'顯示資料點',
@@ -3222,6 +3260,8 @@ or ICC profiles</span>
         show_shell:'ガマットシェルを表示', show_wireframe:'ガマットワイヤーフレームを表示', show_points:'データポイントを表示',
         color_hue:'色相角で色付け', color_value:'明度で色付け',
         show_spectral:'選択時に分光グラフを表示',
+        rotation:'回転', rotation_mode:'モード：', rot_turntable:'ターンテーブル', rot_orbit:'オービット',
+        drag_sensitivity:'ドラッグ回転の感度：', roll_enable:'ロールを有効化（横スクロール）', roll_sensitivity:'ロールの感度：',
         computing:'計算中\u2026',
         gamut_slice:'ガマットスライス (2D)', axis:'軸:', val:'値:',
         thickness:'厚さ:', fall_off:'減衰:', hard:'ハード', soft:'ソフト', show_data_points:'データポイントを表示',
@@ -3410,6 +3450,8 @@ or ICC profiles</span>
         show_shell:'색역 셸 표시', show_wireframe:'색역 와이어프레임 표시', show_points:'데이터 포인트 표시',
         color_hue:'색상각으로 색상 지정', color_value:'명도로 색상 지정',
         show_spectral:'포인트 선택 시 분광 데이터 표시',
+        rotation:'회전', rotation_mode:'모드:', rot_turntable:'턴테이블', rot_orbit:'궤도',
+        drag_sensitivity:'드래그 회전 감도:', roll_enable:'롤 사용 (가로 스크롤)', roll_sensitivity:'롤 감도:',
         computing:'계산 중\u2026',
         gamut_slice:'색역 슬라이스 (2D)', axis:'축:', val:'값:',
         thickness:'두께:', fall_off:'감쇠:', hard:'하드', soft:'소프트', show_data_points:'데이터 포인트 표시',
@@ -3598,6 +3640,8 @@ or ICC profiles</span>
         show_shell:'Visa gamutskalet', show_wireframe:'Visa gamutnät', show_points:'Visa datapunkter',
         color_hue:'Färga efter nyansvinkel', color_value:'Färga efter ljusstyrka',
         show_spectral:'Visa spektraldata vid val av punkt',
+        rotation:'Rotation', rotation_mode:'Läge:', rot_turntable:'Vridskiva', rot_orbit:'Orbit',
+        drag_sensitivity:'Känslighet för dragrotation:', roll_enable:'Aktivera rullning (horisontell scroll)', roll_sensitivity:'Rullningskänslighet:',
         computing:'Beräknar\u2026',
         gamut_slice:'Gamutsnitt (2D)', axis:'Axel:', val:'Värde:',
         thickness:'Tjocklek:', fall_off:'Övergång:', hard:'Hård', soft:'Mjuk', show_data_points:'Visa datapunkter',
@@ -4013,6 +4057,18 @@ or ICC profiles</span>
     let _plotColors  = [];       // per-trace dot color, set during renderPlot
     let _plotAxisRanges = null;  // fixed axis ranges computed from all datasets
     let _nSpecs = 0;             // number of datasets; shell traces at 0.._nSpecs-1, scatter at _nSpecs..2*_nSpecs-1, wireframe at 2*_nSpecs..3*_nSpecs-1
+
+    // ── 3D plot rotation controls (persisted) ──────────────────────────────────
+    // "Roll" (rotation about the view axis, driven by horizontal scroll) is handled
+    // by our own wheel interceptor so its sensitivity is decoupled from drag-orbit.
+    // Drag-orbit sensitivity maps to Plotly's gl3d camera `rotateSpeed`; rotation
+    // mode maps to `scene.dragmode` (turntable | orbit) — same knob as the modebar.
+    const _clampNum = (v, lo, hi, dflt) => { const n = parseFloat(v); return isFinite(n) ? Math.min(hi, Math.max(lo, n)) : dflt; };
+    let _plotRollEnabled = localStorage.getItem('plotRollEnabled') !== '0';                       // default: on
+    let _plotRollSens    = _clampNum(localStorage.getItem('plotRollSens'), 0.05, 2, 0.4);          // default: 0.4 (tuned down from Plotly's native 1.0)
+    let _plotDragSens    = _clampNum(localStorage.getItem('plotDragSens'), 0.1,  3, 1.0);          // default: 1.0 (Plotly native)
+    let _plotRotMode     = localStorage.getItem('plotRotMode') === 'orbit' ? 'orbit' : 'turntable'; // default: turntable
+    let _plotRollWheelAttached = false;
     const _sliceState = { axis: 'L', value: 50, thickness: 1, falloff: 'soft', showPoints: true, zoom: 1 };
     // Base (zoom=1) axis ranges from the last renderSlicePlot, so scroll-wheel zoom
     // can rescale without re-running the WASM slice build. null until first render.
@@ -8764,6 +8820,7 @@ or ICC profiles</span>
         margin: { t: 30, r: 10, b: 10, l: 10 },
         scene: {
           bgcolor: _th.sceneBg,
+          dragmode: _plotRotMode,
           xaxis: { ..._axisBase, range: xRange },
           yaxis: { ..._axisBase, range: yRange },
           zaxis: { ..._axisBase, range: zRange }
@@ -8774,6 +8831,8 @@ or ICC profiles</span>
       requestAnimationFrame(() => requestAnimationFrame(() => {
         Plotly.react(plotEl, allTraces, _layout, { responsive: true }).then(() => {
           hidePlotBusy();
+          applyPlotDragSpeed();   // rotateSpeed governs drag-orbit (native roll is intercepted)
+          attachPlotRollWheel();  // capture-phase roll interceptor (decoupled roll sensitivity)
           if (!_plotHandlerAttached) {
             _plotClickHandler = function(evtData) {
               if (!document.getElementById('plot-opt-spectral')?.checked) return;
@@ -8973,6 +9032,96 @@ or ICC profiles</span>
       body.style.display = hidden ? '' : 'none';
       if (arrow) arrow.textContent = hidden ? '\u25bc' : '\u25b6';
     }
+
+    // \u2500\u2500 3D plot rotation controls \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    // Reach Plotly's live gl3d camera controller (from gl-plot3d). It exposes
+    // `rotateSpeed` (scales drag-orbit) and `.rotate(dtheta, dphi, droll)`.
+    function _getPlotCamera() {
+      const el = document.getElementById('plot');
+      try { return (el && el._fullLayout && el._fullLayout.scene && el._fullLayout.scene._scene && el._fullLayout.scene._scene.camera) || null; }
+      catch (e) { return null; }
+    }
+
+    // Custom roll handler. We intercept EVERY horizontal-dominant wheel event so
+    // Plotly's native roll never fires \u2014 that decouples roll sensitivity from the
+    // drag-orbit `rotateSpeed`. Vertical-dominant wheels fall through to Plotly (zoom).
+    function _onPlotRollWheel(ev) {
+      if (Math.abs(ev.deltaX) <= Math.abs(ev.deltaY)) return; // vertical \u2192 let Plotly zoom
+      ev.preventDefault();
+      ev.stopPropagation();
+      if (!_plotRollEnabled) return;                          // roll off \u2192 consume, do nothing
+      const cam = _getPlotCamera();
+      if (!cam || typeof cam.rotate !== 'function') return;
+      // Matches Plotly's native roll formula (angle = dx\u00b7\u03c0\u00b7speed / innerWidth), speed = our own knob.
+      cam.rotate(0, 0, ev.deltaX * Math.PI * _plotRollSens / window.innerWidth);
+    }
+
+    // Apply drag-orbit sensitivity to the live camera (rotateSpeed now governs drag only).
+    function applyPlotDragSpeed() {
+      const cam = _getPlotCamera();
+      if (cam) cam.rotateSpeed = _plotDragSens;
+    }
+
+    // Attach the capture-phase roll interceptor once. Capture on #plot fires before
+    // Plotly's own wheel listener on the descendant gl container, so stopPropagation wins.
+    function attachPlotRollWheel() {
+      if (_plotRollWheelAttached) return;
+      const el = document.getElementById('plot');
+      if (!el) return;
+      el.addEventListener('wheel', _onPlotRollWheel, { capture: true, passive: false });
+      _plotRollWheelAttached = true;
+    }
+
+    function onPlotRotMode(mode) {
+      _plotRotMode = mode === 'orbit' ? 'orbit' : 'turntable';
+      localStorage.setItem('plotRotMode', _plotRotMode);
+      const plotEl = document.getElementById('plot');
+      // Same code path as the modebar's Orbital/Turntable buttons \u2014 no view reset.
+      if (plotEl && plotEl._fullLayout && plotEl._fullLayout.scene) {
+        Plotly.relayout(plotEl, { 'scene.dragmode': _plotRotMode });
+      }
+    }
+
+    function onPlotDragSens(val) {
+      _plotDragSens = _clampNum(val, 0.1, 3, 1.0);
+      localStorage.setItem('plotDragSens', String(_plotDragSens));
+      const out = document.getElementById('plot-drag-sens-val');
+      if (out) out.textContent = _plotDragSens.toFixed(2);
+      applyPlotDragSpeed();
+    }
+
+    function onPlotRollToggle(on) {
+      _plotRollEnabled = !!on;
+      localStorage.setItem('plotRollEnabled', _plotRollEnabled ? '1' : '0');
+      const sens = document.getElementById('plot-roll-sens');
+      if (sens) sens.disabled = !_plotRollEnabled;
+    }
+
+    function onPlotRollSens(val) {
+      _plotRollSens = _clampNum(val, 0.05, 2, 0.4);
+      localStorage.setItem('plotRollSens', String(_plotRollSens));
+      const out = document.getElementById('plot-roll-sens-val');
+      if (out) out.textContent = _plotRollSens.toFixed(2);
+    }
+
+    // Sync the static controls to the persisted state at load.
+    function initPlotRotationUI() {
+      const tt = document.getElementById('plot-rot-turntable');
+      const orb = document.getElementById('plot-rot-orbit');
+      if (tt)  tt.checked  = _plotRotMode === 'turntable';
+      if (orb) orb.checked = _plotRotMode === 'orbit';
+      const ds = document.getElementById('plot-drag-sens');
+      const dsv = document.getElementById('plot-drag-sens-val');
+      if (ds)  ds.value = String(_plotDragSens);
+      if (dsv) dsv.textContent = _plotDragSens.toFixed(2);
+      const re = document.getElementById('plot-roll-enabled');
+      if (re) re.checked = _plotRollEnabled;
+      const rs = document.getElementById('plot-roll-sens');
+      const rsv = document.getElementById('plot-roll-sens-val');
+      if (rs)  { rs.value = String(_plotRollSens); rs.disabled = !_plotRollEnabled; }
+      if (rsv) rsv.textContent = _plotRollSens.toFixed(2);
+    }
+    document.addEventListener('DOMContentLoaded', initPlotRotationUI);
 
     function setPointsOn(slot, val) {
       _gamutState[slot].pointsOn = val;

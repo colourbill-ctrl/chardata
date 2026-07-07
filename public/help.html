@@ -103,7 +103,7 @@ button.cd-uihint::after { content:"\2317"; font-size:0.85em; opacity:0.65; margi
 <p>A characterisation dataset typically associates device ink percentages (CYAN, MAGENTA, YELLOW, BLACK, and any additional colorants) with measured L*a*b* colorimetry and, optionally, spectral reflectance. CharData accepts these files in <strong>CGATS/IT8</strong>, <strong>CSV</strong>, <strong>CxF/X-3</strong>, and <strong>CxF/X-4</strong> (spot ink characterisation) formats. CharData also accepts <strong>ICC profiles</strong> (output, input, display, and colorspace classes) and treats them as virtual datasets evaluated through their A2B (device-to-Lab) transform.</p>
 <p><strong>What you can do with CharData:</strong></p>
 <ul>
-<li><strong>Explore a single dataset or profile</strong> — browse the data table, visualise the colour gamut in 3D L*a*b* space, examine a 2D slice at any L*, a*, or b* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L*a*b* for any device colorant combination.</li>
+<li><strong>Explore a single dataset or profile</strong> — browse the data table, visualise the colour gamut in 3D L*a*b* space (with adjustable rotation mode and sensitivity), examine a 2D slice at any L*, a*, or b* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L*a*b* for any device colorant combination.</li>
 <li><strong>Compare two datasets, two profiles, or one of each</strong> — see a row-by-row ΔE / ΔL* / ΔC* / ΔH* / Δh* table for matched patches, with summary statistics (mean, min, max, std dev) and a ΔE distribution histogram, and view both gamuts and tone value curves overlaid on the same charts.</li>
 <li><strong>Work with spectral data</strong> — if spectral reflectance columns are present, CharData computes L*a*b* from them using a selectable illuminant (D50, D65, A, LED-B1, F11), observer (2°/10°), and M-condition (M0/M1/M2), and can display the spectral curve for any clicked data point.</li>
 <li><strong>Switch rendering intent</strong> — for ICC profiles, change between Perceptual / Relative Colorimetric / Saturation / Absolute Colorimetric and have every view (3D shell, 2D slice, comparison table, tone curves, estimate) recompute against the new transform.</li>
@@ -582,6 +582,16 @@ text.tA   { fill:var(--txA); font-weight:bold; }
 </tbody></table>
 <p>When both global and per-slot checkboxes are visible, the global checkbox shows an <strong>indeterminate</strong> state when the two slots differ. Clicking the global checkbox sets both slots to the same state.</p>
 <p><strong>Defaults differ by file type.</strong> When a characterization dataset loads, the slot defaults to <strong>gamut shell off, data points on</strong>. When an ICC profile loads, the slot defaults to <strong>gamut shell on, data points off</strong> — profiles encode a continuous transform rather than a sample cloud, so the shell is the more meaningful representation. You can override either default with the per-slot checkboxes.</p>
+<h4>Rotation</h4>
+<p>The bottom of the Controls panel has a <strong>Rotation</strong> group that tunes how the mouse and scroll-wheel drive the 3D camera. All four settings are remembered between sessions.</p>
+<table><thead>
+<tr><th>Control</th><th>Description</th></tr></thead><tbody>
+<tr><td>Mode</td><td><strong>Turntable</strong> (default) keeps the vertical axis upright as you drag-orbit; <strong>Orbit</strong> allows free rotation in any direction. This is the same choice as Plotly's in-frame <em>Turntable / Orbital rotation</em> toolbar buttons, surfaced here where it is easier to find.</td></tr>
+<tr><td>Drag rotate sensitivity</td><td>Scales how fast <strong>click-and-drag</strong> rotates the view (0.1–3, default 1). Lower it for finer control on large gamuts.</td></tr>
+<tr><td>Enable roll (horizontal scroll)</td><td>Turns the <strong>roll</strong> gesture — rotation about the viewing axis, driven by horizontal two-finger / shift scroll — on or off. When off, horizontal scroll does nothing.</td></tr>
+<tr><td>Roll sensitivity</td><td>Scales the roll speed (0.05–2, default 0.4). Roll has its own knob independent of drag sensitivity, so you can calm the roll without slowing drag-orbit.</td></tr>
+</tbody></table>
+<p>Vertical scroll always zooms, regardless of these settings.</p>
 <h4>Spectral popup</h4>
 <p>If the dataset has spectral columns and <strong>Show spectral data when point selected</strong> is enabled, clicking a data point opens a popup showing the spectral reflectance curve for that patch.</p>
 <h4>Legend</h4>
