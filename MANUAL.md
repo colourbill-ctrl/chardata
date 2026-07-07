@@ -308,7 +308,7 @@ The bottom of the Controls panel has a **Rotation** group that tunes how the mou
 |---|---|
 | Mode | **Turntable** (default) keeps the vertical axis upright as you drag-orbit; **Orbit** allows free rotation in any direction. This is the same choice as Plotly's in-frame *Turntable / Orbital rotation* toolbar buttons, surfaced here where it is easier to find. |
 | Drag rotate sensitivity | Scales how fast **click-and-drag** rotates the view (0.1–3, default 1). Lower it for finer control on large gamuts. |
-| Enable roll (horizontal scroll) | Turns the **roll** gesture — rotation about the viewing axis, driven by horizontal two-finger / shift scroll — on or off. When off, horizontal scroll does nothing. |
+| Enable roll (horizontal scroll) | Turns the **roll** gesture — rotation about the viewing axis, driven by horizontal two-finger / shift scroll — on or off. **Off by default;** when off, horizontal scroll does nothing. |
 | Roll sensitivity | Scales the roll speed (0.05–2, default 0.4). Roll has its own knob independent of drag sensitivity, so you can calm the roll without slowing drag-orbit. |
 
 Vertical scroll always zooms, regardless of these settings.
