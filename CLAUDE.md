@@ -51,7 +51,7 @@ Gamut math (polynomial model fitting, 3D mesh generation, 2D slice, ICC profile 
 
 lcms2 expects 0..100 inputs for ink colour spaces (CMYK, CMY, NCLR 5..15ch — anything `IsInkSpace` returns true for) and 0..1 for non-ink (RGB/Gray). The wrapper tracks this via `IccProfile::inputMax`; do not reintroduce a blanket `/100.0` scale.
 
-**Sampling caveat**: `BOUNDARY_STEPS`/`SLICE_FACE_STEPS` shrink fast with channel count because mesh vertices grow as `C(N,2) * 2^(N-2) * (steps+1)^2`. For N≥12, even the floor of `steps=2` is best-effort and may OOM in WASM. Don't bump those defaults without measuring.
+**Sampling caveat**: `BOUNDARY_STEPS`/`SLICE_FACE_STEPS` shrink fast with channel count because mesh vertices grow as `C(N,2) * 2^(N-2) * (steps+1)^2`. For N≥12, even the floor of `steps=2` is best-effort and may OOM in WASM. Don't bump those defaults without measuring. A hard `MAX_MODEL_COLORANTS = 12` guard in `buildGamutCache` (index.html) enforces this: above 12 colorants the polynomial fit **and** the 3D shell are skipped (the point cloud, 2D slice, data table, and Compare are kept) so a crafted many-colorant CSV or exotic 13–15-channel NCLR ICC can't hang/OOM the tab on load. It's a client-side-DoS guard, not a functional limit — real print data is ≤7 colorants (CMYKOGV). See `SECURITY-FOLLOWUPS.md` #14.
 
 ### ICC viewer WASM (lazy)
 

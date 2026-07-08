@@ -48,6 +48,20 @@ app.use(helmet({
   crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
 }));
 
+// Permissions-Policy: this is a static colour-data viewer — it needs none of the
+// powerful browser features. Deny them outright so an injected script (or a
+// compromised third-party tag) can't reach camera/mic/geolocation/etc, and opt
+// out of FLoC/Topics ad-cohort profiling. Helmet does not set this header, so
+// add it explicitly ahead of the static middleware.
+app.use((req, res, next) => {
+  res.setHeader('Permissions-Policy',
+    'accelerometer=(), autoplay=(), camera=(), display-capture=(), ' +
+    'encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), ' +
+    'magnetometer=(), microphone=(), midi=(), payment=(), usb=(), ' +
+    'browsing-topics=(), interest-cohort=()');
+  next();
+});
+
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.get('/health', (req, res) => res.status(200).type('text/plain').send('ok'));
 

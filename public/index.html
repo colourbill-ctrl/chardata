@@ -6977,7 +6977,7 @@ or ICC profiles</span>
             ? `background:repeating-linear-gradient(90deg,${color} 0,${color} 4px,transparent 4px,transparent 7px);`
             : `background:${color};`;
           parts.push(`<label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;">` +
-            `<input type="checkbox" id="${cbId}" ${checked?'checked':''} onchange="renderTvChart()">` +
+            `<input type="checkbox" id="${escapeHtml(cbId)}" ${checked?'checked':''} onchange="renderTvChart()">` +
             `<span style="display:inline-block;width:22px;height:3px;${swatch}border-radius:1px;flex-shrink:0;"></span>` +
             `<span style="white-space:nowrap;">${escapeHtml(colorant)}</span></label>`);
         });
@@ -7384,8 +7384,8 @@ or ICC profiles</span>
         <div style="margin-top:16px;padding:12px 14px;background:#f8f9fa;border:1px solid #ddd;border-radius:6px;font-size:13px;">
           <div style="font-weight:bold;font-size:14px;margin-bottom:8px;color:#333;">${escapeHtml(a.name)}</div>
           <table style="border-collapse:collapse;font-size:12px;color:#555;">
-            <tr><td style="padding:2px 16px 2px 0;color:#888;">${t('icc_summary_color_space')}</td><td style="padding:2px 0;">${info.colorSpace || '—'}</td></tr>
-            <tr><td style="padding:2px 16px 2px 0;color:#888;">${t('icc_summary_device_class')}</td><td style="padding:2px 0;">${info.deviceClass || '—'}</td></tr>
+            <tr><td style="padding:2px 16px 2px 0;color:#888;">${t('icc_summary_color_space')}</td><td style="padding:2px 0;">${escapeHtml(info.colorSpace || '—')}</td></tr>
+            <tr><td style="padding:2px 16px 2px 0;color:#888;">${t('icc_summary_device_class')}</td><td style="padding:2px 0;">${escapeHtml(info.deviceClass || '—')}</td></tr>
             <tr><td style="padding:2px 16px 2px 0;color:#888;">${t('icc_summary_colorants')}</td><td style="padding:2px 0;">${a.colorants.map(escapeHtml).join(', ')}</td></tr>
             <tr><td style="padding:2px 16px 2px 0;color:#888;">${t('icc_summary_rendering_intents')}</td><td style="padding:2px 0;">${intentsAvail}</td></tr>
           </table>
@@ -7718,7 +7718,7 @@ or ICC profiles</span>
             <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;" data-i18n="folder">Folder</label>
             <div style="display:flex;gap:6px;align-items:center;">
               <input id="_exp-folder" type="text" placeholder="${t('select_folder')}\u2026"
-                value="${localDirHandle ? localDirHandle.name : ''}"
+                value="${localDirHandle ? escapeHtml(localDirHandle.name) : ''}"
                 style="flex:1;padding:5px 8px;border:1px solid #bbb;border-bottom:2px solid #999;border-radius:5px;font-size:12px;box-sizing:border-box;">
               <button id="_exp-folder-btn" title="${folderBtnTitle}" ${folderBtnDisabled}
                 style="display:inline-flex;align-items:center;justify-content:center;padding:5px 8px;background:linear-gradient(to bottom,#f8f9fa,#e8eaed);border:1px solid #bbb;border-bottom:3px solid #999;border-radius:6px;${folderBtnStyle}color:#555;box-shadow:0 2px 3px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.8);flex-shrink:0;">${folderSVG}</button>
@@ -7726,7 +7726,7 @@ or ICC profiles</span>
           </div>
           <div style="margin-bottom:12px;">
             <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;" data-i18n="file_name">File name</label>
-            <input id="_exp-fname" type="text" value="${baseName}_extracted"
+            <input id="_exp-fname" type="text" value="${escapeHtml(baseName)}_extracted"
               style="width:100%;padding:6px 8px;border:1px solid #bbb;border-bottom:2px solid #999;border-radius:5px;font-size:13px;box-sizing:border-box;">
           </div>
           <div style="margin-bottom:20px;">
@@ -9527,6 +9527,15 @@ or ICC profiles</span>
       updateEstimate();
     }
 
+    // Above this colorant count, both the polynomial fit matrix (C(nC+deg,deg)²)
+    // and the boundary-cloud mesh (C(N,2)·2^(N-2)·(steps+1)²) blow past the WASM
+    // heap and hang/OOM the tab. Beyond ~12 colorants the model was already
+    // "best-effort / may OOM" (see gamut.js BOUNDARY_STEPS note), so a crafted CSV
+    // with many colorant columns — or an exotic high-channel ICC profile — is a
+    // client-side DoS on load. Cap it: keep the point cloud + 2D slice + table,
+    // skip only the model + 3D shell. Real print data is ≤7 colorants (CMYKOGV).
+    const MAX_MODEL_COLORANTS = 12;
+
     // Build raw scatter XYZ + fit WASM model + build WASM mesh.
     // Returns a Promise that resolves when both model and mesh are ready.
     async function buildGamutCache(slot) {
@@ -9561,6 +9570,15 @@ or ICC profiles</span>
             console.error('CharData: ICC patch eval failed for slot', slot, e);
             icc.patches = null;
           }
+        }
+
+        // Skip the 3D shell for high-channel profiles — the mesh would OOM the
+        // WASM heap. The patch-derived point cloud (set above) still renders.
+        if (data.colorants.length > MAX_MODEL_COLORANTS) {
+          console.warn(`CharData: ${data.colorants.length} colorants exceeds model cap (${MAX_MODEL_COLORANTS}); skipping 3D gamut shell (point cloud retained).`);
+          _gamutState[slot].cachedMesh = null;
+          _gamutState[slot].cachedModel = null;
+          return;
         }
 
         try {
@@ -9601,6 +9619,13 @@ or ICC profiles</span>
       // Fit polynomial model via WASM (if colorants are available and Gamut is loaded).
       // CxF/X-4 spot-ink data (noModel) keeps its point cloud but is never fitted.
       if (!window.Gamut || data.noModel || !data.colorants || data.colorants.length === 0) return;
+      // Cap the fit + boundary mesh at a tractable colorant count (see
+      // MAX_MODEL_COLORANTS). A crafted CSV with many colorant columns would
+      // otherwise hang/OOM the tab on load; the scatter point cloud is kept.
+      if (data.colorants.length > MAX_MODEL_COLORANTS) {
+        console.warn(`CharData: ${data.colorants.length} colorants exceeds model cap (${MAX_MODEL_COLORANTS}); skipping polynomial model + gamut shell (point cloud retained).`);
+        return;
+      }
       const iC = data.colorants.map(c => data.headers.indexOf(c));
       if (iC.some(i => i < 0)) return;
 
