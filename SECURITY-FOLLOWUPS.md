@@ -224,6 +224,118 @@ parsers / uppercased keys / `Map`), `postMessage` (source+origin+type checked,
 device** — "runs locally" upheld), `target=_blank` (`rel=noopener`), and
 localStorage (all bounded consumers) sections all clean.
 
+## Resolved in image-decode antagonistic pass (2026-07-08, follow-up)
+
+Second hostile pass, scoped to the **UTIF / TIFF-JPEG-PDF image-decode path** — the
+one surface the 1.15.x fuzz (#18) explicitly did **not** cover (it fuzzed the ICC
+WASM parsers only). chardata's Image tab (`#image-file-input`, accepts
+`tiff/bmp/gif/pdf/png/jpeg`) runs the pure-JS **UTIF** decoder plus hand-rolled
+PDF/Flate paths on untrusted bytes. Reachable by luring a user to open a crafted
+file (no postMessage/URL push into this path), so severity is a **visitor-tab DoS /
+content-injection**, not server compromise — but the 1.15.x sweep had left it
+unmeasured. An adversarial-TIFF fuzz (`decode()` over bombs / malformed / truncated
+/ bit-flipped / random inputs, plus an isolated `decodeImage` allocation probe)
+found **one main-thread-freeze DoS the size cap did not stop**; hardened the whole
+path and re-verified.
+
+### 19. UTIF metadata-parse hang/OOM — unbounded tag-count loop ✓ DONE  (HIGH-ish DoS)
+
+`UTIF._readIFD` (`public/lib/utif.js`) reads a TIFF tag's **count** field straight
+from the file and loops that many times pushing to a JS array, for value types
+3/4/5/8/9/10/11/12/13 with **no bound** (upstream already clamps types 1/2/7 in-line).
+A **~130-byte** crafted TIFF with one bogus count (up to 4.28e9) froze the main
+thread **6–20 s** and OOMs the tab — and it fires in `sniffTiff` → `UTIF.decode`,
+i.e. **before** any dimension/size logic could run, so the file-size cap is no
+defence. Empirically found by the fuzz (`flip17/29/41/53` = the high byte of
+successive tags' count fields → 12–20 s each). Upstream bug (photopea/UTIF),
+reportable. **CWE-834 / CWE-400.**
+
+Fix (mirrors UTIF's own type-1/2/7 clamp discipline, behaviour-preserving for every
+well-formed TIFF): a **per-tag** clamp of out-of-line counts to what the buffer
+actually holds, plus a **per-decode element budget** (`UTIF._MAXELEMS = 64 M`)
+threaded via `prm` across all IFD / sub-IFD / maker-note recursion, plus an IFD-chain
+cap (`UTIF._MAXIFDS`). Verified: fuzz anomalies **20 s → 0** (280 decode() ok, no
+hang); valid inline **and** out-of-line array tags (`BitsPerSample [8,8,8]`,
+multi-strip) still decode losslessly.
+
+### 20. Decoded-dimension / decompression bomb — no pixel cap before allocation ✓ DONE  (MED DoS)
+
+Every decode entry trusted attacker image dimensions: `decodeTiff` → `UTIF.decodeImage`
+allocates `height·⌈width·spp·bpc/8⌉` up front from the IFD tags; `decodeCmykJpegViaUtif`,
+`decodePdf`, and `decodeViaCanvas` likewise allocate `w·h·channels`. The 100 MB
+**file** cap only bounds *uncompressed* images — CCITT-G3/G4 (1-bit "plates"), LZW,
+PackBits, Deflate-TIFF, JPEG and PDF Flate/DCT decouple file size from decoded size,
+so a few-KB file can claim **gigapixel** dimensions and OOM the tab. (The isolated
+`decodeImage(65535²)` probe timed out / OOM-killed even under a 256 MB child cap.)
+
+Fix: `MAX_IMAGE_PIXELS = 64 Mpx` + an `assertImagePixels(w,h,spp)` guard (JS-number
+math, exact to 2⁵³ — no 32-bit overflow wrap) applied in **`sniffTiff`** (before
+`UTIF.decodeImage`), **`sniffPdf`**, **`decodeTiff`** (defence-in-depth), a new
+**`jpegSofDims` SOF pre-scan** in `decodeCmykJpegViaUtif` (bounds the frame before
+`JpegDecoder.parse` allocates coefficient buffers), and **`decodeViaCanvas`** onload.
+Rejects with a localized `image_err_too_big` (added to all 12 locales). 64 Mpx is far
+above any real proof scan / camera image; uncompressed inputs are already bounded
+tighter by the file cap, so this specifically defuses compression bombs.
+
+### 21. zlib-bomb via `inflateAsync` — no output cap ✓ DONE  (MED DoS)
+
+`inflateAsync` (PNG iCCP, PDF `/ICCBased`, PDF image `/FlateDecode`) accumulated the
+entire inflated stream with no ceiling — a few-KB deflate stream can inflate to GBs.
+Fix: `maxBytes` param that cancels the reader and throws once exceeded —
+`MAX_ICC_INFLATE_BYTES = 64 MB` for embedded-ICC, `MAX_IMAGE_INFLATE_BYTES = 512 MB`
+for PDF image streams.
+
+### 22. Plotly text-field link/markup injection via filename & colorant name ✓ DONE  (LOW)
+
+Attacker-controlled **dataset names (= filename)** and **colorant names** were passed
+**raw** into Plotly `name:` (legend) / `title.text` sinks — 3D scatter/mesh/wireframe,
+2D slice, tone-value plot. Plotly renders a limited HTML subset in text fields
+(`<a href>`, `<b>`, `<span style>`, …) and resolves entities, so a filename like
+`<a href="https://evil">x</a>.csv` injects a **clickable off-site link / markup** into
+a chart. **Not** script execution — Plotly 2.27 protocol-sanitizes hrefs (drops
+`javascript:`, verified in the min.js: resolves `.protocol` against an allowlist) and
+whitelists tags (no `<img>`/event handlers) — but the innerHTML-focused sweeps
+(#1/#4/#5/#7/#13) had only escaped these names at the **HTML-legend** sink, missing the
+**Plotly text** sink. (`buildSpectralLabel` already `escapeHtml`s, so the spectral
+popup was incidentally safe.)
+
+Fix: a `plotlyText()` helper (escapes `<>&`) applied at the 7 Plotly `name:` sinks that
+receive raw filenames/colorant names; the parallel custom HTML legends keep their own
+`escapeHtml`, so no double-escaping.
+
+**Re-verified this pass (unchanged, good):** live headers on the wire
+(`chardata.colourbill.com/` root + `/index.html`, Cloudflare-fronted) — **CSP is a
+response header** (full helmet directive set incl. `base-uri 'self'`, `form-action
+'self'`, `upgrade-insecure-requests`; no `<meta>` CSP), `script-src`/`style-src`
+`'unsafe-inline'` confirmed **required** (466 inline `style=` attrs + 1 `<style>` +
+Plotly runtime `<style>` injection; hundreds of inline `on*=` handlers in the
+single-file SPA), HSTS `max-age=31536000; includeSubDomains`, `nosniff`,
+`Referrer-Policy: no-referrer`, Permissions-Policy, `frame-ancestors 'none'` + XFO,
+COOP/CORP all present. `npm audit` **0** (express+helmet only).
+
+**SCA of the *vendored* client libs `npm audit` can't see** (they aren't in the
+lockfile): **plotly.js 2.27.0** — clear of the one relevant recent advisory,
+**CVE-2023-46308** (prototype pollution, fixed in 2.25.2 < 2.27.0); slightly behind
+latest 2.x (hygiene only, no known open vuln). **utif.js** — the DoS in #19, now
+patched locally.
+
+### Minor / hygiene (this pass)
+
+- **Duplicate `Strict-Transport-Security` at the edge.** Cloudflare adds a second HSTS
+  header (`max-age=31536000`, **without** `includeSubDomains`) on top of helmet's
+  (`…; includeSubDomains`). RFC 6797 says the UA processes only the first, so the
+  effective policy is fine, but two layers set HSTS and the Cloudflare one is weaker —
+  pick one authority (drop helmet's HSTS and set it edge-side, or disable Cloudflare's)
+  to avoid drift. Neither carries `preload` (intentional).
+- **xlsx translation drift.** `image_err_too_big` was added to all 12 I18N locales
+  (runtime correct) but not to `translations/Eng-*.xlsx`; chardata has no
+  `sync-translations` script (profiletool does), so regenerate or hand-add on the next
+  translation pass. Non-security.
+- **Portable image-decode fuzz** (`decode()` bombs/malformed/bitflip + `decodeImage`
+  allocation probe + guard checks) exists as a session artifact; worth landing under
+  `scripts/` as a standing regression to rerun after any UTIF bump, alongside the #18
+  ICC-parser fuzz suggestion.
+
 ## Still deferred
 
 ### Vendored native-parser tracking (lcms2 **+ IccProfLib**)

@@ -109,8 +109,9 @@ UTIF.decode = function(buff, prm)
 
 	var ifdo = bin.readUint(data, offset);  offset+=4;
 	var ifds = [], offs=[];
+	if(prm.rem==null) prm.rem = UTIF._MAXELEMS;   // chardata: per-decode element budget (DoS guard, see _readIFD)
 	while(true) {
-		if(offs.indexOf(ifdo)!=-1) break;  offs.push(ifdo);  // prevent "circular" pointers 
+		if(offs.indexOf(ifdo)!=-1 || offs.length>=UTIF._MAXIFDS) break;  offs.push(ifdo);  // prevent circular / runaway IFD chains
 		var cnt = bin.readUshort(data,ifdo), typ = bin.readUshort(data,ifdo+4);  if(cnt!=0) if(typ<1 || 13<typ) {  log("error in TIFF");  break  };
 		UTIF._readIFD(bin, data, ifdo, ifds, 0, prm);
 		
@@ -1291,6 +1292,22 @@ UTIF._types = function() {
 	}
 }();
 
+// ── chardata security hardening: DoS guards for untrusted TIFF metadata ──────
+// _readIFD below loops `num` (a tag's count field, read straight from the file)
+// times for value types 3/4/5/8/9/10/11/12/13 with NO bound — a bogus huge count
+// on a tiny crafted file drives an unbounded read+push loop that freezes the main
+// thread for tens of seconds and OOMs the tab. (Upstream already clamps types
+// 1/2/7 in-line.) Two orthogonal bounds mirror that existing clamp discipline:
+//   * per-tag  — cap an out-of-line count to what the buffer actually holds;
+//   * per-decode — a shared element budget threaded via prm across every IFD /
+//     sub-IFD / maker-note recursion, bounding many-tag & long-chain files too.
+// Behaviour-preserving for well-formed TIFFs: a real tag's values are physically
+// present in the file, so its count already satisfies both bounds. Upstream bug
+// (photopea/UTIF) — reportable. See SECURITY-FOLLOWUPS.md.
+UTIF._typeSize = {1:1, 2:1, 3:2, 4:4, 5:8, 6:1, 7:1, 8:2, 9:4, 10:8, 11:4, 12:8, 13:4};
+UTIF._MAXELEMS = 64 * 1024 * 1024;   // total tag elements decoded per call (worst case ~≤512MB / <1s)
+UTIF._MAXIFDS  = 1024;               // cap the IFD next-pointer chain length
+
 UTIF._readIFD = function(bin, data, offset, ifds, depth, prm)
 {
 	var cnt = bin.readUshort(data, offset);  offset+=2;
@@ -1303,7 +1320,19 @@ UTIF._readIFD = function(bin, data, offset, ifds, depth, prm)
 		var type = bin.readUshort(data, offset);    offset+=2;
 		var num  = bin.readUint  (data, offset);    offset+=4;
 		var voff = bin.readUint  (data, offset);    offset+=4;
-		
+
+		// ── chardata DoS clamp (see UTIF._MAXELEMS note above) ───────────────
+		var _esz = UTIF._typeSize[type] || 1;
+		if(num*_esz > 4) {                       // out-of-line values (inline stays ≤4 bytes, untouched)
+			var _av = data.length - voff;
+			num = (_av > 0) ? Math.min(num, (_av/_esz)|0) : 0;
+		}
+		if(prm.rem != null) {                    // shared per-decode element budget
+			if(num > prm.rem) num = prm.rem;
+			prm.rem -= num;
+		}
+		// ─────────────────────────────────────────────────────────────────────
+
 		var arr = [];
 		//ifd["t"+tag+"-"+UTIF.tags[tag]] = arr;
 		if(type== 1 || type==7) {  var no=(num<5 ? offset-4 : voff);  if(no+num>data.buffer.byteLength) num=data.buffer.byteLength-no;  arr = new Uint8Array(data.buffer, no, num);  }
