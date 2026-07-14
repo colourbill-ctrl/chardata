@@ -134,7 +134,7 @@ function diag_layout() {
   b += R(CP+10, cy, CW-20, BOT-cy-2, 'lnbd', 4);
   b += T(CP+CW/2, cy+50, 'Mode content', 'tT');
   b += T(CP+CW/2, cy+70, 'Data Table · 3D Gamut · 2D Slice', 't3');
-  b += T(CP+CW/2, cy+84, 'Tone Value · G7 · Estimate', 't3');
+  b += T(CP+CW/2, cy+84, 'Near-Neutral · Tone Value · Estimate · Extract', 't3');
 
   // ── Right: Settings blade ──
   b += R(RP,TOP,RW,BOT-TOP,'pnl');
@@ -185,17 +185,17 @@ function diag_explore() {
   b += R(CP+104,TOP+8,90,22,'btn',4);
   b += T(CP+104+45, TOP+23, 'Compare', 't2');
 
-  // Sections
+  // Sections — the Explore stack (top to bottom), collapsibles start closed
   const sections = [
-    ['▶  Data Table',          false],
-    ['▼  3D Gamut Plot',       true ],
-    ['     ☑ Show gamut shell · ☑ Show data points · ☑ Color by hue · ☑ Color by value', false, true],
-    ['     Shell opacity ░░░░░░░░░░░░░░░░', false, true],
-    ['     ☐ Show spectral data when point selected', false, true],
-    ['▶  Gamut Slice (2D)',    false],
-    ['▶  Tone Value',          false],
-    ['▶  G7 Report',           false],
-    ['▶  Estimate',            false],
+    ['▶  Extract',                     false],
+    ['▶  Primaries & Overprints',      false],
+    ['▼  Data Table',                  true ],
+    ['     device colorants · L* a* b*   (sortable; dbl-click → spectral)', false, true],
+    ['▶  Near-Neutral Survey',         false],
+    ['▶  Tone Value',                  false],
+    ['▶  Estimate',                    false],
+    ['▶  3D Gamut Plot',               false],
+    ['▶  Gamut Slice (2D)',            false],
   ];
 
   let sy = TOP+40;
@@ -210,15 +210,15 @@ function diag_explore() {
 
   // Callouts
   b += callout(CP+8+45, TOP+23, CP+8+45, TOP+23-30, 'Active mode', 't3');
-  b += callout(CP+18, TOP+62, W-10, TOP+62, 'Collapsed section (click to expand)', 't3');
-  b += callout(CP+18, TOP+108, W-10, TOP+108, 'Expanded section', 't3');
+  b += callout(CP+18, TOP+74, W-10, TOP+62, 'Primaries & Overprints — its own collapsed section', 't3');
+  b += callout(CP+18, TOP+103, W-10, TOP+103, 'Expanded section (Data Table)', 't3');
 
   return svg(W, H, b);
 }
 
 // ── Diagram 3: Compare Mode ───────────────────────────────────────────────────
 function diag_compare() {
-  const W=720, H=310;
+  const W=720, H=384;
   const LP=10, LW=150;
   const CP=168, CW=542;
   const TOP=10;
@@ -253,41 +253,35 @@ function diag_compare() {
   b += T(CP+8+45, TOP+23, 'Explore', 't2');
   b += R(CP+104,TOP+8,90,22,'act',4);
   b += T(CP+104+45, TOP+23, 'Compare', 'tW tB');
+  b += T(CP+204, TOP+23, '5 matching data points', 't3', 'start');
 
-  // Stats box
-  b += R(CP+8,TOP+38,CW-16,46,'sec',4);
-  b += T(CP+8+30, TOP+55, 'Mean ΔE00', 't3', 'middle');
-  b += T(CP+8+30, TOP+73, '2.41', 'tB');
-  b += T(CP+8+100, TOP+55, 'Min ΔE00', 't3', 'middle');
-  b += T(CP+8+100, TOP+73, '0.18', 'tB');
-  b += T(CP+8+170, TOP+55, 'Max ΔE00', 't3', 'middle');
-  b += T(CP+8+170, TOP+73, '8.93', 'tB');
-  b += T(CP+8+240, TOP+55, 'Std Dev', 't3', 'middle');
-  b += T(CP+8+240, TOP+73, '1.67', 'tB');
+  // Section stack — collapsibles start closed; two shown expanded
+  const sections = [
+    ['▼  Comparison Statistics',                                   true ],
+    ['      Mean ΔE00 2.41 · Min 0.18 · Max 8.93 · Std Dev 1.67',  false, true],
+    ['      Percentiles: N · Mean · Median · P90 · P95 · Max',     false, true],
+    ['      Per-channel ΔE: Included · Excluded · Only',           false, true],
+    ['      ▁▃▅▇▆▄▂▁  ΔE distribution histogram',                  false, true],
+    ['▶  Validate (G7)',                                           false],
+    ['▶  Primaries & Overprints',                                  false],
+    ['▼  Comparison Table',                                        true ],
+    ['      CMYK · A:L*a*b*C*h* · B:L*a*b*C*h* · ΔE ΔL* ΔC* ΔH* Δh*', false, true],
+    ['▶  Comparison Plot',                                         false],
+    ['▶  Tone Value',                                              false],
+  ];
 
-  // Table header
-  const ty = TOP+92;
-  b += R(CP+8,ty,CW-16,22,'hd',0);
-  const cols = ['C','M','Y','K','L*(A)','a*(A)','b*(A)','L*(B)','a*(B)','b*(B)','ΔE','ΔH'];
-  const cw = (CW-16)/cols.length;
-  cols.forEach((c,i) => {
-    b += T(CP+8 + i*cw + cw/2, ty+15, c, 't3');
-    if (i>0) b += L(CP+8+i*cw, ty, CP+8+i*cw, ty+22);
-  });
-
-  // Table rows (sample)
-  for (let r=0; r<5; r++) {
-    const ry = ty+22 + r*22;
-    b += R(CP+8,ry,CW-16,22, r%2===0?'sec':'pnl', 0);
-    const vals = ['100','0','0','0','28','48','-3','27','47','-2','0.9','0.5'];
-    vals.forEach((v,i) => {
-      b += T(CP+8 + i*cw + cw/2, ry+15, r===0?v:'…', 't3');
-    });
+  let sy = TOP+40;
+  for (const [label, open, sub] of sections) {
+    const h = 22;
+    const cls = sub ? 'pnl' : (open ? 'pnl' : 'sec');
+    b += R(CP+8, sy, CW-16, h, cls, 3);
+    b += T(CP+18, sy+15, label, sub ? 't3' : (open ? 'tA' : 't2'), 'start');
+    sy += h + 2;
   }
 
-  // Callout
-  b += callout(CP+8+120, TOP+55, CP+8+120, TOP+36, 'Summary statistics', 't3');
-  b += callout(CP+8+cols.length*cw/2, ty+15, W-5, ty+5, 'Sortable columns', 't3');
+  // Callouts
+  b += callout(CP+170, TOP+40+15, W-8, TOP+40+2, 'Stats · percentiles · per-channel ΔE', 't3');
+  b += callout(CP+170, TOP+40+6*24+15, W-8, TOP+40+6*24+15, 'Row-by-row ΔE table (sortable)', 't3');
 
   return svg(W, H, b);
 }
@@ -583,8 +577,7 @@ function diag_datatable() {
     r.forEach((v,i) => b += T(tx0 + i*tw + tw/2, ry+15, v, i>=5 ? 't2' : 't3'));
   });
 
-  b += callout(tx0 + 6*tw - tw/2, ty+15, tx0 + 6*tw - tw/2, ty-4, 'Device colorants, then L* a* b*', 't3');
-  b += T(W/2, H-16, 'Double-click a row’s L*a*b* → spectral curve popup', 't3');
+  b += T(W/2, H-14, 'Device colorants, then L* a* b*  ·  double-click a row’s L*a*b* → spectral curve', 't3');
   return svg(W, H, b);
 }
 
@@ -660,13 +653,13 @@ function diag_tonevalue() {
 const DIAGRAMS = {
   layout:    { svg: diag_layout(),    caption: 'Overall layout — File Select pane (left), the Dataset A / B boxes and mode content in the main canvas (centre), Settings panel (right). The “Display File” / “Launch editor” buttons live on each Dataset box.' },
   settings:  { svg: diag_settings(),  caption: 'Settings panel — ΔE method, duplicate filtering and averaging, spectral→Lab conditions, model and display options.' },
-  datatable: { svg: diag_datatable(), caption: 'Data Table (expanded) — one row per patch, sortable columns: device colorants first, then L* a* b*. Double-click the colorimetry for a row’s spectral curve.' },
+  datatable: { svg: diag_datatable(), caption: 'Data Table (expanded) — one row per patch, sortable columns: device colorants first, then L* a* b*. Double-click a row’s colorimetry for its spectral curve. (Primaries &amp; Overprints is now its own collapsible section, just above.)' },
   tonevalue: { svg: diag_tonevalue(), caption: 'Tone Value — printed tone value vs input ink % per colorant; curves above the diagonal show dot gain. The control bar selects Tone Method (Murray-Davies / CTV), filter and graph type.' },
   gamut:     { svg: diag_gamut(),     caption: '3D L*a*b* gamut plot — per-dataset gear controls for opacity/density, shell &amp; point-cloud toggles; click a point for its spectrum.' },
   slice:     { svg: diag_slice(),     caption: '2D gamut slice — move the slice along L*, a* or b*, adjust its thickness; soft view emphasises points near the slice.' },
   estimate:  { svg: diag_estimate(),  caption: 'Estimate — fit a forward model, then predict L*a*b* for any device-colorant combination; fit statistics shown alongside.' },
   extract:   { svg: diag_extract(),   caption: 'Extract — discard rows to build a subset, e.g. pull the CMYK data out of a CMYKOGV dataset.' },
-  compare:   { svg: diag_compare(),   caption: 'Compare mode — row-by-row ΔE Comparison Table with aggregate statistics (mean / min / max / std dev) across matched patches.' },
+  compare:   { svg: diag_compare(),   caption: 'Compare mode — a stack of collapsible sections: Comparison Statistics (mean / min / max / std dev, percentiles, per-channel ΔE, ΔE histogram), Validate (G7), Primaries &amp; Overprints, the row-by-row Comparison Table, the Comparison Plot, and Tone Value.' },
 };
 
 // ── "Things you can do with CharData" — shared content ────────────────────────
@@ -1008,19 +1001,22 @@ ${thingsYouCanDo()}
       <li><a href="#4-explore-mode">Explore mode</a>
         <ol>
           <li><a href="#4-1-data-table">Data table</a></li>
-          <li><a href="#4-2-g7-report">G7 report</a></li>
+          <li><a href="#4-2-near-neutral-survey">Near-Neutral Survey</a></li>
           <li><a href="#4-3-3d-gamut-plot">3D Gamut plot</a></li>
           <li><a href="#4-4-2d-gamut-slice">2D Gamut slice</a></li>
           <li><a href="#4-5-estimate-section">Estimate section</a></li>
           <li><a href="#4-6-tone-value">Tone Value</a></li>
+          <li><a href="#4-7-extract">Extract</a></li>
         </ol>
       </li>
       <li><a href="#5-compare-mode">Compare mode</a>
         <ol>
           <li><a href="#5-1-compare-table">Compare table</a></li>
-          <li><a href="#5-2-3d-gamut-plot-compare">3D Gamut plot (Compare)</a></li>
-          <li><a href="#5-3-tone-value-compare">Tone Value (Compare)</a></li>
-          <li><a href="#5-4-image-gamut">Image gamut</a></li>
+          <li><a href="#5-2-comparison-plot">Comparison Plot</a></li>
+          <li><a href="#5-3-validate-g7">Validate (G7)</a></li>
+          <li><a href="#5-4-3d-gamut-plot-compare">3D Gamut plot (Compare)</a></li>
+          <li><a href="#5-5-tone-value-compare">Tone Value (Compare)</a></li>
+          <li><a href="#5-6-image-gamut">Image gamut</a></li>
         </ol>
       </li>
       <li><a href="#6-mobile">Mobile</a></li>

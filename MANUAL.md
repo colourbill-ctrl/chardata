@@ -10,8 +10,8 @@ A characterisation dataset typically associates device ink percentages (CYAN, MA
 
 **What you can do with CharData:**
 
-- **Explore a single dataset or profile** — browse the data table, visualise the colour gamut in 3D L\*a\*b\* space (with adjustable rotation mode and sensitivity), examine a 2D slice at any L\*, a\*, or b\* value, analyse tonal response (tone value / dot gain) per colorant, check G7 grey balance compliance, and fit a polynomial model to predict L\*a\*b\* for any device colorant combination.
-- **Compare two datasets, two profiles, or one of each** — see a row-by-row ΔE / ΔL\* / ΔC\* / ΔH\* / Δh\* table for matched patches, with summary statistics (mean, min, max, std dev) and a ΔE distribution histogram, and view both gamuts and tone value curves overlaid on the same charts.
+- **Explore a single dataset or profile** — browse the data table (with a primaries & overprints summary), visualise the colour gamut in 3D L\*a\*b\* space (with adjustable rotation mode and sensitivity), examine a 2D slice at any L\*, a\*, or b\* value, analyse tonal response (tone value / dot gain) per colorant, survey how close the data sits to the neutral axis, extract subsets, and fit a polynomial model to predict L\*a\*b\* for any device colorant combination.
+- **Compare two datasets, two profiles, or one of each** — see a row-by-row ΔE / ΔL\* / ΔC\* / ΔH\* / Δh\* table for matched patches, with summary statistics (mean, min, max, std dev), percentile (P90/P95) and per-channel ΔE breakdowns, a ΔE distribution histogram and comparison plots, an optional G7 grey-balance check, and both gamuts and tone value curves overlaid on the same charts.
 - **Work with spectral data** — if spectral reflectance columns are present, CharData computes L\*a\*b\* from them using a selectable illuminant (D50, D65, A, LED-B1, F11), observer (2°/10°), and M-condition (M0/M1/M2), and can display the spectral curve for any clicked data point.
 - **Switch rendering intent** — for ICC profiles, change between Perceptual / Relative Colorimetric / Saturation / Absolute Colorimetric and have every view (3D shell, 2D slice, comparison table, tone curves, estimate) recompute against the new transform.
 
@@ -26,16 +26,19 @@ The suggested workflow is to load an entire directory of characterisation files 
 3. [Settings panel](#3-settings-panel)
 4. [Explore mode](#4-explore-mode)
    - [Data table](#4-1-data-table)
-   - [G7 report](#4-2-g7-report)
+   - [Near-Neutral Survey](#4-2-near-neutral-survey)
    - [3D Gamut plot](#4-3-3d-gamut-plot)
    - [2D Gamut slice](#4-4-2d-gamut-slice)
    - [Estimate section](#4-5-estimate-section)
    - [Tone Value](#4-6-tone-value)
+   - [Extract](#4-7-extract)
 5. [Compare mode](#5-compare-mode)
    - [Compare table](#5-1-compare-table)
-   - [3D Gamut plot (Compare)](#5-2-3d-gamut-plot-compare)
-   - [Tone Value (Compare)](#5-3-tone-value-compare)
-   - [Image gamut](#5-4-image-gamut)
+   - [Comparison Plot](#5-2-comparison-plot)
+   - [Validate (G7)](#5-3-validate-g7)
+   - [3D Gamut plot (Compare)](#5-4-3d-gamut-plot-compare)
+   - [Tone Value (Compare)](#5-5-tone-value-compare)
+   - [Image gamut](#5-6-image-gamut)
 6. [Mobile](#6-mobile)
 
 ---
@@ -158,7 +161,7 @@ The panel is split into three collapsible sections:
 | **Characterization data** | CSV, CGATS/IT8, CxF/X-3, and CxF/X-4 files (your own or loaded from Standard datasets) |
 | **ICC Profiles** | `.icc` / `.icm` binary profiles |
 
-Click a section header (▾) to collapse or expand that section; the state persists between sessions. The button at the top loads files of either kind — CharData detects each file's type and routes it into the correct section automatically.
+Click a section header (▾) to collapse or expand that section; the state persists between sessions. The file-select control at the top of the panel loads files of either kind — CharData detects each file's type and routes it into the correct section automatically.
 
 - **Drag and drop** files from your file system directly onto a Dataset panel or anywhere inside the File Select panel.
 - **Drag a card** from the File Select panel onto Dataset A or Dataset B to assign it.
@@ -177,7 +180,7 @@ Once a file loads, the slot panel shows:
 
 Row counts, CGATS header warnings, and the "Colorimetric only" message are not shown for ICC profiles — they don't apply.
 
-If a CSV/CGATS file is missing required columns (LAB or any device colorant), it is rejected with a specific error message. The G7 report additionally requires CMYK colorants. ICC profiles that fail header validation, or whose device class or color space is unsupported, are rejected with a matching message.
+If a CSV/CGATS file is missing required columns (LAB or any device colorant), it is rejected with a specific error message. G7 validation (in [Compare mode](#5-3-validate-g7)) additionally requires CMYK colorants. ICC profiles that fail header validation, or whose device class or color space is unsupported, are rejected with a matching message.
 
 <div class="note">
 <strong>CGATS header note:</strong> If the first line of a CGATS/IT8 file does not contain <code>CGATS</code> or <code>ISO28178</code>, a warning is shown but the file is still loaded and processed normally.
@@ -200,7 +203,7 @@ The Rendering intent control is only visible when the slot holds an ICC profile.
 
 ## 3. Settings panel
 
-Open Settings by clicking the **⚙** button on the right edge of the screen (or the gear icon on mobile). The Settings panel slides over the content without resizing it. A **?** help button sits directly below ⚙ and opens this help page in a new tab.
+Open Settings by clicking the **⚙** button on the right edge of the screen (or the gear icon on mobile). The Settings panel slides over the content without resizing it. A **?** help button sits directly below ⚙ and opens this User Guide as a slide-in panel over the app — with a search box (type to highlight and step through matches) and an "open in a new tab" link. The same **?** button is available on mobile.
 
 ### ΔE Method
 
@@ -216,11 +219,11 @@ The selection is remembered between sessions. Changing the method immediately up
 
 ### Filter Duplicates
 
-When **Yes**, rows with identical device colorant values are collapsed into a single row, with L\*a\*b\* values averaged. Useful when a test chart contains repeated patches.
+Off by default. When set to **Yes**, rows with identical device colorant values are collapsed into a single row, with L\*a\*b\* values averaged. Useful when a test chart contains repeated patches.
 
 - **Filter Method** — choose **Median** (default, more robust to outliers) or **Mean**.
 
-The row count shown in the dataset panel reflects the deduplicated count.
+The row count shown in the dataset panel reflects the deduplicated count. Independently of this setting, whenever the loaded file contains duplicate measurements the dataset box reports them on its own line — for example *"Found 12 duplicate measurements in the original dataset (repeatability ΔE mean 0.34, max 1.02)"* — so you can judge the measurement repeatability of the chart even when filtering is off.
 
 ### Spectral → LAB
 
@@ -244,7 +247,7 @@ Controls how the polynomial model in the [Estimate section](#4-5-estimate-sectio
 | Option | Description |
 |---|---|
 | Weighted: Off | Ordinary least-squares — all patches contribute equally to the fit |
-| Weighted: On | Iteratively reweighted least-squares — patches with large residuals are progressively down-weighted, making the model more robust to outlier patches |
+| Weighted: On *(default)* | Iteratively reweighted least-squares — patches with large residuals are progressively down-weighted, making the model more robust to outlier patches |
 
 ### Background
 
@@ -256,7 +259,7 @@ Sets how the **Offset**, **Size**, and **Pad** columns are displayed in the ICC 
 
 ### Language
 
-Overrides the interface language. **System default** detects the browser locale and selects the closest supported language automatically. Available languages: English, Français, Deutsch, Italiano, Español, Português (PT), Português (BR), 中文（简体）, 中文（繁體）, 日本語, 한국어.
+Overrides the interface language. **System default** detects the browser locale and selects the closest supported language automatically. Available languages: English, Français, Deutsch, Italiano, Español, Português (PT), Português (BR), Svenska, 中文（简体）, 中文（繁體）, 日本語, 한국어.
 
 ---
 
@@ -268,16 +271,26 @@ When the slot holds an ICC profile, Explore shows a profile summary panel (color
 
 ### 4.1 Data table
 
-Click **Display File** in the Dataset A panel to open a sortable table of all rows.
+The **Data Table** (titled *Data Table: {filename}*) is a collapsible section in the main view — click its header to expand it (it starts collapsed). It lists one row per patch.
 
 - Click any column header to sort ascending; click again to sort descending.
-- Columns shown: all device colorants, then L\*, a\*, b\*.
+- Columns shown: all device colorants, then L\*, a\*, b\*. For [measurement-only datasets](#measurement-only-datasets) a sample-label column replaces the colorants.
+- When the dataset has spectral data, double-click a row's colorimetry to pop up its spectral reflectance curve.
 
-### 4.2 G7 report
+The **Display File** button on the Dataset box is a separate control — it opens the raw file text (CSV/CGATS/CxF) or the Header/Tags viewer (ICC profiles), described under [Loading datasets](#2-loading-datasets).
 
-The G7 section (below Data Table) analyses the dataset against the IDEAlliance G7 System ADS target patch values (P2P chart, Appendix A). It requires CMYK colorants plus LAB.
+#### Primaries & Overprints
 
-The report shows measured vs target L\*a\*b\* for key patches (paper white, K solids, CMY solids, and tonal ramps), plus ΔE for each.
+Immediately **above** the Data Table is its own collapsible **Primaries & Overprints** section (starts closed). It picks out the control patches present in the data — paper white, the single-ink solids, the two-ink overprints (Red = M+Y, Green = C+Y, Blue = C+M), and the CMY / CMYK overprints — and shows, for each, the device colorant values plus its measured L\* a\* b\* (3 dp), C\* (2 dp), h\*(deg) (1 dp), with a colour swatch. It's a quick at-a-glance check of a chart's primaries and overprints without scrolling the full table.
+
+### 4.2 Near-Neutral Survey
+
+The **Near-Neutral Survey** is a collapsible section (starts closed) below the Data Table. It surveys how close the dataset's patches sit to the neutral axis, measuring each patch's distance from neutral in the chroma plane (√(a\*² + b\*²)).
+
+- A **Threshold (ΔE\*ab)** input sets the cut-off; the summary line reports *"{near} of {total} patches within {thr} ΔE of neutral."*
+- A scatter plot maps each patch's L\* against its distance-from-neutral, with the threshold drawn as a reference line and the near-neutral patches highlighted.
+
+The survey works for characterization datasets, ICC profiles (using the profile's evaluated patch set), and measurement-only datasets. These QC methods are adapted from Harold Boll's characterisation-QC work.
 
 ### 4.3 3D Gamut plot
 
@@ -285,16 +298,20 @@ Displays the dataset's colour gamut in CIE L\*a\*b\* space.
 
 #### Controls
 
-The main control panel (above the plot) contains global settings. Each dataset also has its own gear icon (⚙) in the plot legend for per-slot overrides.
+The main control panel (above the plot) contains global settings. Each dataset also has its own **Dataset Settings** gear panel — click the ⚙ button on its legend item — for per-slot overrides.
+
+Global controls:
 
 | Control | Description |
 |---|---|
 | Show gamut shell | Renders an alphahull mesh enclosing the gamut surface |
+| Show gamut wireframe | Draws the shell mesh as a wireframe (its triangle edges) instead of / alongside the solid surface |
 | Show data points | Shows individual scatter points |
 | Color by hue angle | Colours points/shell vertices by hue angle |
 | Color by value | Colours points/shell vertices by L* (lightness) |
-| Shell opacity | Slider for shell transparency |
 | Show spectral data when point selected | Enables spectral reflectance popup on click |
+
+Each dataset's **Dataset Settings** gear panel repeats the shell / wireframe / points / colour toggles for that slot alone, and adds **Opacity** (shell transparency), **Mesh → Density** (shell sampling resolution), and **Lighting** (ambient / diffuse / specular / roughness) sliders.
 
 When both global and per-slot checkboxes are visible, the global checkbox shows an **indeterminate** state when the two slots differ. Clicking the global checkbox sets both slots to the same state.
 
@@ -332,6 +349,7 @@ Below the 3D plot, the **Gamut Slice (2D)** section shows a cross-section of the
 | Thickness | Half-width of the projection window along the chosen axis (0–128). Points whose axis value lies within ±Thickness of Value are orthogonally projected onto the slice plane |
 | Fall-off | **Hard** — every projected point is drawn at full opacity. **Soft** — opacity falls linearly from 100 % at Value to 0 % at the window edge. Points within ±0.5 of Value are always at full opacity in either mode |
 | Show data points | On by default. Draws each visible dataset's patch cloud (CSV measurements or, for ICC profiles, the sampled patch lattice) projected onto the slice. Points within ±0.5 of Value (in-plane) render as 7 px dots in a 30 %-brightened version of the dataset colour; points farther out render as 3 px dots in the dataset's solid colour |
+| Reset zoom | Returns the slice plot to its default framing after you have zoomed or panned it |
 
 The slice updates live as you adjust the controls.
 
@@ -421,6 +439,16 @@ Tone Value requires rows where only a single colorant is non-zero at a time (a p
 
 For ICC profile slots, CharData synthesises a primary ramp by evaluating the profile at fixed tint percentages (0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95, 100) along each channel with all other channels at zero. Profiles have no spectral data, so only **CTV** works for ICC slots — Murray-Davies traces are skipped with a "no spectral" indicator. Changing the rendering intent re-samples the profile and re-fits the Y-axis range.
 
+### 4.7 Extract
+
+The **Extract** section (collapsible, starts closed) builds a reduced subset of a characterization dataset by discarding rows — for example pulling the CMYK data out of a CMYKOGV set, or isolating the CMY grey axis.
+
+Row-selection checkboxes keep only chosen feature groups: **Primaries** (single-ink ramps), **Secondaries** (two-ink overprint ramps), **CMY Grays** (the C = M = Y grey axis), **CMY Browns** (near-neutral CMY combinations off the grey axis), and **Solids Only** (100 % patches). A **Remove paper white point** checkbox and a per-colorant remove list (colorant chips) let you drop the paper node or whole colorants (e.g. remove O/G/V from a 7-colour set). Click **Extract** to apply the selection, or **Restore** to return to the original data.
+
+The **Export** control writes the current (extracted or full) dataset to a file: choose a destination folder and click **Export**. Formats include **CGATS**, **CSV**, and **CxF/X-3** (a full X-3 document with device colorants, CIELab, spectral reflectance, and a `ColorSpecification` derived from the current illuminant / observer / M-condition).
+
+Extract is unavailable for ICC profiles, measurement-only datasets, and CxF/X-4 spot-ink data — there are no device-colorant rows to subset.
+
 ---
 
 ## 5. Compare mode
@@ -448,6 +476,10 @@ The table shows, for each matched patch:
 
 Columns are sortable by clicking the header. The same column set and decimal alignment applies for every Compare combination, including ICC slots.
 
+#### Primaries & Overprints
+
+Immediately **above** the Comparison Table is its own collapsible **Primaries & Overprints** section (starts closed). It isolates the control patches — paper white, single-ink solids, the two-ink overprints, and CMY / CMYK — and lays out, per patch, the device colorant values, Dataset A and Dataset B each showing L\* a\* b\* / C\* / h\*(deg), and the **same Difference columns as the full Comparison Table** (ΔE, ΔL\*, ΔC\*, ΔH\*, Δh\*(deg), using the selected ΔE method). It's a fast head-to-head of the two datasets' most diagnostic colours.
+
 #### Comparison Statistics
 
 The **Comparison Statistics** section sits above the table as its own collapsible panel — click its header to open it (it starts closed). It contains two things:
@@ -473,16 +505,36 @@ The **Horizontal scale** switch controls how the ΔE axis is binned:
 
 The scale and bin-count choices are remembered between sessions.
 
+Below the histogram, the Comparison Statistics panel adds two more breakdowns of the same matched-patch ΔE list, using the currently selected ΔE method:
+
+- **Percentiles** — a table of **N**, **Mean**, **Median**, **90th %ile**, **95th %ile**, **Max**, and **Std Dev**. The P90 / P95 percentiles describe the tail of the error distribution — a common acceptance criterion in print QC, where a small number of large outliers can be more meaningful than the mean.
+- **Per-channel ΔE** — for each device colorant, the ΔE broken down over three patch groups: **Included** (patches that use this ink, > 0), **Excluded** (patches without it), and **Only** (patches where this ink is the only one). Each group shows Mean / 90th %ile / Max / N, helping pinpoint which colorant a mismatch tracks with.
+
+These QC breakdowns are adapted from Harold Boll's two-set comparison scripts.
+
 #### Filters
 
 The compare table includes filter controls to narrow down the rows shown:
 - **Solids Only** — show only patches where all non-zero colorants are at 100%.
 
-### 5.2 3D Gamut plot (Compare)
+### 5.2 Comparison Plot
+
+The **Comparison Plot** is a collapsible section (starts closed) below the Comparison Table. It plots the per-patch ΔE two ways to expose where the two datasets diverge:
+
+- **ΔE vs L\*** — colour error against lightness, showing whether a mismatch is concentrated in the highlights, midtones, or shadows.
+- **ΔE vs distance-from-neutral** — colour error against each patch's chroma-plane distance from neutral, showing whether it's the neutrals or the saturated colours that differ most.
+
+A **P90** reference line marks the 90th-percentile ΔE on each plot. (Adapted from Harold Boll's two-set comparison scripts.)
+
+### 5.3 Validate (G7)
+
+The **Validate** section (collapsible, starts closed) runs a G7 grey-balance / tonality compliance check. Choose **G7** from the method dropdown, pick the dataset from the file dropdown, and click **Validate**. The report analyses the data against the IDEAlliance G7 System target values — measured vs target L\* a\* b\* for the key patches (paper white, K solids, CMY solids, and the tonal ramps) plus ΔE for each. G7 requires CMYK colorants and L\*a\*b\*. Validate is hidden when the two slots are matched by sample label rather than by device inking.
+
+### 5.4 3D Gamut plot (Compare)
 
 The 3D plot in Compare mode shows both slots overlaid in L\*a\*b\* space. Slot A is shown in blue, Slot B in red. All the same controls as Explore mode apply, with per-slot gear panels for independent control of each slot's shell / points / colour mode. Per-slot defaults still apply: ICC slots open with shell on / points off, characterization datasets with shell off / points on. Changing a slot's rendering intent rebuilds its 3D shell and patch cloud immediately.
 
-### 5.3 Tone Value (Compare)
+### 5.5 Tone Value (Compare)
 
 The Tone Value section also appears in Compare mode, below the Comparison Table. Both slots are plotted on the same chart: Slot A uses solid lines, Slot B uses dashed lines in a slightly darker shade of the same colour.
 
@@ -490,7 +542,7 @@ The controls bar includes two additional checkboxes — **Show Dataset A** and *
 
 All other controls (Tone Method, Filter, Graph Type, colorant checkboxes) work identically to [Explore mode](#4-6-tone-value). When either slot is an ICC profile, the chart auto-uses the CTV method for that slot; Murray-Davies traces from the ICC slot are skipped (no spectral data). The Y-axis range invalidates whenever a rendering intent changes so the curves stay correctly framed.
 
-### 5.4 Image gamut
+### 5.6 Image gamut
 
 You can load an image and plot its gamut alongside any loaded datasets in either Explore or Compare mode. This is most useful for determining whether the colours used in a photograph or artwork fall inside or outside the gamut of a printing or display process represented by one of the loaded datasets — or, when the image carries an embedded ICC profile (or is a Lab TIFF), for viewing the image's gamut on its own with no dataset loaded at all.
 
