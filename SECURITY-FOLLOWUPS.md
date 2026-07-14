@@ -336,6 +336,68 @@ patched locally.
   `scripts/` as a standing regression to rerun after any UTIF bump, alongside the #18
   ICC-parser fuzz suggestion.
 
+## Resolved in 1.17.x antagonistic review (2026-07-14)
+
+Five parallel adversarial passes across **chardata + profiletool** (XSS sinks,
+file parsers, WASM/C++ memory safety, profiletool app + hosting, infra/CSP/deps).
+The crown-jewel flows re-verified sound: both `postMessage` ends (source+origin+
+type checked, pinned `targetOrigin`), the profiletool `#url=` fetch gate, and the
+`richText.jsx` safe renderer. Three findings fixed, none Critical; the rest of the
+surface confirmed clean (no proto-pollution / ReDoS / XXE in the parsers; CLUT
+raster 64-bit overflow + caps intact; `npm audit` **0** both repos; lcms2 at
+latest 2.19).
+
+### 23. ICC 2D gamut-slice compute DoS (high colorant count) ✓ DONE  (MED DoS)
+
+Sibling gap to #14. The `MAX_MODEL_COLORANTS = 12` guard capped the polynomial fit
+and the **3D** shell on load, but the **ICC 2D slice** path (`buildIccSlice`) had
+no colorant ceiling. A crafted-but-valid **13–15-channel NCLR** output profile
+reached `renderSlicePlot` via `cachedXYZ` and swept `C(N,2)·2^(N-2)` faces (~860k
+at N=15) **synchronously on the main thread**, freezing the tab and re-freezing on
+every rendering-intent / axis / value change. Fix (two layers): JS guard in
+`renderSlicePlot` (skip the ICC slice above 12 colorants, mirroring the mesh cap;
+point cloud still renders) **and** a `kMaxBoundaryColorants = 12` early-return in
+both `buildIccSlice` and `buildIccGamutMesh` in `gamut-wrapper.cpp`, so the
+invariant no longer depends on the JS caller. `chardata-gamut.wasm` rebuilt.
+Shipped **1.17.1**.
+
+### 24. profiletool clickjacking — `<meta>` `frame-ancestors` is inert ✓ DONE  (MED-LOW)
+
+profiletool's CSP (incl. `frame-ancestors 'none'`) is delivered via `<meta>`, where
+per spec `frame-ancestors` (like `report-uri`/`sandbox`) is **silently ignored** —
+it is honored only as an HTTP response header. The prod subpath
+(`/var/www/profiletool/`, nginx-served **outside** chardata's helmet) shipped no
+`X-Frame-Options` either, so the editor was framable. Fixed at **both** layers:
+- **App (v1.8.2):** `public/noclickjack.js` — a synchronous, same-origin classic
+  script (not inline: `script-src` omits `'unsafe-inline'`; not a CSP hash: Vite
+  could minify inline bytes) that hides `<html>` by default and reveals it only
+  when `self === top`, busts out if framed, and **fails closed** (stays hidden) if
+  a sandboxed iframe neutralizes the bust-out. The legit chardata `window.open`
+  handoff is `self === top`, so it's unaffected.
+- **Origin (nginx, 2026-07-14):** added `X-Frame-Options "DENY"` +
+  `Content-Security-Policy "frame-ancestors 'none'"` (frame-ancestors-only, so it
+  stays additive to the app's `<meta>` CSP) + HSTS/nosniff/Referrer-Policy parity
+  to `location /profiletool/` and its nested `assets/` block in
+  `/etc/nginx/sites-available/default` (backup `default.bak-clickjack-2026-07-14-…`).
+  The parity headers also fixed a latent gap: the location's own `add_header` had
+  been suppressing inheritance of the server-level HSTS.
+
+Checked the sibling apps for the same gap: **chardata main** (`location /` →
+Express/helmet) already sets `XFO: SAMEORIGIN` + `frame-ancestors 'none'`, and
+**`/spectral/`** already sets `XFO: DENY` — profiletool was the only one missing an
+origin frame guard.
+
+### 25. Export-destination `value=` XSS (Extract panel) ✓ DONE  (LOW, self-XSS)
+
+Sibling of #15 (which fixed the export-*dialog* filename field). The Extract
+panel's export-destination `<input>` (`index.html`, `renderExplore`) interpolated
+`_exportDirHandle.name` — a folder name from `window.showDirectoryPicker()` — into a
+`value="…"` attribute **without** `escapeHtml`, while the parallel field in
+`openExportDialog` already escaped it. A folder named
+`"><img src=x onerror=…>` breaks out on re-render. Self-XSS only (the name comes
+from the victim's own OS picker, not an uploaded file). Fix: wrap in `escapeHtml`
+to match the sibling. Deployed (no version bump, per request).
+
 ## Still deferred
 
 ### Vendored native-parser tracking (lcms2 **+ IccProfLib**)
@@ -360,13 +422,19 @@ sign of XSS, mis-configured analytics, or a third-party tag dropping inline JS)
 are invisible. Optional but cheap. Could point at a free endpoint like
 report-uri.com or our own `/csp-report` route.
 
-### Origin IP not firewalled to Cloudflare (box-level)
+### Origin IP not firewalled to Cloudflare (box-level) — LARGELY MITIGATED (2026-07-14)
 
-`chardata.colourbill.com` is Cloudflare-proxied but the Lightsail origin
-(`54.203.184.14`) still answers direct traffic, so the WAF/DDoS layer is
-bypassable by hitting the IP. Same deferred item as tiffview/spectral — best fixed
-box-wide (IP-range firewall or Cloudflare Authenticated Origin Pulls) covering all
-apps at once. Low impact for a static viewer.
+`chardata.colourbill.com` is Cloudflare-proxied and the Lightsail origin
+(`54.203.184.14`) still listens, but the 2026-07-14 review found the nginx TLS
+vhost already enforces **Cloudflare Authenticated Origin Pulls (mTLS)** —
+`ssl_verify_client on` + `ssl_client_certificate /etc/nginx/cloudflare-origin-pull-ca.pem`.
+A direct hit without Cloudflare's client cert is rejected at the TLS layer
+(`400 Bad Request`, verified from the box), so the origin does **not** serve app
+content off-Cloudflare — the WAF/DDoS layer is not trivially bypassable. Residual:
+this is per-vhost cert verification, not an IP-range firewall, so the box still
+accepts the TCP/TLS connection (a raw `:443` SYN flood isn't blocked box-side); an
+IP-range firewall would still be the belt to the mTLS suspenders. Downgraded from
+open to low-residual.
 
 ### Optional, low-urgency defence-in-depth
 
