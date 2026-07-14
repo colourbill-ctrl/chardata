@@ -7,6 +7,11 @@ methods here are adapted from **Harold Boll's** MATLAB QC scripts (`doQCpfA.m` �
 single-profile QC; `doQC2charsets.m` — two-measurement-set comparison). Attribution
 retained per method origin.
 
+> **chardata status (1.16.0, 2026-07): COMPLETE.** All chardata-side QC work shipped.
+> The two remaining items — **#1 gamut volume** (UI) and **#2 B2A round-trip ΔE** — are
+> now **profiletool-only** (gamut-volume engine already ported to iccviz; both surface in
+> profiletool's Analysis tab). No further chardata work is planned for these.
+
 ## Delivered (2026-07)
 
 Implemented in `public/index.html` and verified headless. All ported from the Boll
