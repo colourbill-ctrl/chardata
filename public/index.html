@@ -785,9 +785,14 @@
     body.dark #result div[onclick*="toggleExtract"],
     body.dark #result div[onclick*="toggleEstimate"],
     body.dark #result div[onclick*="toggleTv"],
+    body.dark #result div[onclick*="toggleReversal"],
     body.dark #result div[onclick*="prim-wrap"] { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
     body.dark #validate-wrap, body.dark #extract-wrap, body.dark #cmp-table-wrap, body.dark #est-wrap,
+    body.dark #rev-wrap,
     body.dark #prim-wrap, body.dark #cmp-prim-wrap { border-color: #38393e !important; background: #1e1f22; }
+    body.dark #rev-summary { color: #e0e4ea !important; }
+    body.dark #rev-wrap [data-i18n="rev_threshold"] { color: #cfd6e2 !important; }
+    body.dark #rev-intro { color: #9aa3af !important; }
     body.dark #validate-result { background: #1c1d20 !important; border-color: #38393e !important; color: #ccc !important; }
     body.dark #result table { color: #ccc; }
     body.dark #result thead th { color: #888 !important; border-color: #38393e !important; }
@@ -1662,6 +1667,14 @@ or ICC profiles</span>
         nn_none:'No patches within {thr} ΔE of neutral.',
         nn_axis_dist:'Distance from neutral (ΔE*ab)',
         nn_near:'Near-neutral', nn_other:'Other patches',
+        rev_heading:'L* Reversal',
+        rev_intro:'Adding ink to a single-ink tint ramp should only darken it. Each measured ramp is checked; any step where L* rises is flagged as a reversal.',
+        rev_threshold:'Threshold (ΔL*)',
+        rev_summary:'{n} reversal(s) across {cols} ink ramp(s).',
+        rev_none:'No L* reversals — every ink ramp darkens monotonically.',
+        rev_flag:'L* reversal',
+        rev_axis_ink:'Ink %',
+        rev_col_colorant:'Colorant', rev_col_range:'Ink range',
         comparison_plot:'Comparison Plot',
         cmp_plot_p90:'P90 = {v}',
         cmp_percentiles:'Percentiles',
@@ -1800,6 +1813,15 @@ or ICC profiles</span>
         nn_axis_dist: 'Distance au neutre (ΔE*ab)',
         nn_near: 'Quasi-neutre',
         nn_other: 'Autres plages',
+        rev_heading: 'Inversion de L*',
+        rev_intro: 'Ajouter de l’encre à une rampe de teinte à encre unique ne devrait que l’assombrir. Chaque rampe mesurée est vérifiée ; toute étape où L* augmente est signalée comme une inversion.',
+        rev_threshold: 'Seuil (ΔL*)',
+        rev_summary: '{n} inversion(s) sur {cols} rampe(s) d’encre.',
+        rev_none: 'Aucune inversion de L* — chaque rampe d’encre s’assombrit de façon monotone.',
+        rev_flag: 'Inversion de L*',
+        rev_axis_ink: 'Encre %',
+        rev_col_range: 'Plage d’encre',
+        rev_col_colorant: 'Colorant',
         comparison_plot: 'Graphique de comparaison',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Percentiles',
@@ -2035,6 +2057,15 @@ or ICC profiles</span>
         nn_axis_dist: 'Abstand zum Neutral (ΔE*ab)',
         nn_near: 'Quasi-neutral',
         nn_other: 'Andere Felder',
+        rev_heading: 'L*-Umkehr',
+        rev_intro: 'Mehr Farbe auf einer Einzelfarben-Tonrampe sollte diese nur abdunkeln. Jede gemessene Rampe wird geprüft; jeder Schritt, bei dem L* ansteigt, wird als Umkehr markiert.',
+        rev_threshold: 'Schwellenwert (ΔL*)',
+        rev_summary: '{n} Umkehr(en) über {cols} Farbrampe(n).',
+        rev_none: 'Keine L*-Umkehr — jede Farbrampe dunkelt monoton ab.',
+        rev_flag: 'L*-Umkehr',
+        rev_axis_ink: 'Farbe %',
+        rev_col_range: 'Farbbereich',
+        rev_col_colorant: 'Farbmittel',
         comparison_plot: 'Vergleichsdiagramm',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Perzentile',
@@ -2270,6 +2301,15 @@ or ICC profiles</span>
         nn_axis_dist: 'Distanza dal neutro (ΔE*ab)',
         nn_near: 'Quasi-neutro',
         nn_other: 'Altri campioni',
+        rev_heading: 'Inversione L*',
+        rev_intro: 'Aggiungere inchiostro a una rampa di tinta a inchiostro singolo dovrebbe solo scurirla. Ogni rampa misurata viene controllata; ogni passo in cui L* aumenta è segnalato come inversione.',
+        rev_threshold: 'Soglia (ΔL*)',
+        rev_summary: '{n} inversione/i su {cols} rampa/e d’inchiostro.',
+        rev_none: 'Nessuna inversione di L* — ogni rampa d’inchiostro si scurisce in modo monotòno.',
+        rev_flag: 'Inversione L*',
+        rev_axis_ink: 'Inchiostro %',
+        rev_col_range: 'Intervallo inchiostro',
+        rev_col_colorant: 'Colorante',
         comparison_plot: 'Grafico di confronto',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Percentili',
@@ -2505,6 +2545,15 @@ or ICC profiles</span>
         nn_axis_dist: 'Distancia al neutro (ΔE*ab)',
         nn_near: 'Casi neutro',
         nn_other: 'Otros parches',
+        rev_heading: 'Inversión de L*',
+        rev_intro: 'Añadir tinta a una rampa de tinte de una sola tinta solo debería oscurecerla. Se comprueba cada rampa medida; cualquier paso en el que L* aumente se marca como inversión.',
+        rev_threshold: 'Umbral (ΔL*)',
+        rev_summary: '{n} inversión(es) en {cols} rampa(s) de tinta.',
+        rev_none: 'Sin inversiones de L* — cada rampa de tinta se oscurece de forma monótona.',
+        rev_flag: 'Inversión de L*',
+        rev_axis_ink: 'Tinta %',
+        rev_col_range: 'Rango de tinta',
+        rev_col_colorant: 'Colorante',
         comparison_plot: 'Gráfico de comparación',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Percentiles',
@@ -2740,6 +2789,15 @@ or ICC profiles</span>
         nn_axis_dist: 'Distância ao neutro (ΔE*ab)',
         nn_near: 'Quase-neutro',
         nn_other: 'Outras amostras',
+        rev_heading: 'Inversão de L*',
+        rev_intro: 'Adicionar tinta a uma rampa de tom de tinta única deve apenas escurecê-la. Cada rampa medida é verificada; qualquer passo em que L* aumente é assinalado como inversão.',
+        rev_threshold: 'Limiar (ΔL*)',
+        rev_summary: '{n} inversão(ões) em {cols} rampa(s) de tinta.',
+        rev_none: 'Sem inversões de L* — cada rampa de tinta escurece de forma monótona.',
+        rev_flag: 'Inversão de L*',
+        rev_axis_ink: 'Tinta %',
+        rev_col_range: 'Intervalo de tinta',
+        rev_col_colorant: 'Corante',
         comparison_plot: 'Gráfico de comparação',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Percentis',
@@ -2975,6 +3033,15 @@ or ICC profiles</span>
         nn_axis_dist: 'Distância ao neutro (ΔE*ab)',
         nn_near: 'Quase-neutro',
         nn_other: 'Outras amostras',
+        rev_heading: 'Inversão de L*',
+        rev_intro: 'Adicionar tinta a uma rampa de tom de tinta única deve apenas escurecê-la. Cada rampa medida é verificada; qualquer passo em que L* aumente é sinalizado como inversão.',
+        rev_threshold: 'Limiar (ΔL*)',
+        rev_summary: '{n} inversão(ões) em {cols} rampa(s) de tinta.',
+        rev_none: 'Sem inversões de L* — cada rampa de tinta escurece de forma monótona.',
+        rev_flag: 'Inversão de L*',
+        rev_axis_ink: 'Tinta %',
+        rev_col_range: 'Faixa de tinta',
+        rev_col_colorant: 'Corante',
         comparison_plot: 'Gráfico de comparação',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Percentis',
@@ -3210,6 +3277,15 @@ or ICC profiles</span>
         nn_axis_dist: '与中性色的距离 (ΔE*ab)',
         nn_near: '近中性',
         nn_other: '其他色块',
+        rev_heading: 'L* 反转',
+        rev_intro: '在单墨色阶上增加墨量只应使其变暗。系统检查每条实测色阶；任何 L* 上升的步进都会被标记为反转。',
+        rev_threshold: '阈值 (ΔL*)',
+        rev_summary: '{cols} 条墨色阶中有 {n} 处反转。',
+        rev_none: '无 L* 反转——每条墨色阶均单调变暗。',
+        rev_flag: 'L* 反转',
+        rev_axis_ink: '墨量 %',
+        rev_col_range: '墨量范围',
+        rev_col_colorant: '着色剂',
         comparison_plot: '对比图',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: '百分位数',
@@ -3445,6 +3521,15 @@ or ICC profiles</span>
         nn_axis_dist: '與中性色的距離 (ΔE*ab)',
         nn_near: '近中性',
         nn_other: '其他色塊',
+        rev_heading: 'L* 反轉',
+        rev_intro: '在單墨色階上增加墨量只應使其變暗。系統檢查每條實測色階；任何 L* 上升的步進都會被標記為反轉。',
+        rev_threshold: '閾值 (ΔL*)',
+        rev_summary: '{cols} 條墨色階中有 {n} 處反轉。',
+        rev_none: '無 L* 反轉——每條墨色階均單調變暗。',
+        rev_flag: 'L* 反轉',
+        rev_axis_ink: '墨量 %',
+        rev_col_range: '墨量範圍',
+        rev_col_colorant: '著色劑',
         comparison_plot: '對比圖',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: '百分位數',
@@ -3680,6 +3765,15 @@ or ICC profiles</span>
         nn_axis_dist: '中性からの距離 (ΔE*ab)',
         nn_near: 'ニアニュートラル',
         nn_other: 'その他のパッチ',
+        rev_heading: 'L* 反転',
+        rev_intro: '単色インクの階調ランプにインクを追加すると暗くなるだけのはずです。測定した各ランプを検査し、L* が上昇するステップを反転として示します。',
+        rev_threshold: 'しきい値 (ΔL*)',
+        rev_summary: '{cols} 本のインクランプ中 {n} 件の反転。',
+        rev_none: 'L* 反転なし——各インクランプは単調に暗くなります。',
+        rev_flag: 'L* 反転',
+        rev_axis_ink: 'インク %',
+        rev_col_range: 'インク範囲',
+        rev_col_colorant: '色材',
         comparison_plot: '比較プロット',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'パーセンタイル',
@@ -3915,6 +4009,15 @@ or ICC profiles</span>
         nn_axis_dist: '중립으로부터의 거리 (ΔE*ab)',
         nn_near: '근중립',
         nn_other: '기타 패치',
+        rev_heading: 'L* 반전',
+        rev_intro: '단일 잉크 계조 램프에 잉크를 더하면 어두워지기만 해야 합니다. 측정된 각 램프를 검사하여 L*가 상승하는 단계를 반전으로 표시합니다.',
+        rev_threshold: '임계값 (ΔL*)',
+        rev_summary: '{cols}개 잉크 램프에서 {n}건의 반전.',
+        rev_none: 'L* 반전 없음 — 모든 잉크 램프가 단조롭게 어두워집니다.',
+        rev_flag: 'L* 반전',
+        rev_axis_ink: '잉크 %',
+        rev_col_range: '잉크 범위',
+        rev_col_colorant: '색료',
         comparison_plot: '비교 플롯',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: '백분위수',
@@ -4150,6 +4253,15 @@ or ICC profiles</span>
         nn_axis_dist: 'Avstånd från neutralt (ΔE*ab)',
         nn_near: 'Nära-neutral',
         nn_other: 'Övriga rutor',
+        rev_heading: 'L*-omvändning',
+        rev_intro: 'Att lägga till färg på en enfärgs-tonramp ska bara göra den mörkare. Varje uppmätt ramp kontrolleras; varje steg där L* stiger flaggas som en omvändning.',
+        rev_threshold: 'Tröskel (ΔL*)',
+        rev_summary: '{n} omvändning(ar) över {cols} färgramp(er).',
+        rev_none: 'Inga L*-omvändningar — varje färgramp mörknar monotont.',
+        rev_flag: 'L*-omvändning',
+        rev_axis_ink: 'Färg %',
+        rev_col_range: 'Färgintervall',
+        rev_col_colorant: 'Färgämne',
         comparison_plot: 'Jämförelsediagram',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Percentiler',
@@ -7123,6 +7235,7 @@ or ICC profiles</span>
     // retained per method origin. See ANALYSIS-FEATURES-TODO.md for the roadmap
     // (gamut volume, B2A round-trip ΔE) that also derives from the same source.
     let _nnThreshold = 2; // Near-Neutral Survey threshold, ΔE*ab
+    let _revEpsilon = (() => { const v = parseFloat(localStorage.getItem('revEps')); return (isFinite(v) && v >= 0) ? v : 0.5; })(); // L* Reversal threshold, ΔL*
 
     function toggleGeneric(wrapId, arrowId) {
       const w = document.getElementById(wrapId), ar = document.getElementById(arrowId);
@@ -7141,6 +7254,7 @@ or ICC profiles</span>
       ['prim-wrap', 'prim-arrow', null],
       ['cmp-prim-wrap', 'cmp-prim-arrow', null],
       ['nn-wrap', 'nn-arrow', 'renderNearNeutral'],
+      ['rev-wrap', 'rev-arrow', 'renderReversal'],
       ['cmp-stats-wrap', 'cmp-stats-arrow', 'renderCmpHist'],
       ['cmp-plot-wrap', 'cmp-plot-arrow', 'renderCmpPlot'],
       ['validate-wrap', 'validate-arrow', null],
@@ -7555,6 +7669,163 @@ or ICC profiles</span>
         plot_bgcolor: plotBg, paper_bgcolor: paperBg, font:{ color:fontColor }
       };
       Plotly.react(div, [traceFar, traceNear], layout, { responsive:true, displayModeBar:false });
+    }
+
+    // ── L* Reversal (char data only) ──────────────────────────────────────────
+    // A single-ink tint ramp should darken monotonically: adding ink can only
+    // lower L*. Any adjacent step on the measured ramp where L* *rises* by more
+    // than the ΔL* threshold is a reversal (an ink/substrate/measurement fault).
+    // Measured-data check — no polynomial model needed, so it also covers CxF/X-4
+    // spot-ink tint ramps. ICC / measurement-only slots are excluded.
+    // Method after Harold Boll (InkReversalL).
+    function computeReversals(epsilon) {
+      const ds = state.a;
+      if (!ds || ds.dataType === 'icc' || ds.measurementOnly) return null;
+      if (!ds.colorants || !ds.colorants.length) return null;
+      const perColorant = [];
+      const allRevs = [];
+      for (const colorant of ds.colorants) {
+        const raw = tvGetPrimaryRows(ds, colorant, 'a')
+          .filter(r => isFinite(r.L) && isFinite(r.inkPct));
+        if (raw.length < 2) continue;
+        // Collapse repeat measurements at the same ink level to their mean L*, so
+        // repeatability noise between two same-ink% patches isn't misread as a
+        // tone reversal — a reversal requires the ink amount to actually increase.
+        const byInk = new Map();
+        for (const r of raw) {
+          const key = Math.round(r.inkPct * 100) / 100;
+          const g = byInk.get(key) || { inkPct: key, sum: 0, n: 0 };
+          g.sum += r.L; g.n++; byInk.set(key, g);
+        }
+        const rows = [...byInk.values()]
+          .map(g => ({ inkPct: g.inkPct, L: g.sum / g.n }))
+          .sort((a, b) => a.inkPct - b.inkPct);
+        if (rows.length < 2) continue;
+        const color = tvColorantColor(colorant, 'a');
+        const reversals = [];
+        for (let i = 0; i + 1 < rows.length; i++) {
+          const dL = rows[i + 1].L - rows[i].L; // L* change as ink increases
+          if (dL > epsilon) {
+            const rev = { colorant, color,
+              fromInk: rows[i].inkPct, toInk: rows[i + 1].inkPct,
+              fromL: rows[i].L, toL: rows[i + 1].L, dL };
+            reversals.push(rev);
+            allRevs.push(rev);
+          }
+        }
+        perColorant.push({ colorant, color, rows, reversals });
+      }
+      allRevs.sort((x, y) => y.dL - x.dL);
+      return { perColorant, allRevs };
+    }
+    function buildReversalHTML() {
+      return `
+        <div onclick="toggleReversal()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span data-i18n="rev_heading">L* Reversal</span><span id="rev-arrow">▶</span>
+        </div>
+        <div id="rev-wrap" style="display:none;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:12px;">
+          <p id="rev-intro" data-i18n="rev_intro" style="font-size:12px;color:#666;margin:0 0 8px;">Adding ink to a single-ink tint ramp should only darken it. Each measured ramp is checked; any step where L* rises is flagged as a reversal.</p>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;margin-bottom:8px;">
+            <span data-i18n="rev_threshold">Threshold (ΔL*)</span>
+            <input type="number" id="rev-eps" min="0" step="0.1" value="${_revEpsilon}" onchange="onRevEpsChange(this.value)" style="width:70px;padding:3px 6px;border:1px solid #bbb;border-radius:4px;font-size:13px;">
+            <span id="rev-summary" style="color:#333;"></span>
+          </div>
+          <div id="rev-plot" style="width:100%;max-width:780px;height:360px;"></div>
+          <div id="rev-table" style="margin-top:10px;overflow-x:auto;"></div>
+        </div>`;
+    }
+    function toggleReversal() {
+      const wrap = document.getElementById('rev-wrap'), arrow = document.getElementById('rev-arrow');
+      if (!wrap) return;
+      const hidden = wrap.style.display === 'none';
+      wrap.style.display = hidden ? '' : 'none';
+      if (arrow) arrow.textContent = hidden ? '▼' : '▶';
+      if (hidden) renderReversal();
+    }
+    function onRevEpsChange(val) {
+      let n = parseFloat(val);
+      if (!isFinite(n) || n < 0) n = 0.5;
+      _revEpsilon = n;
+      localStorage.setItem('revEps', String(n));
+      renderReversal();
+    }
+    function renderReversal() {
+      const div = document.getElementById('rev-plot');
+      const sumEl = document.getElementById('rev-summary');
+      const tblEl = document.getElementById('rev-table');
+      if (!div || !window.Plotly || !state.a) return;
+      const wrap = document.getElementById('rev-wrap');
+      if (wrap && wrap.style.display === 'none') return;
+      const res = computeReversals(_revEpsilon);
+      if (!res || !res.perColorant.length) {
+        Plotly.purge(div); if (sumEl) sumEl.textContent = '';
+        if (tblEl) tblEl.innerHTML = ''; return;
+      }
+      const nRev = res.allRevs.length;
+      const nCols = res.perColorant.filter(c => c.reversals.length).length;
+      if (sumEl) sumEl.textContent = nRev
+        ? t('rev_summary', { n: nRev, cols: nCols })
+        : t('rev_none');
+
+      const isDark = document.body.classList.contains('dark');
+      const gridColor = isDark ? '#2e2f34' : '#eee';
+      const plotBg = isDark ? '#1e1f22' : '#fafafa';
+      const paperBg = isDark ? '#1a1b1e' : '#ffffff';
+      const fontColor = isDark ? '#bbb' : '#444';
+      const flagColor = isDark ? '#ff6b6b' : '#e53935';
+
+      const traces = [];
+      const flagX = [], flagY = [];
+      for (const c of res.perColorant) {
+        traces.push({ type:'scatter', mode:'lines+markers',
+          x: c.rows.map(r => r.inkPct), y: c.rows.map(r => r.L),
+          name: plotlyText(c.colorant), line:{ color:c.color, width:2 },
+          marker:{ color:c.color, size:5 },
+          hovertemplate:`${plotlyText(c.colorant)}<br>%{x:.0f}%%<br>L* %{y:.2f}<extra></extra>` });
+        for (const rv of c.reversals) {
+          flagX.push(rv.fromInk, rv.toInk, null);
+          flagY.push(rv.fromL, rv.toL, null);
+        }
+      }
+      if (flagX.length) {
+        traces.push({ type:'scatter', mode:'lines', x: flagX, y: flagY,
+          name: t('rev_flag'), line:{ color:flagColor, width:4 },
+          hoverinfo:'skip', connectgaps:false });
+      }
+      const layout = {
+        margin:{ l:56, r:16, t:10, b:46 },
+        xaxis:{ title:{ text:t('rev_axis_ink'), font:{ color:fontColor }, standoff:4 },
+          range:[0,100], zeroline:false, showgrid:true, gridcolor:gridColor, tickfont:{ color:fontColor } },
+        yaxis:{ title:{ text:'L*', font:{ color:fontColor }, standoff:4 },
+          showgrid:true, gridcolor:gridColor, tickfont:{ color:fontColor } },
+        showlegend:true, legend:{ orientation:'h', x:0, y:1.12, font:{ color:fontColor } },
+        plot_bgcolor: plotBg, paper_bgcolor: paperBg, font:{ color:fontColor }
+      };
+      Plotly.react(div, traces, layout, { responsive:true, displayModeBar:false });
+
+      // Ranked table of reversals (worst first)
+      if (tblEl) {
+        if (!res.allRevs.length) { tblEl.innerHTML = ''; return; }
+        const bd = isDark ? '#3a3b40' : '#ddd';
+        const hb = isDark ? '#26272b' : '#f0f2f5';
+        const hc = isDark ? '#cfd6e2' : '#555';
+        const tc = isDark ? '#cfd6e2' : '#333';
+        let h = `<table style="border-collapse:collapse;font-size:12px;min-width:360px;">
+          <thead><tr>
+            <th style="text-align:left;padding:4px 10px;border-bottom:1px solid ${bd};background:${hb};color:${hc};">${escapeHtml(t('rev_col_colorant'))}</th>
+            <th style="text-align:right;padding:4px 10px;border-bottom:1px solid ${bd};background:${hb};color:${hc};">${escapeHtml(t('rev_col_range'))}</th>
+            <th style="text-align:right;padding:4px 10px;border-bottom:1px solid ${bd};background:${hb};color:${hc};">ΔL*</th>
+          </tr></thead><tbody>`;
+        for (const rv of res.allRevs) {
+          h += `<tr>
+            <td style="padding:4px 10px;border-bottom:1px solid ${bd};color:${tc};"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${rv.color};margin-right:6px;vertical-align:middle;"></span>${escapeHtml(rv.colorant)}</td>
+            <td style="padding:4px 10px;border-bottom:1px solid ${bd};color:${tc};text-align:right;white-space:nowrap;">${rv.fromInk.toFixed(0)}%&nbsp;→&nbsp;${rv.toInk.toFixed(0)}%</td>
+            <td style="padding:4px 10px;border-bottom:1px solid ${bd};color:${flagColor};text-align:right;font-weight:bold;">+${rv.dL.toFixed(2)}</td>
+          </tr>`;
+        }
+        h += '</tbody></table>';
+        tblEl.innerHTML = h;
+      }
     }
 
     // ── Feature 5b: Comparison Plot — ΔE vs L* and ΔE vs distance-from-neutral.
@@ -8714,6 +8985,7 @@ or ICC profiles</span>
         </div>
         ${buildNearNeutralHTML()}
         ${measOnly ? '' : buildTvSectionHTML(false)}
+        ${measOnly ? '' : buildReversalHTML()}
         ${(measOnly || noModel) ? '' : `
         <div onclick="toggleEstimate()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
           <span data-i18n="estimate">Estimate</span><span id="est-arrow">&#9658;</span>

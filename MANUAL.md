@@ -31,7 +31,8 @@ The suggested workflow is to load an entire directory of characterisation files 
    - [2D Gamut slice](#4-4-2d-gamut-slice)
    - [Estimate section](#4-5-estimate-section)
    - [Tone Value](#4-6-tone-value)
-   - [Extract](#4-7-extract)
+   - [L\* Reversal](#4-7-l-reversal)
+   - [Extract](#4-8-extract)
 5. [Compare mode](#5-compare-mode)
    - [Compare table](#5-1-compare-table)
    - [Comparison Plot](#5-2-comparison-plot)
@@ -439,7 +440,27 @@ Tone Value requires rows where only a single colorant is non-zero at a time (a p
 
 For ICC profile slots, CharData synthesises a primary ramp by evaluating the profile at fixed tint percentages (0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95, 100) along each channel with all other channels at zero. Profiles have no spectral data, so only **CTV** works for ICC slots — Murray-Davies traces are skipped with a "no spectral" indicator. Changing the rendering intent re-samples the profile and re-fits the Y-axis range.
 
-### 4.7 Extract
+### 4.7 L\* Reversal
+
+The **L\* Reversal** section (collapsible, starts closed) is a quick QC check on each colorant's single-ink tint ramp. Adding more of one ink should only ever *darken* the print — as ink% rises, L\* should fall monotonically. Any step where L\* instead **rises** signals a reversal: an ink formulation, substrate, or measurement fault worth investigating.
+
+It appears below the Tone Value section and uses the same measured primary ramps (rows where only one colorant is non-zero). No polynomial model is needed, so it also covers CxF/X-4 spot-ink tint ramps.
+
+#### Threshold (ΔL\*)
+
+A single control sets the sensitivity: a step is only flagged when L\* rises by more than this many ΔL\* units (default 0.5), so ordinary measurement noise near the paper or solid ends isn't reported. The value persists across sessions.
+
+#### Chart and table
+
+The chart plots L\* against ink% for every colorant, drawn in each colorant's colour. Wherever a ramp turns the wrong way (L\* rising with ink), that segment is overdrawn in red and labelled **L\* reversal** in the legend. Below the chart, a table lists every flagged step — colorant, the ink range spanned (e.g. `40% → 50%`), and the ΔL\* rise — sorted worst first.
+
+Repeat measurements at the same ink level are averaged to a single L\* before checking, so repeatability scatter between two identical-tint patches is never mistaken for a reversal. A clean, well-behaved dataset reports *"No L\* reversals — every ink ramp darkens monotonically."*
+
+#### Availability
+
+L\* Reversal requires device-colorant data with at least one primary tone ramp. It is hidden for ICC profile slots and for measurement-only datasets (which have no device colorants to ramp).
+
+### 4.8 Extract
 
 The **Extract** section (collapsible, starts closed) builds a reduced subset of a characterization dataset by discarding rows — for example pulling the CMYK data out of a CMYKOGV set, or isolating the CMY grey axis.
 
