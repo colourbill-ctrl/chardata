@@ -628,6 +628,10 @@
     }
     .file-card-badge.badge-a { background: #4a90e2; }
     .file-card-badge.badge-b { background: #e2924a; }
+    /* Compare mode: colour the panel headers to match the File Select A/B badges
+       (A = blue, B = orange) so the two datasets read at a glance. */
+    body.mode-compare #panel-a h2 { color: #4a90e2; }
+    body.mode-compare #panel-b h2 { color: #e2924a; }
     .file-card-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #file-select-empty {
       font-size: 12px; color: #999; text-align: center;
@@ -780,12 +784,18 @@
     body.dark #result div[onclick*="toggleCmpTable"],
     body.dark #result div[onclick*="toggleExtract"],
     body.dark #result div[onclick*="toggleEstimate"],
-    body.dark #result div[onclick*="toggleTv"] { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
-    body.dark #validate-wrap, body.dark #extract-wrap, body.dark #cmp-table-wrap, body.dark #est-wrap { border-color: #38393e !important; background: #1e1f22; }
+    body.dark #result div[onclick*="toggleTv"],
+    body.dark #result div[onclick*="prim-wrap"] { background: #2a2b2e !important; border-color: #38393e !important; color: #888 !important; }
+    body.dark #validate-wrap, body.dark #extract-wrap, body.dark #cmp-table-wrap, body.dark #est-wrap,
+    body.dark #prim-wrap, body.dark #cmp-prim-wrap { border-color: #38393e !important; background: #1e1f22; }
     body.dark #validate-result { background: #1c1d20 !important; border-color: #38393e !important; color: #ccc !important; }
     body.dark #result table { color: #ccc; }
     body.dark #result thead th { color: #888 !important; border-color: #38393e !important; }
     body.dark #result tbody { color: #ccc !important; }
+    /* Near-Neutral Survey: summary + threshold label carry dark inline colours
+       that don't adapt to dark mode — lift them for contrast. */
+    body.dark #nn-summary { color: #e0e4ea !important; }
+    body.dark #nn-wrap [data-i18n="nn_threshold"] { color: #cfd6e2 !important; }
     /* Summary stats box */
     body.dark #result > div[style*="inline-flex"] { background: #2a2b2e !important; border-color: #38393e !important; }
     body.dark #result > div[style*="inline-flex"] div > div:first-child { color: #666 !important; }
@@ -1007,6 +1017,49 @@
     body.dark .iccviz-outcol { color: #d6dbe6; }
     body.dark .iccviz-itemwarn { background: #2a2410; border-color: #4a4220; color: #d8c87a; }
 
+    /* ── In-app user guide (slide-in pane) ─────────────────────────────────
+       The guide BODY is help.html's content, fetched once and adopted into
+       #guide-body with its <style> blocks scoped under #guide-body (see
+       _loadGuide / _scopeGuideCss). Only the drawer CHROME is styled here. */
+    #guide-backdrop { position: fixed; inset: 0; z-index: 1290; background: rgba(0,0,0,0.4); display: none; }
+    #guide-backdrop.open { display: block; }
+    #guide { position: fixed; top: 0; right: 0; z-index: 1300;
+             width: min(760px, 96vw); height: 100vh; height: 100dvh;
+             background: #fff; box-shadow: -8px 0 40px rgba(0,0,0,0.25);
+             display: flex; flex-direction: column;
+             transform: translateX(100%); transition: transform 0.25s ease;
+             font-family: Arial, Helvetica, sans-serif; }
+    #guide.open { transform: none; }
+    #guide-head { display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+                  padding: 10px 12px; border-bottom: 1px solid #ddd; background: #f0f4fa; }
+    #guide-title { font-size: 15px; font-weight: bold; color: #333; flex-shrink: 0; }
+    #guide-search-wrap { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 60px; }
+    #guide-search { flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 5px 9px;
+                    border: 1px solid #c3ccd6; border-radius: 5px; background: #fff; color: #333; }
+    #guide-search:focus { outline: none; border-color: #4a90e2; }
+    #guide-search-count { font-size: 12px; color: #888; min-width: 42px; text-align: right; white-space: nowrap; }
+    .guide-icon-btn { flex-shrink: 0; width: 27px; height: 27px; display: inline-flex; align-items: center;
+                      justify-content: center; border: 1px solid #c3ccd6; border-radius: 5px;
+                      background: #fff; color: #555; cursor: pointer; font-size: 14px;
+                      text-decoration: none; line-height: 1; font-family: inherit; padding: 0; }
+    .guide-icon-btn:hover { border-color: #4a90e2; color: #4a90e2; }
+    #guide-body { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+    #guide-loading, #guide-errmsg { padding: 28px 22px; font-size: 14px; }
+    #guide-loading { color: #888; }
+    #guide-errmsg { color: #b91c1c; }
+    mark.guide-hit { background: #ffe58a; color: inherit; padding: 0 1px; border-radius: 2px; }
+    mark.guide-hit.guide-cur { background: #ffb020; }
+    body.dark #guide { background: #1f2226; box-shadow: -8px 0 40px rgba(0,0,0,0.6); }
+    body.dark #guide-head { background: #22262e; border-bottom-color: #333a44; }
+    body.dark #guide-title { color: #e6e6e6; }
+    body.dark #guide-search { background: #2a2d32; border-color: #444; color: #e6e6e6; }
+    body.dark #guide-search-count { color: #9aa0a8; }
+    body.dark .guide-icon-btn { background: #2a2d32; border-color: #444; color: #cfd6e2; }
+    body.dark .guide-icon-btn:hover { border-color: #4a90e2; color: #4a90e2; }
+    body.dark mark.guide-hit { background: #8a6d00; color: #fff; }
+    body.dark mark.guide-hit.guide-cur { background: #c08820; color: #000; }
+    @media (max-width: 720px) { #guide { width: 100vw; } }
+
     /* Narrow viewports — drop offset/size/pad columns into a single meta line,
        expand the modal to fill the screen, and stack tag rows. */
     @media (max-width: 720px) {
@@ -1162,6 +1215,7 @@ or ICC profiles</span>
       <div class="file-info" id="info-a">
         <div class="file-name" id="name-a"></div>
         <div class="file-type" id="type-a"></div>
+        <div class="row-count" id="dup-a"></div>
         <div class="row-count" id="rows-a"></div>
       </div>
       <div class="validation" id="valid-a"></div>
@@ -1188,6 +1242,7 @@ or ICC profiles</span>
       <div class="file-info" id="info-b">
         <div class="file-name" id="name-b"></div>
         <div class="file-type" id="type-b"></div>
+        <div class="row-count" id="dup-b"></div>
         <div class="row-count" id="rows-b"></div>
       </div>
       <div class="validation" id="valid-b"></div>
@@ -1345,7 +1400,7 @@ or ICC profiles</span>
   <div id="blade">
     <div id="blade-tab">
       <button id="blade-toggle" data-i18n-title="settings" title="Settings"><span class="blade-arrow">&#8250;</span><span class="blade-icon">&#9881;&#xFE0E;</span></button>
-      <button id="blade-help-btn" data-i18n-title="help" title="Help" onclick="window.open('help.html','_blank')">?</button>
+      <button id="blade-help-btn" data-i18n-title="help" title="Help" onclick="openGuide()">?</button>
       <button id="blade-contact-btn" data-i18n-title="contact_btn" title="Contact" onclick="window.open('https://www.colourbill.com/?contact=chardata','_blank')">&#9993;</button>
     </div>
     <div id="blade-content">
@@ -1475,7 +1530,7 @@ or ICC profiles</span>
   <span style="font-size:22px;line-height:1;">&#128193;</span>
 </button>
 <button id="mobile-hamburger" data-i18n-title="settings" title="Settings">&#9881;&#xFE0E;</button>
-<button id="mobile-help-btn" data-i18n-title="help" title="Help" onclick="window.open('help.html','_blank')">?</button>
+<button id="mobile-help-btn" data-i18n-title="help" title="Help" onclick="openGuide()">?</button>
 <button id="mobile-contact-btn" data-i18n-title="contact_btn" title="Contact" onclick="window.open('https://www.colourbill.com/?contact=chardata','_blank')">&#9993;</button>
 
   <div id="computing-badge" style="display:none;"><span data-i18n="computing_model">Computing…</span></div>
@@ -1592,6 +1647,39 @@ or ICC profiles</span>
         cxf_no_objects:'CxF file contains no colour objects.',
         cxf_no_color:'CxF file contains no CIELab or spectral colour values.',
         rows_after_extract:'{n} rows (after extract).',
+        // ── QC analysis features (primaries/overprints, dup repeatability, near-neutral,
+        //    percentiles, per-channel, comparison plot). EN only for now — translations
+        //    + xlsx sync are a documented follow-up pass.
+        primaries_overprints:'Primaries & Overprints',
+        patch:'Patch',
+        patch_paper:'Paper', patch_cyan:'Cyan', patch_magenta:'Magenta', patch_yellow:'Yellow', patch_black:'Black',
+        patch_red:'Red', patch_green:'Green', patch_blue:'Blue', patch_cmy:'CMY', patch_cmyk:'CMYK',
+        dup_found:'Found {n} duplicate measurements in the original dataset.',
+        dup_found_repeat:'Found {n} duplicate measurements in the original dataset (repeatability ΔE mean {mean}, max {max}).',
+        near_neutral_survey:'Near-Neutral Survey',
+        nn_threshold:'Threshold (ΔE*ab)',
+        nn_summary:'{near} of {total} patches within {thr} ΔE of neutral.',
+        nn_none:'No patches within {thr} ΔE of neutral.',
+        nn_axis_dist:'Distance from neutral (ΔE*ab)',
+        nn_near:'Near-neutral', nn_other:'Other patches',
+        comparison_plot:'Comparison Plot',
+        cmp_plot_p90:'P90 = {v}',
+        cmp_percentiles:'Percentiles',
+        per_channel_de:'Per-channel ΔE',
+        per_channel_hint:'Included: patches using this ink (>0). Excluded: patches without it. Only: this ink alone.',
+        chan_included:'Included', chan_excluded:'Excluded', chan_only:'Only',
+        stat_n:'N', stat_mean:'Mean', stat_median:'Median', stat_p90:'P90', stat_p95:'P95', stat_max:'Max',
+        // ── In-app user guide (slide-in pane). Chrome only — the guide body is the
+        //    English help.html content. EN here; translations + xlsx sync are a
+        //    documented follow-up (same pass as the QC strings above).
+        guide_title:'User Guide',
+        guide_search_ph:'Search the guide…',
+        guide_prev:'Previous match', guide_next:'Next match',
+        guide_open_new:'Open in a new tab',
+        guide_loading:'Loading the guide…',
+        guide_error:'Couldn’t load the guide. Try opening it in a new tab.',
+        guide_no_matches:'No matches',
+        guide_match_count:'{i}/{n}',
         no_match:'No comparable inkings between selected files.',
         match_count:'{n} matching data point', match_count_pl:'{n} matching data points',
         mean_de:'Mean {method}', min_de:'Min {method}', max_de:'Max {method}', std_dev:'Std Dev',
@@ -1691,6 +1779,50 @@ or ICC profiles</span>
         image_detail_fine:'Fine',
       },
       fr: {
+        primaries_overprints: 'Primaires et surimpressions',
+        patch: 'Plage',
+        patch_paper: 'Papier',
+        patch_cyan: 'Cyan',
+        patch_magenta: 'Magenta',
+        patch_yellow: 'Jaune',
+        patch_black: 'Noir',
+        patch_red: 'Rouge',
+        patch_green: 'Vert',
+        patch_blue: 'Bleu',
+        patch_cmy: 'CMY',
+        patch_cmyk: 'CMYK',
+        dup_found: '{n} mesures en double trouvées dans le jeu de données d’origine.',
+        dup_found_repeat: '{n} mesures en double trouvées dans le jeu de données d’origine (répétabilité ΔE moyenne {mean}, max {max}).',
+        near_neutral_survey: 'Analyse des quasi-neutres',
+        nn_threshold: 'Seuil (ΔE*ab)',
+        nn_summary: '{near} des {total} plages sont à moins de {thr} ΔE du neutre.',
+        nn_none: 'Aucune plage à moins de {thr} ΔE du neutre.',
+        nn_axis_dist: 'Distance au neutre (ΔE*ab)',
+        nn_near: 'Quasi-neutre',
+        nn_other: 'Autres plages',
+        comparison_plot: 'Graphique de comparaison',
+        cmp_plot_p90: 'P90 = {v}',
+        cmp_percentiles: 'Percentiles',
+        per_channel_de: 'ΔE par canal',
+        per_channel_hint: 'Incluses : plages utilisant cette encre (>0). Exclues : plages sans cette encre. Seule : cette encre uniquement.',
+        chan_included: 'Incluses',
+        chan_excluded: 'Exclues',
+        chan_only: 'Seule',
+        stat_n: 'N',
+        stat_mean: 'Moyenne',
+        stat_median: 'Médiane',
+        stat_p90: 'P90',
+        stat_p95: 'P95',
+        stat_max: 'Max',
+        guide_title: 'Guide d’utilisation',
+        guide_search_ph: 'Rechercher dans le guide…',
+        guide_prev: 'Résultat précédent',
+        guide_next: 'Résultat suivant',
+        guide_open_new: 'Ouvrir dans un nouvel onglet',
+        guide_loading: 'Chargement du guide…',
+        guide_error: 'Impossible de charger le guide. Essayez de l’ouvrir dans un nouvel onglet.',
+        guide_no_matches: 'Aucun résultat',
+        guide_match_count: '{i}/{n}',
         number_format:'Format des nombres', hex:'Hexadécimal', decimal:'Décimal',
         measurement_only_notice:'Données de mesure uniquement (aucun colorant dispositif) : nuage de points 3D et coupe 2D, tableau de données et comparaison par étiquette disponibles ; coquille gamut, extraction, valeur de ton, estimation et validation désactivées.',
         cxfx4_notice:'Caractérisation d’encre d’accompagnement (CxF/X-4) : les niveaux de teinte sont chargés comme valeurs de colorant dispositif ; coquille gamut, estimation et génération de modèle désactivées.',
@@ -1882,6 +2014,50 @@ or ICC profiles</span>
         image_detail_fine:'Fin',
       },
       de: {
+        primaries_overprints: 'Primärfarben & Überdrucke',
+        patch: 'Feld',
+        patch_paper: 'Papier',
+        patch_cyan: 'Cyan',
+        patch_magenta: 'Magenta',
+        patch_yellow: 'Gelb',
+        patch_black: 'Schwarz',
+        patch_red: 'Rot',
+        patch_green: 'Grün',
+        patch_blue: 'Blau',
+        patch_cmy: 'CMY',
+        patch_cmyk: 'CMYK',
+        dup_found: '{n} doppelte Messungen im ursprünglichen Datensatz gefunden.',
+        dup_found_repeat: '{n} doppelte Messungen im ursprünglichen Datensatz gefunden (Wiederholbarkeit ΔE Mittel {mean}, Max {max}).',
+        near_neutral_survey: 'Quasi-Neutral-Analyse',
+        nn_threshold: 'Schwellenwert (ΔE*ab)',
+        nn_summary: '{near} von {total} Feldern liegen innerhalb von {thr} ΔE zum Neutral.',
+        nn_none: 'Keine Felder innerhalb von {thr} ΔE zum Neutral.',
+        nn_axis_dist: 'Abstand zum Neutral (ΔE*ab)',
+        nn_near: 'Quasi-neutral',
+        nn_other: 'Andere Felder',
+        comparison_plot: 'Vergleichsdiagramm',
+        cmp_plot_p90: 'P90 = {v}',
+        cmp_percentiles: 'Perzentile',
+        per_channel_de: 'ΔE pro Kanal',
+        per_channel_hint: 'Enthalten: Felder mit dieser Farbe (>0). Ausgeschlossen: Felder ohne sie. Nur: nur diese Farbe.',
+        chan_included: 'Enthalten',
+        chan_excluded: 'Ausgeschlossen',
+        chan_only: 'Nur',
+        stat_n: 'N',
+        stat_mean: 'Mittel',
+        stat_median: 'Median',
+        stat_p90: 'P90',
+        stat_p95: 'P95',
+        stat_max: 'Max',
+        guide_title: 'Benutzerhandbuch',
+        guide_search_ph: 'Handbuch durchsuchen…',
+        guide_prev: 'Vorheriger Treffer',
+        guide_next: 'Nächster Treffer',
+        guide_open_new: 'In neuem Tab öffnen',
+        guide_loading: 'Handbuch wird geladen…',
+        guide_error: 'Handbuch konnte nicht geladen werden. Versuchen Sie, es in einem neuen Tab zu öffnen.',
+        guide_no_matches: 'Keine Treffer',
+        guide_match_count: '{i}/{n}',
         number_format:'Zahlenformat', hex:'Hexadezimal', decimal:'Dezimal',
         measurement_only_notice:'Nur Messdaten (keine Gerätefarbmittel): 3D- und 2D-Schnitt-Punktwolke, Datentabelle und etikettenbasierter Vergleich verfügbar; Gamut-Hülle, Extrahieren, Tonwert, Schätzung und Validierung deaktiviert.',
         cxfx4_notice:'Sonderfarben-Charakterisierung (CxF/X-4): Tonwertstufen werden als Gerätefarbmittelwerte geladen; Gamut-Hülle, Schätzung und Modellerzeugung deaktiviert.',
@@ -2073,6 +2249,50 @@ or ICC profiles</span>
         image_detail_fine:'Fein',
       },
       it: {
+        primaries_overprints: 'Primarie e sovrastampe',
+        patch: 'Campione',
+        patch_paper: 'Carta',
+        patch_cyan: 'Ciano',
+        patch_magenta: 'Magenta',
+        patch_yellow: 'Giallo',
+        patch_black: 'Nero',
+        patch_red: 'Rosso',
+        patch_green: 'Verde',
+        patch_blue: 'Blu',
+        patch_cmy: 'CMY',
+        patch_cmyk: 'CMYK',
+        dup_found: 'Trovate {n} misurazioni duplicate nel set di dati originale.',
+        dup_found_repeat: 'Trovate {n} misurazioni duplicate nel set di dati originale (ripetibilità ΔE media {mean}, max {max}).',
+        near_neutral_survey: 'Analisi dei quasi-neutri',
+        nn_threshold: 'Soglia (ΔE*ab)',
+        nn_summary: '{near} campioni su {total} entro {thr} ΔE dal neutro.',
+        nn_none: 'Nessun campione entro {thr} ΔE dal neutro.',
+        nn_axis_dist: 'Distanza dal neutro (ΔE*ab)',
+        nn_near: 'Quasi-neutro',
+        nn_other: 'Altri campioni',
+        comparison_plot: 'Grafico di confronto',
+        cmp_plot_p90: 'P90 = {v}',
+        cmp_percentiles: 'Percentili',
+        per_channel_de: 'ΔE per canale',
+        per_channel_hint: 'Incluse: campioni che usano questo inchiostro (>0). Escluse: campioni senza. Solo: solo questo inchiostro.',
+        chan_included: 'Incluse',
+        chan_excluded: 'Escluse',
+        chan_only: 'Solo',
+        stat_n: 'N',
+        stat_mean: 'Media',
+        stat_median: 'Mediana',
+        stat_p90: 'P90',
+        stat_p95: 'P95',
+        stat_max: 'Max',
+        guide_title: 'Guida utente',
+        guide_search_ph: 'Cerca nella guida…',
+        guide_prev: 'Risultato precedente',
+        guide_next: 'Risultato successivo',
+        guide_open_new: 'Apri in una nuova scheda',
+        guide_loading: 'Caricamento della guida…',
+        guide_error: 'Impossibile caricare la guida. Prova ad aprirla in una nuova scheda.',
+        guide_no_matches: 'Nessun risultato',
+        guide_match_count: '{i}/{n}',
         number_format:'Formato numerico', hex:'Esadecimale', decimal:'Decimale',
         measurement_only_notice:'Solo dati di misura (nessun colorante dispositivo): nuvola di punti 3D e sezione 2D, tabella dati e confronto per etichetta disponibili; guscio gamut, estrazione, valore di tono, stima e validazione disabilitati.',
         cxfx4_notice:'Caratterizzazione di inchiostro spot (CxF/X-4): i livelli di tinta sono caricati come valori di colorante dispositivo; guscio gamut, stima e generazione del modello disabilitati.',
@@ -2264,6 +2484,50 @@ or ICC profiles</span>
         image_detail_fine:'Fine',
       },
       es: {
+        primaries_overprints: 'Primarios y sobreimpresiones',
+        patch: 'Parche',
+        patch_paper: 'Papel',
+        patch_cyan: 'Cian',
+        patch_magenta: 'Magenta',
+        patch_yellow: 'Amarillo',
+        patch_black: 'Negro',
+        patch_red: 'Rojo',
+        patch_green: 'Verde',
+        patch_blue: 'Azul',
+        patch_cmy: 'CMY',
+        patch_cmyk: 'CMYK',
+        dup_found: 'Se encontraron {n} mediciones duplicadas en el conjunto de datos original.',
+        dup_found_repeat: 'Se encontraron {n} mediciones duplicadas en el conjunto de datos original (repetibilidad ΔE media {mean}, máx {max}).',
+        near_neutral_survey: 'Análisis de casi neutros',
+        nn_threshold: 'Umbral (ΔE*ab)',
+        nn_summary: '{near} de {total} parches dentro de {thr} ΔE del neutro.',
+        nn_none: 'Ningún parche dentro de {thr} ΔE del neutro.',
+        nn_axis_dist: 'Distancia al neutro (ΔE*ab)',
+        nn_near: 'Casi neutro',
+        nn_other: 'Otros parches',
+        comparison_plot: 'Gráfico de comparación',
+        cmp_plot_p90: 'P90 = {v}',
+        cmp_percentiles: 'Percentiles',
+        per_channel_de: 'ΔE por canal',
+        per_channel_hint: 'Incluidos: parches que usan esta tinta (>0). Excluidos: parches sin ella. Solo: solo esta tinta.',
+        chan_included: 'Incluidos',
+        chan_excluded: 'Excluidos',
+        chan_only: 'Solo',
+        stat_n: 'N',
+        stat_mean: 'Media',
+        stat_median: 'Mediana',
+        stat_p90: 'P90',
+        stat_p95: 'P95',
+        stat_max: 'Máx',
+        guide_title: 'Guía del usuario',
+        guide_search_ph: 'Buscar en la guía…',
+        guide_prev: 'Coincidencia anterior',
+        guide_next: 'Coincidencia siguiente',
+        guide_open_new: 'Abrir en una pestaña nueva',
+        guide_loading: 'Cargando la guía…',
+        guide_error: 'No se pudo cargar la guía. Prueba a abrirla en una pestaña nueva.',
+        guide_no_matches: 'Sin coincidencias',
+        guide_match_count: '{i}/{n}',
         number_format:'Formato numérico', hex:'Hexadecimal', decimal:'Decimal',
         measurement_only_notice:'Solo datos de medición (sin colorantes dispositivo): nube de puntos 3D y corte 2D, tabla de datos y comparación por etiqueta disponibles; capa del gama, extracción, valor de tono, estimación y validación deshabilitados.',
         cxfx4_notice:'Caracterización de tinta plana (CxF/X-4): los niveles de tinte se cargan como valores de colorante dispositivo; capa del gama, estimación y generación de modelo deshabilitadas.',
@@ -2455,6 +2719,50 @@ or ICC profiles</span>
         image_detail_fine:'Fino',
       },
       'pt-PT': {
+        primaries_overprints: 'Primárias e sobreimpressões',
+        patch: 'Amostra',
+        patch_paper: 'Papel',
+        patch_cyan: 'Ciano',
+        patch_magenta: 'Magenta',
+        patch_yellow: 'Amarelo',
+        patch_black: 'Preto',
+        patch_red: 'Vermelho',
+        patch_green: 'Verde',
+        patch_blue: 'Azul',
+        patch_cmy: 'CMY',
+        patch_cmyk: 'CMYK',
+        dup_found: 'Encontradas {n} medições duplicadas no conjunto de dados original.',
+        dup_found_repeat: 'Encontradas {n} medições duplicadas no conjunto de dados original (repetibilidade ΔE média {mean}, máx {max}).',
+        near_neutral_survey: 'Levantamento de quase-neutros',
+        nn_threshold: 'Limiar (ΔE*ab)',
+        nn_summary: '{near} de {total} amostras dentro de {thr} ΔE do neutro.',
+        nn_none: 'Nenhuma amostra dentro de {thr} ΔE do neutro.',
+        nn_axis_dist: 'Distância ao neutro (ΔE*ab)',
+        nn_near: 'Quase-neutro',
+        nn_other: 'Outras amostras',
+        comparison_plot: 'Gráfico de comparação',
+        cmp_plot_p90: 'P90 = {v}',
+        cmp_percentiles: 'Percentis',
+        per_channel_de: 'ΔE por canal',
+        per_channel_hint: 'Incluídas: amostras que usam esta tinta (>0). Excluídas: amostras sem ela. Só: apenas esta tinta.',
+        chan_included: 'Incluídas',
+        chan_excluded: 'Excluídas',
+        chan_only: 'Só',
+        stat_n: 'N',
+        stat_mean: 'Média',
+        stat_median: 'Mediana',
+        stat_p90: 'P90',
+        stat_p95: 'P95',
+        stat_max: 'Máx',
+        guide_title: 'Guia do utilizador',
+        guide_search_ph: 'Pesquisar no guia…',
+        guide_prev: 'Resultado anterior',
+        guide_next: 'Resultado seguinte',
+        guide_open_new: 'Abrir num novo separador',
+        guide_loading: 'A carregar o guia…',
+        guide_error: 'Não foi possível carregar o guia. Tente abri-lo num novo separador.',
+        guide_no_matches: 'Sem resultados',
+        guide_match_count: '{i}/{n}',
         number_format:'Formato numérico', hex:'Hexadecimal', decimal:'Decimal',
         measurement_only_notice:'Apenas dados de medição (sem colorantes do dispositivo): nuvem de pontos 3D e corte 2D, tabela de dados e comparação por etiqueta disponíveis; invólucro de gama, extração, valor de tom, estimativa e validação desativados.',
         cxfx4_notice:'Caracterização de tinta direta (CxF/X-4): os níveis de tom são carregados como valores de colorante do dispositivo; invólucro de gama, estimativa e geração de modelo desativados.',
@@ -2646,6 +2954,50 @@ or ICC profiles</span>
         image_detail_fine:'Fino',
       },
       'pt-BR': {
+        primaries_overprints: 'Primárias e sobreposições',
+        patch: 'Amostra',
+        patch_paper: 'Papel',
+        patch_cyan: 'Ciano',
+        patch_magenta: 'Magenta',
+        patch_yellow: 'Amarelo',
+        patch_black: 'Preto',
+        patch_red: 'Vermelho',
+        patch_green: 'Verde',
+        patch_blue: 'Azul',
+        patch_cmy: 'CMY',
+        patch_cmyk: 'CMYK',
+        dup_found: 'Encontradas {n} medições duplicadas no conjunto de dados original.',
+        dup_found_repeat: 'Encontradas {n} medições duplicadas no conjunto de dados original (repetibilidade ΔE média {mean}, máx {max}).',
+        near_neutral_survey: 'Levantamento de quase-neutros',
+        nn_threshold: 'Limiar (ΔE*ab)',
+        nn_summary: '{near} de {total} amostras dentro de {thr} ΔE do neutro.',
+        nn_none: 'Nenhuma amostra dentro de {thr} ΔE do neutro.',
+        nn_axis_dist: 'Distância ao neutro (ΔE*ab)',
+        nn_near: 'Quase-neutro',
+        nn_other: 'Outras amostras',
+        comparison_plot: 'Gráfico de comparação',
+        cmp_plot_p90: 'P90 = {v}',
+        cmp_percentiles: 'Percentis',
+        per_channel_de: 'ΔE por canal',
+        per_channel_hint: 'Incluídas: amostras que usam esta tinta (>0). Excluídas: amostras sem ela. Só: apenas esta tinta.',
+        chan_included: 'Incluídas',
+        chan_excluded: 'Excluídas',
+        chan_only: 'Só',
+        stat_n: 'N',
+        stat_mean: 'Média',
+        stat_median: 'Mediana',
+        stat_p90: 'P90',
+        stat_p95: 'P95',
+        stat_max: 'Máx',
+        guide_title: 'Guia do usuário',
+        guide_search_ph: 'Pesquisar no guia…',
+        guide_prev: 'Resultado anterior',
+        guide_next: 'Próximo resultado',
+        guide_open_new: 'Abrir em uma nova aba',
+        guide_loading: 'Carregando o guia…',
+        guide_error: 'Não foi possível carregar o guia. Tente abri-lo em uma nova aba.',
+        guide_no_matches: 'Sem resultados',
+        guide_match_count: '{i}/{n}',
         number_format:'Formato numérico', hex:'Hexadecimal', decimal:'Decimal',
         measurement_only_notice:'Apenas dados de medição (sem colorantes do dispositivo): nuvem de pontos 3D e corte 2D, tabela de dados e comparação por rótulo disponíveis; superfície do gamut, extração, valor tonal, estimativa e validação desabilitados.',
         cxfx4_notice:'Caracterização de tinta especial (CxF/X-4): os níveis de tom são carregados como valores de colorante do dispositivo; superfície do gamut, estimativa e geração de modelo desabilitadas.',
@@ -2837,6 +3189,50 @@ or ICC profiles</span>
         image_detail_fine:'Fino',
       },
       'zh-CN': {
+        primaries_overprints: '原色与叠印',
+        patch: '色块',
+        patch_paper: '纸白',
+        patch_cyan: '青色',
+        patch_magenta: '品红',
+        patch_yellow: '黄色',
+        patch_black: '黑色',
+        patch_red: '红色',
+        patch_green: '绿色',
+        patch_blue: '蓝色',
+        patch_cmy: 'CMY',
+        patch_cmyk: 'CMYK',
+        dup_found: '在原始数据集中发现 {n} 个重复测量。',
+        dup_found_repeat: '在原始数据集中发现 {n} 个重复测量（重复性 ΔE 均值 {mean}，最大 {max}）。',
+        near_neutral_survey: '近中性色分析',
+        nn_threshold: '阈值 (ΔE*ab)',
+        nn_summary: '{total} 个色块中有 {near} 个在中性色 {thr} ΔE 范围内。',
+        nn_none: '没有色块在中性色 {thr} ΔE 范围内。',
+        nn_axis_dist: '与中性色的距离 (ΔE*ab)',
+        nn_near: '近中性',
+        nn_other: '其他色块',
+        comparison_plot: '对比图',
+        cmp_plot_p90: 'P90 = {v}',
+        cmp_percentiles: '百分位数',
+        per_channel_de: '各通道 ΔE',
+        per_channel_hint: '包含：使用该油墨的色块（>0）。排除：不使用该油墨的色块。仅：仅该油墨。',
+        chan_included: '包含',
+        chan_excluded: '排除',
+        chan_only: '仅',
+        stat_n: 'N',
+        stat_mean: '均值',
+        stat_median: '中位数',
+        stat_p90: 'P90',
+        stat_p95: 'P95',
+        stat_max: '最大',
+        guide_title: '用户指南',
+        guide_search_ph: '搜索指南…',
+        guide_prev: '上一个匹配',
+        guide_next: '下一个匹配',
+        guide_open_new: '在新标签页中打开',
+        guide_loading: '正在加载指南…',
+        guide_error: '无法加载指南。请尝试在新标签页中打开。',
+        guide_no_matches: '无匹配',
+        guide_match_count: '{i}/{n}',
         number_format:'数字格式', hex:'十六进制', decimal:'十进制',
         measurement_only_notice:'仅测量数据（无设备色度）：可用 3D 和 2D 切片点云、数据表以及按标签匹配的比较；色域外壳、提取、阶调值、估算和验证已禁用。',
         cxfx4_notice:'专色油墨特性化（CxF/X-4）：网点百分比作为设备色度值加载；色域外壳、估算和模型生成已禁用。',
@@ -3028,6 +3424,50 @@ or ICC profiles</span>
         image_detail_fine:'精细',
       },
       'zh-TW': {
+        primaries_overprints: '原色與疊印',
+        patch: '色塊',
+        patch_paper: '紙白',
+        patch_cyan: '青色',
+        patch_magenta: '洋紅',
+        patch_yellow: '黃色',
+        patch_black: '黑色',
+        patch_red: '紅色',
+        patch_green: '綠色',
+        patch_blue: '藍色',
+        patch_cmy: 'CMY',
+        patch_cmyk: 'CMYK',
+        dup_found: '在原始資料集中發現 {n} 個重複量測。',
+        dup_found_repeat: '在原始資料集中發現 {n} 個重複量測（重複性 ΔE 平均 {mean}，最大 {max}）。',
+        near_neutral_survey: '近中性色分析',
+        nn_threshold: '閾值 (ΔE*ab)',
+        nn_summary: '{total} 個色塊中有 {near} 個在中性色 {thr} ΔE 範圍內。',
+        nn_none: '沒有色塊在中性色 {thr} ΔE 範圍內。',
+        nn_axis_dist: '與中性色的距離 (ΔE*ab)',
+        nn_near: '近中性',
+        nn_other: '其他色塊',
+        comparison_plot: '對比圖',
+        cmp_plot_p90: 'P90 = {v}',
+        cmp_percentiles: '百分位數',
+        per_channel_de: '各通道 ΔE',
+        per_channel_hint: '包含：使用該油墨的色塊（>0）。排除：不使用該油墨的色塊。僅：僅該油墨。',
+        chan_included: '包含',
+        chan_excluded: '排除',
+        chan_only: '僅',
+        stat_n: 'N',
+        stat_mean: '平均',
+        stat_median: '中位數',
+        stat_p90: 'P90',
+        stat_p95: 'P95',
+        stat_max: '最大',
+        guide_title: '使用者指南',
+        guide_search_ph: '搜尋指南…',
+        guide_prev: '上一個符合',
+        guide_next: '下一個符合',
+        guide_open_new: '在新分頁中開啟',
+        guide_loading: '正在載入指南…',
+        guide_error: '無法載入指南。請嘗試在新分頁中開啟。',
+        guide_no_matches: '無符合',
+        guide_match_count: '{i}/{n}',
         number_format:'數字格式', hex:'十六進位', decimal:'十進位',
         measurement_only_notice:'僅測量數據（無設備色度）：可用 3D 與 2D 切片點雲、數據表以及按標籤匹配的比較；色域外殼、提取、階調值、估算與驗證已停用。',
         cxfx4_notice:'特別色油墨特性化（CxF/X-4）：網點百分比作為設備色度值載入；色域外殼、估算與模型生成已停用。',
@@ -3219,6 +3659,50 @@ or ICC profiles</span>
         image_detail_fine:'精細',
       },
       ja: {
+        primaries_overprints: '原色とオーバープリント',
+        patch: 'パッチ',
+        patch_paper: '用紙',
+        patch_cyan: 'シアン',
+        patch_magenta: 'マゼンタ',
+        patch_yellow: 'イエロー',
+        patch_black: 'ブラック',
+        patch_red: 'レッド',
+        patch_green: 'グリーン',
+        patch_blue: 'ブルー',
+        patch_cmy: 'CMY',
+        patch_cmyk: 'CMYK',
+        dup_found: '元のデータセットで重複測定が {n} 件見つかりました。',
+        dup_found_repeat: '元のデータセットで重複測定が {n} 件見つかりました（再現性 ΔE 平均 {mean}、最大 {max}）。',
+        near_neutral_survey: 'ニアニュートラル調査',
+        nn_threshold: 'しきい値 (ΔE*ab)',
+        nn_summary: '{total} パッチ中 {near} 個が中性から {thr} ΔE 以内です。',
+        nn_none: '中性から {thr} ΔE 以内のパッチはありません。',
+        nn_axis_dist: '中性からの距離 (ΔE*ab)',
+        nn_near: 'ニアニュートラル',
+        nn_other: 'その他のパッチ',
+        comparison_plot: '比較プロット',
+        cmp_plot_p90: 'P90 = {v}',
+        cmp_percentiles: 'パーセンタイル',
+        per_channel_de: 'チャンネル別 ΔE',
+        per_channel_hint: '含む：このインクを使うパッチ（>0）。除く：使わないパッチ。単独：このインクのみ。',
+        chan_included: '含む',
+        chan_excluded: '除く',
+        chan_only: '単独',
+        stat_n: 'N',
+        stat_mean: '平均',
+        stat_median: '中央値',
+        stat_p90: 'P90',
+        stat_p95: 'P95',
+        stat_max: '最大',
+        guide_title: 'ユーザーガイド',
+        guide_search_ph: 'ガイドを検索…',
+        guide_prev: '前の一致',
+        guide_next: '次の一致',
+        guide_open_new: '新しいタブで開く',
+        guide_loading: 'ガイドを読み込み中…',
+        guide_error: 'ガイドを読み込めませんでした。新しいタブで開いてみてください。',
+        guide_no_matches: '一致なし',
+        guide_match_count: '{i}/{n}',
         number_format:'数値形式', hex:'16 進数', decimal:'10 進数',
         measurement_only_notice:'測定データのみ（デバイス色材なし）：3D および 2D スライスの点群、データ表、ラベル一致比較が利用可能。ガマットシェル、抽出、トーンバリュー、推定、検証は無効です。',
         cxfx4_notice:'特色インキ特性化（CxF/X-4）：網点パーセントはデバイス色材値として読み込まれます。ガマットシェル、推定、モデル生成は無効です。',
@@ -3410,6 +3894,50 @@ or ICC profiles</span>
         image_detail_fine:'細かい',
       },
       ko: {
+        primaries_overprints: '원색 및 중복 인쇄',
+        patch: '패치',
+        patch_paper: '용지',
+        patch_cyan: '시안',
+        patch_magenta: '마젠타',
+        patch_yellow: '옐로우',
+        patch_black: '블랙',
+        patch_red: '레드',
+        patch_green: '그린',
+        patch_blue: '블루',
+        patch_cmy: 'CMY',
+        patch_cmyk: 'CMYK',
+        dup_found: '원본 데이터셋에서 중복 측정 {n}개를 발견했습니다.',
+        dup_found_repeat: '원본 데이터셋에서 중복 측정 {n}개를 발견했습니다(반복성 ΔE 평균 {mean}, 최대 {max}).',
+        near_neutral_survey: '근중립 분석',
+        nn_threshold: '임계값 (ΔE*ab)',
+        nn_summary: '{total}개 패치 중 {near}개가 중립에서 {thr} ΔE 이내입니다.',
+        nn_none: '중립에서 {thr} ΔE 이내의 패치가 없습니다.',
+        nn_axis_dist: '중립으로부터의 거리 (ΔE*ab)',
+        nn_near: '근중립',
+        nn_other: '기타 패치',
+        comparison_plot: '비교 플롯',
+        cmp_plot_p90: 'P90 = {v}',
+        cmp_percentiles: '백분위수',
+        per_channel_de: '채널별 ΔE',
+        per_channel_hint: '포함: 이 잉크를 사용하는 패치(>0). 제외: 사용하지 않는 패치. 단독: 이 잉크만.',
+        chan_included: '포함',
+        chan_excluded: '제외',
+        chan_only: '단독',
+        stat_n: 'N',
+        stat_mean: '평균',
+        stat_median: '중앙값',
+        stat_p90: 'P90',
+        stat_p95: 'P95',
+        stat_max: '최대',
+        guide_title: '사용 설명서',
+        guide_search_ph: '설명서 검색…',
+        guide_prev: '이전 일치',
+        guide_next: '다음 일치',
+        guide_open_new: '새 탭에서 열기',
+        guide_loading: '설명서를 불러오는 중…',
+        guide_error: '설명서를 불러올 수 없습니다. 새 탭에서 열어 보세요.',
+        guide_no_matches: '일치 없음',
+        guide_match_count: '{i}/{n}',
         number_format:'숫자 형식', hex:'16진수', decimal:'10진수',
         measurement_only_notice:'측정 데이터 전용(디바이스 색재 없음): 3D 및 2D 슬라이스 점군, 데이터 표, 레이블 일치 비교 사용 가능. 색역 셸, 추출, 톤 밸류, 추정, 검증은 비활성화됩니다.',
         cxfx4_notice:'별색 잉크 특성화(CxF/X-4): 망점 비율이 디바이스 색재 값으로 로드됩니다. 색역 셸, 추정, 모델 생성은 비활성화됩니다.',
@@ -3601,6 +4129,50 @@ or ICC profiles</span>
         image_detail_fine:'정밀',
       },
       sv: {
+        primaries_overprints: 'Primärer och övertryck',
+        patch: 'Färgruta',
+        patch_paper: 'Papper',
+        patch_cyan: 'Cyan',
+        patch_magenta: 'Magenta',
+        patch_yellow: 'Gul',
+        patch_black: 'Svart',
+        patch_red: 'Röd',
+        patch_green: 'Grön',
+        patch_blue: 'Blå',
+        patch_cmy: 'CMY',
+        patch_cmyk: 'CMYK',
+        dup_found: 'Hittade {n} dubbletter av mätningar i den ursprungliga datamängden.',
+        dup_found_repeat: 'Hittade {n} dubbletter av mätningar i den ursprungliga datamängden (repeterbarhet ΔE medel {mean}, max {max}).',
+        near_neutral_survey: 'Analys av nära-neutrala',
+        nn_threshold: 'Tröskel (ΔE*ab)',
+        nn_summary: '{near} av {total} rutor inom {thr} ΔE från neutralt.',
+        nn_none: 'Inga rutor inom {thr} ΔE från neutralt.',
+        nn_axis_dist: 'Avstånd från neutralt (ΔE*ab)',
+        nn_near: 'Nära-neutral',
+        nn_other: 'Övriga rutor',
+        comparison_plot: 'Jämförelsediagram',
+        cmp_plot_p90: 'P90 = {v}',
+        cmp_percentiles: 'Percentiler',
+        per_channel_de: 'ΔE per kanal',
+        per_channel_hint: 'Inkluderade: rutor som använder denna färg (>0). Exkluderade: rutor utan den. Endast: enbart denna färg.',
+        chan_included: 'Inkluderade',
+        chan_excluded: 'Exkluderade',
+        chan_only: 'Endast',
+        stat_n: 'N',
+        stat_mean: 'Medel',
+        stat_median: 'Median',
+        stat_p90: 'P90',
+        stat_p95: 'P95',
+        stat_max: 'Max',
+        guide_title: 'Användarhandbok',
+        guide_search_ph: 'Sök i handboken…',
+        guide_prev: 'Föregående träff',
+        guide_next: 'Nästa träff',
+        guide_open_new: 'Öppna i ny flik',
+        guide_loading: 'Läser in handboken…',
+        guide_error: 'Det gick inte att läsa in handboken. Prova att öppna den i en ny flik.',
+        guide_no_matches: 'Inga träffar',
+        guide_match_count: '{i}/{n}',
         number_format:'Talformat', hex:'Hexadecimal', decimal:'Decimal',
         measurement_only_notice:'Endast mätdata (inga enhetsfärgämnen): 3D- och 2D-snittpunktmoln, datatabell och etikettmatchad jämförelse tillgängliga; gamutskal, extrahering, tonvärde, uppskattning och validering är inaktiverade.',
         cxfx4_notice:'Dekorfärgskarakterisering (CxF/X-4): tonvärdesnivåer läses in som enhetsfärgämnesvärden; gamutskal, uppskattning och modellgenerering är inaktiverade.',
@@ -3874,10 +4446,21 @@ or ICC profiles</span>
       _updateComputingBadge();
     }
 
+    // Dataset-box duplicate line (Feature 4): count of duplicate measurements in the
+    // ORIGINAL dataset + their repeatability ΔE*ab. '' when there are none.
+    function dupLineText(s) {
+      if (!s || !s.dupInfo || !s.dupInfo.dupeRows) return '';
+      const di = s.dupInfo;
+      return di.stats
+        ? t('dup_found_repeat', { n: di.dupeRows, mean: di.stats.mean.toFixed(2), max: di.stats.max.toFixed(2) })
+        : t('dup_found', { n: di.dupeRows });
+    }
+
     function refreshPanelUI(slot) {
       const s = state[slot];
       if (!s) return;
       const rowsEl = document.getElementById('rows-' + slot);
+      const dupEl = document.getElementById('dup-' + slot);
       const validEl = document.getElementById('valid-' + slot);
       const colorantsEl = document.getElementById('colorants-' + slot);
       const typeEl = document.getElementById('type-' + slot);
@@ -3885,6 +4468,7 @@ or ICC profiles</span>
       if (s.dataType === 'icc') {
         // ICC: no row count, no spectral message; re-localize type + valid + colorants
         if (rowsEl) rowsEl.textContent = '';
+        if (dupEl) dupEl.textContent = '';
         if (typeEl) typeEl.textContent = t('type_icc_profile');
         if (validEl) validEl.innerHTML = '<div class="valid">✓ ' + t('type_icc_profile') + '</div>';
         if (colorantsEl) {
@@ -3902,6 +4486,7 @@ or ICC profiles</span>
       if (rowsEl) rowsEl.textContent = (s.filterType != null && s.rowsBefore !== s.rowsAfter)
         ? t('loaded_rows_dedup', {n: s.rowsBefore, m: s.rowsAfter, method: s.filterType})
         : t('loaded_rows', {n: s.rowsBefore});
+      if (dupEl) dupEl.textContent = dupLineText(s);
       // Valid checkmark
       if (validEl) {
         const vDiv = validEl.querySelector('.i18n-valid');
@@ -4287,6 +4872,7 @@ or ICC profiles</span>
       const isExplore = _mode === 'explore';
       document.getElementById('seg-explore').className = 'seg-btn ' + (isExplore ? 'seg-btn-active' : 'seg-btn-inactive');
       document.getElementById('seg-compare').className = 'seg-btn ' + (isExplore ? 'seg-btn-inactive' : 'seg-btn-active');
+      document.body.classList.toggle('mode-compare', !isExplore);
       document.getElementById('panel-b').style.display = isExplore ? 'none' : '';
       document.querySelector('#panel-a h2').textContent = t('dataset_slot', {slot:'A'});
       document.getElementById('result').innerHTML = '';
@@ -4892,7 +5478,7 @@ or ICC profiles</span>
       document.getElementById('valid-' + slot).textContent = '';
       document.getElementById('valid-' + slot).className = 'validation';
       document.getElementById('type-' + slot).textContent = t('type_icc_profile');
-      document.getElementById('rows-' + slot).textContent = '';
+      document.getElementById('rows-' + slot).textContent = ''; { const _d = document.getElementById('dup-' + slot); if (_d) _d.textContent = ''; }
       document.getElementById('colorants-' + slot).textContent = '';
 
       _rawFileData[slot] = { text: null, fileName, isIcc: true, buffer };
@@ -5021,7 +5607,7 @@ or ICC profiles</span>
       document.getElementById('valid-' + slot).textContent = '';
       document.getElementById('valid-' + slot).className = 'validation';
       document.getElementById('type-' + slot).textContent = '';
-      document.getElementById('rows-' + slot).textContent = '';
+      document.getElementById('rows-' + slot).textContent = ''; { const _d = document.getElementById('dup-' + slot); if (_d) _d.textContent = ''; }
       document.getElementById('colorants-' + slot).textContent = '';
       // If this slot previously held an ICC profile, drop its handle and hide the
       // rendering-intent dropdown — char data has no rendering intent.
@@ -5164,7 +5750,7 @@ or ICC profiles</span>
         }
         validEl.className = 'validation';
         state[slot] = { headers, rows: dedupedRows, colorants, name: fileName, usedSpectralLab, hasSpectral,
-                        labSourceNotice,
+                        labSourceNotice, dupInfo: computeDupStats(headers, rows, colorants),
                         measurementOnly, rowsBefore, rowsAfter, filterType: dedupEnabled ? filterType : null, isCSV,
                         typeLabel: isCxF ? (cxfVariant || 'CxF/X-3') : null, noModel: !!cxfVariant };
         _gamutState[slot].shellOn = false;
@@ -5198,6 +5784,7 @@ or ICC profiles</span>
       document.getElementById('rows-' + slot).textContent = (dedupEnabled && rowsBefore !== rowsAfter)
         ? t('loaded_rows_dedup', {n: rowsBefore, m: rowsAfter, method: filterType})
         : t('loaded_rows', {n: rowsBefore});
+      { const _dupEl = document.getElementById('dup-' + slot); if (_dupEl) _dupEl.textContent = dupLineText(state[slot]); }
 
       const colorantsEl = document.getElementById('colorants-' + slot);
       let colorantsHtml = colorants.length
@@ -5484,6 +6071,296 @@ or ICC profiles</span>
       document.getElementById('file-viewer-overlay').style.display = 'none';
     }
 
+    // ── In-app user guide (slide-in pane) ──────────────────────────────────
+    // The guide body is public/help.html (generated from MANUAL.md). Instead of
+    // opening it in a new tab we fetch it ONCE and embed it in a right-side
+    // drawer. help.html's inline <style> blocks (the page CSS + one per SVG
+    // diagram) use bare element selectors — `text{…}`, `rect.bg{…}` — that would
+    // leak onto the app's Plotly chart SVGs, so every fetched <style> is rescoped
+    // under #guide-body via _scopeGuideCss, which also converts each
+    // `@media(prefers-color-scheme:dark)` block into `body.dark …` rules so the
+    // guide follows the app's own theme toggle (not just the OS setting). The GA
+    // snippet and the popup <script> in help.html are dropped; the `.cd-uihint`
+    // diagram popups are re-wired here. Guide body text stays English (as
+    // MANUAL.md); only the drawer chrome is localized (data-i18n).
+    let _guideLoaded = false, _guideLoading = false;
+
+    function openGuide() {
+      const g = document.getElementById('guide');
+      g.classList.add('open');
+      document.getElementById('guide-backdrop').classList.add('open');
+      g.setAttribute('aria-hidden', 'false');
+      g.inert = false;
+      if (!_guideLoaded && !_guideLoading) _loadGuide();
+      // Defer focus until the slide-in settles (avoids a mobile keyboard jump).
+      setTimeout(() => {
+        const s = document.getElementById('guide-search');
+        if (g.classList.contains('open') && s) s.focus();
+      }, 260);
+    }
+
+    function closeGuide() {
+      const g = document.getElementById('guide');
+      g.classList.remove('open');
+      document.getElementById('guide-backdrop').classList.remove('open');
+      g.setAttribute('aria-hidden', 'true');
+      g.inert = true;
+    }
+
+    // Scope one CSS string under #guide-body; convert prefers-color-scheme dark
+    // blocks into body.dark rules. Handles the small selector vocabulary the
+    // generator emits (bare elements, .class, :root, *, body, @media) — it is a
+    // targeted rewriter for help.html's stylesheet, not a general CSS parser.
+    function _scopeGuideCss(css, dark) {
+      dark = dark || false;
+      const ROOT = '#guide-body';
+      const scopeSel = (sel) => {
+        sel = sel.trim();
+        if (!sel) return '';
+        let out;
+        if (sel === '*') out = ROOT + ' *';
+        else if (sel === ':root' || sel === 'html' || sel === 'body') out = ROOT;
+        else if (sel.startsWith(':root ')) out = ROOT + ' ' + sel.slice(6);
+        else if (sel.startsWith('body ')) out = ROOT + ' ' + sel.slice(5);
+        else out = ROOT + ' ' + sel;
+        return dark ? 'body.dark ' + out : out;
+      };
+      let out = '', i = 0;
+      const n = css.length;
+      while (i < n) {
+        const brace = css.indexOf('{', i);
+        if (brace === -1) break;
+        let depth = 1, j = brace + 1;
+        for (; j < n && depth; j++) {
+          if (css[j] === '{') depth++;
+          else if (css[j] === '}') depth--;
+        }
+        const prelude = css.slice(i, brace).trim();
+        const inner = css.slice(brace + 1, j - 1);
+        if (prelude[0] === '@') {
+          if (/prefers-color-scheme\s*:\s*dark/i.test(prelude)) {
+            out += _scopeGuideCss(inner, true);              // unwrap → body.dark rules
+          } else {
+            out += prelude + '{' + _scopeGuideCss(inner, dark) + '}';  // keep other @media
+          }
+        } else {
+          out += prelude.split(',').map(scopeSel).filter(Boolean).join(',') + '{' + inner + '}';
+        }
+        i = j;
+      }
+      return out;
+    }
+
+    async function _loadGuide() {
+      _guideLoading = true;
+      const body = document.getElementById('guide-body');
+      try {
+        const res = await fetch('help.html', { credentials: 'same-origin' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+
+        // Collect + scope every <style> (page CSS, inline-SVG CSS, and the CSS
+        // inside the diagram <template>s, which querySelectorAll won't descend
+        // into). Dedupe identical blocks — each diagram repeats the same palette.
+        const seen = new Set(), blocks = [];
+        const collect = (root) => root.querySelectorAll('style').forEach(s => {
+          const raw = s.textContent;
+          if (seen.has(raw)) return;
+          seen.add(raw);
+          blocks.push(_scopeGuideCss(raw.replace(/\/\*[\s\S]*?\*\//g, '')));
+        });
+        collect(doc);
+        doc.querySelectorAll('template.cd-diag-tpl').forEach(tpl => collect(tpl.content));
+
+        // Strip the now-extracted <style> and all <script> (GA + the popup
+        // script, which we re-implement) from the nodes we're about to adopt.
+        doc.querySelectorAll('style, script').forEach(el => el.remove());
+        doc.querySelectorAll('template.cd-diag-tpl').forEach(tpl =>
+          tpl.content.querySelectorAll('style, script').forEach(el => el.remove()));
+
+        // Drop the redundant leading titles — the drawer header names the guide.
+        const page = doc.querySelector('.page');
+        if (page) {
+          page.querySelectorAll(':scope > h1').forEach(el => el.remove());
+          const sub = page.querySelector('.subtitle');
+          if (sub) sub.remove();
+        }
+
+        body.innerHTML = '';
+        const styleEl = document.createElement('style');
+        styleEl.textContent = blocks.join('\n');
+        body.appendChild(styleEl);
+        if (page) body.appendChild(document.importNode(page, true));
+        doc.querySelectorAll('template.cd-diag-tpl').forEach(tpl =>
+          body.appendChild(document.importNode(tpl, true)));
+
+        _wireGuidePopups(body);
+        _guideLoaded = true;
+      } catch (e) {
+        body.innerHTML = '';
+        const err = document.createElement('div');
+        err.id = 'guide-errmsg';
+        err.textContent = t('guide_error');
+        body.appendChild(err);
+      } finally {
+        _guideLoading = false;
+      }
+    }
+
+    // Re-wire help.html's "click a UI reference → diagram popup" behaviour. The
+    // .cd-modal / .cd-diag CSS comes from the scoped injected style; the modal is
+    // built inside #guide-body so those scoped rules apply.
+    function _wireGuidePopups(container) {
+      let modal = null, mbody = null;
+      const ensure = () => {
+        if (modal) return;
+        modal = document.createElement('div');
+        modal.className = 'cd-modal';
+        modal.hidden = true;
+        modal.innerHTML = '<div class="cd-modal__overlay"></div><div class="cd-modal__dialog" role="dialog" aria-modal="true"><button class="cd-modal__close" aria-label="Close">×</button><div class="cd-modal__body"></div></div>';
+        container.appendChild(modal);
+        mbody = modal.querySelector('.cd-modal__body');
+        const close = () => { modal.hidden = true; };
+        modal.querySelector('.cd-modal__overlay').addEventListener('click', close);
+        modal.querySelector('.cd-modal__close').addEventListener('click', close);
+      };
+      container.addEventListener('click', (e) => {
+        if (!e.target.closest) return;
+        // In-page anchor (TOC / cross-references): scroll within the drawer
+        // rather than mutating location.hash or scrolling the whole page.
+        const anchor = e.target.closest('a[href^="#"]');
+        if (anchor && container.contains(anchor)) {
+          const id = decodeURIComponent(anchor.getAttribute('href').slice(1));
+          const dest = id && container.querySelector('#' + (window.CSS && CSS.escape ? CSS.escape(id) : id));
+          if (dest) { e.preventDefault(); dest.scrollIntoView({ block: 'start', behavior: 'smooth' }); return; }
+        }
+        const btn = e.target.closest('.cd-uihint');
+        if (!btn) return;
+        e.preventDefault();
+        const tpl = container.querySelector('template.cd-diag-tpl[data-diag="' + btn.getAttribute('data-diag') + '"]');
+        if (!tpl) return;
+        ensure();
+        mbody.innerHTML = '';
+        mbody.appendChild(tpl.content.cloneNode(true));
+        modal.hidden = false;
+        modal.querySelector('.cd-modal__close').focus();
+      });
+      // Let Escape close an open diagram before it closes the whole drawer.
+      container._closeDiagModal = () => {
+        if (modal && !modal.hidden) { modal.hidden = true; return true; }
+        return false;
+      };
+    }
+
+    // ── Guide search (in-DOM find + highlight over the embedded content) ──────
+    let _guideHits = [], _guideCur = -1, _guideQuery = '', _guideSearchTimer = null;
+
+    function _guideClearMarks() {
+      const body = document.getElementById('guide-body');
+      body.querySelectorAll('mark.guide-hit').forEach(m => {
+        const parent = m.parentNode;
+        parent.replaceChild(document.createTextNode(m.textContent), m);
+        parent.normalize();
+      });
+      _guideHits = []; _guideCur = -1;
+    }
+
+    function guideSearch(q) {
+      clearTimeout(_guideSearchTimer);
+      _guideSearchTimer = setTimeout(() => _guideRunSearch(q), 120);
+    }
+
+    function _guideRunSearch(q) {
+      _guideClearMarks();
+      _guideQuery = (q || '').trim();
+      const countEl = document.getElementById('guide-search-count');
+      if (_guideQuery.length < 2) { countEl.textContent = ''; return; }
+      const body = document.getElementById('guide-body');
+      const needle = _guideQuery.toLowerCase();
+      const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          for (let p = node.parentNode; p && p !== body; p = p.parentNode) {
+            const tag = p.nodeName ? p.nodeName.toLowerCase() : '';
+            if (tag === 'svg' || tag === 'style' || tag === 'script' || tag === 'mark' ||
+                tag === 'template' || (p.classList && p.classList.contains('cd-modal'))) {
+              return NodeFilter.FILTER_REJECT;
+            }
+          }
+          return node.nodeValue.toLowerCase().includes(needle)
+            ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      });
+      const targets = [];
+      let tn;
+      while ((tn = walker.nextNode())) targets.push(tn);
+      targets.forEach(node => _guideHighlight(node, needle));
+      _guideHits = Array.from(body.querySelectorAll('mark.guide-hit'));
+      if (_guideHits.length) { _guideCur = 0; _guideFocusHit(); }
+      _guideUpdateCount();
+    }
+
+    function _guideHighlight(node, needle) {
+      const text = node.nodeValue, low = text.toLowerCase();
+      let idx = low.indexOf(needle);
+      if (idx === -1) return;
+      const frag = document.createDocumentFragment();
+      let from = 0;
+      while (idx !== -1) {
+        if (idx > from) frag.appendChild(document.createTextNode(text.slice(from, idx)));
+        const mk = document.createElement('mark');
+        mk.className = 'guide-hit';
+        mk.textContent = text.slice(idx, idx + needle.length);
+        frag.appendChild(mk);
+        from = idx + needle.length;
+        idx = low.indexOf(needle, from);
+      }
+      if (from < text.length) frag.appendChild(document.createTextNode(text.slice(from)));
+      node.parentNode.replaceChild(frag, node);
+    }
+
+    function _guideUpdateCount() {
+      const el = document.getElementById('guide-search-count');
+      if (!_guideHits.length) {
+        el.textContent = _guideQuery.length >= 2 ? t('guide_no_matches') : '';
+        return;
+      }
+      el.textContent = t('guide_match_count', { i: _guideCur + 1, n: _guideHits.length });
+    }
+
+    function _guideFocusHit() {
+      _guideHits.forEach((m, k) => m.classList.toggle('guide-cur', k === _guideCur));
+      const cur = _guideHits[_guideCur];
+      if (cur) cur.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+
+    function guideSearchStep(dir) {
+      if (!_guideHits.length) return;
+      _guideCur = (_guideCur + dir + _guideHits.length) % _guideHits.length;
+      _guideFocusHit();
+      _guideUpdateCount();
+    }
+
+    function guideSearchKey(e) {
+      if (e.key === 'Enter') { e.preventDefault(); guideSearchStep(e.shiftKey ? -1 : 1); }
+      else if (e.key === 'Escape' && _guideQuery) {
+        e.stopPropagation();
+        e.target.value = '';
+        _guideRunSearch('');
+      }
+    }
+
+    // Escape closes an open diagram popup first, then the drawer. (A non-empty
+    // search box swallows Escape in guideSearchKey to clear itself instead.)
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const g = document.getElementById('guide');
+      if (!g || !g.classList.contains('open')) return;
+      const body = document.getElementById('guide-body');
+      if (body && body._closeDiagModal && body._closeDiagModal()) return;
+      closeGuide();
+    });
+
     function updateValidateFileLabel() {
       const sel = document.getElementById('validate-file-select');
       if (!sel) return;
@@ -5590,7 +6467,7 @@ or ICC profiles</span>
           if (intentRow) intentRow.style.display = 'none';
           setPanelName(slot, '');
           document.getElementById('type-' + slot).textContent = '';
-          document.getElementById('rows-' + slot).textContent = '';
+          document.getElementById('rows-' + slot).textContent = ''; { const _d = document.getElementById('dup-' + slot); if (_d) _d.textContent = ''; }
           document.getElementById('valid-' + slot).textContent = '';
           document.getElementById('valid-' + slot).className = 'validation';
           document.getElementById('colorants-' + slot).textContent = '';
@@ -6013,10 +6890,18 @@ or ICC profiles</span>
     }
 
     function nonZeroColorantKey(row, headers, colorants) {
-      const entries = colorants
-        .map(c => ({ name: c, val: (row[headers.indexOf(c)] || '').trim() }))
-        .filter(({ val }) => parseFloat(val) !== 0 && val !== '' && !isNaN(parseFloat(val)));
-      if (entries.length === 0) return null;
+      const parsed = colorants.map(c => {
+        const val = (row[headers.indexOf(c)] || '').trim();
+        const num = parseFloat(val);
+        return { name: c, val, valid: val !== '' && !isNaN(num), zero: num === 0 };
+      });
+      const entries = parsed.filter(p => p.valid && !p.zero);
+      if (entries.length === 0) {
+        // All-zero device patch (paper white / substrate): keep it as one distinct,
+        // matchable patch rather than dropping it — but only when the row actually
+        // carries valid numeric colorant values (not a row missing colorant data).
+        return parsed.some(p => p.valid) ? '\x01ALLZERO' : null;
+      }
       return entries.sort((a, b) => a.name.localeCompare(b.name))
         .map(({ name, val }) => `${name}=${val}`).join('\x00');
     }
@@ -6227,6 +7112,515 @@ or ICC profiles</span>
         const chCells = `<td style="${PR}">${chCols[ri].c}</td><td style="${PR}">${chCols[ri].h}</td>`;
         return `<tr>${labelCell}${colorantCells}${labCells}${chCells}</tr>`;
       }).join('');
+    }
+
+    // ══ QC analysis helpers (primaries/overprints, percentile stats, near-neutral,
+    //    duplicate repeatability) ════════════════════════════════════════════════
+    // The QC methods in this block — primaries/overprint colorimetry, near-neutral
+    // survey, duplicate-patch repeatability, per-channel & percentile ΔE stats, and
+    // the ΔE-vs-L*/vs-neutral comparison plots — are adapted from Harold Boll's
+    // profile/characterisation QC scripts (doQCpfA.m, doQC2charsets.m). Attribution
+    // retained per method origin. See ANALYSIS-FEATURES-TODO.md for the roadmap
+    // (gamut volume, B2A round-trip ΔE) that also derives from the same source.
+    let _nnThreshold = 2; // Near-Neutral Survey threshold, ΔE*ab
+
+    function toggleGeneric(wrapId, arrowId) {
+      const w = document.getElementById(wrapId), ar = document.getElementById(arrowId);
+      if (!w) return;
+      const open = w.style.display !== 'none';
+      w.style.display = open ? 'none' : '';
+      if (ar) ar.textContent = open ? '▶' : '▼';
+    }
+
+    // Collapsible-section registry: [wrapId, arrowId, on-open render fn name].
+    // Used to preserve which tabs are open across a re-render (dE-method / language /
+    // settings changes rebuild #result; without this every tab would snap shut).
+    const _COLLAPSIBLES = [
+      ['extract-wrap', 'extract-arrow', null],
+      ['cmp-table-wrap', 'cmp-table-arrow', null],
+      ['prim-wrap', 'prim-arrow', null],
+      ['cmp-prim-wrap', 'cmp-prim-arrow', null],
+      ['nn-wrap', 'nn-arrow', 'renderNearNeutral'],
+      ['cmp-stats-wrap', 'cmp-stats-arrow', 'renderCmpHist'],
+      ['cmp-plot-wrap', 'cmp-plot-arrow', 'renderCmpPlot'],
+      ['validate-wrap', 'validate-arrow', null],
+      ['est-wrap', 'est-arrow', 'updateEstimate'],
+      ['icc-patches-wrap', 'icc-patches-arrow', null],
+    ];
+    function captureOpenSections() {
+      const open = new Set();
+      for (const [wrap] of _COLLAPSIBLES) {
+        const el = document.getElementById(wrap);
+        if (el && el.style.display !== 'none') open.add(wrap);
+      }
+      return open;
+    }
+    function restoreOpenSections(open) {
+      if (!open || !open.size) return;
+      for (const [wrap, arrow, render] of _COLLAPSIBLES) {
+        if (!open.has(wrap)) continue;
+        const el = document.getElementById(wrap);
+        if (!el) continue;
+        el.style.display = '';
+        const ar = document.getElementById(arrow);
+        if (ar) ar.textContent = '▼';
+        if (render && typeof window[render] === 'function') window[render]();
+      }
+    }
+
+    // Percentile of an ASC-sorted numeric array (linear interpolation). p in 0..100.
+    function percentileSorted(sorted, p) {
+      if (!sorted.length) return NaN;
+      if (sorted.length === 1) return sorted[0];
+      const idx = (p / 100) * (sorted.length - 1);
+      const lo = Math.floor(idx), hi = Math.ceil(idx);
+      return lo === hi ? sorted[lo] : sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+    }
+    // Summary stats over a ΔE list (numbers). Returns null if empty.
+    function deStatsOf(vals) {
+      const v = vals.filter(isFinite);
+      if (!v.length) return null;
+      const sorted = [...v].sort((a, b) => a - b);
+      const m = v.reduce((s, x) => s + x, 0) / v.length;
+      const std = Math.sqrt(v.reduce((s, x) => s + (x - m) ** 2, 0) / v.length);
+      return { n: v.length, mean: m, median: percentileSorted(sorted, 50),
+               p90: percentileSorted(sorted, 90), p95: percentileSorted(sorted, 95),
+               max: sorted[sorted.length - 1], min: sorted[0], std };
+    }
+
+    // Canonical primary/overprint "control patches" for a colorant set. Each def is
+    // { name, recipe } where recipe maps colorant→target% (colorants absent from the
+    // recipe are 0). CMYK gets named secondaries (R=M+Y, G=C+Y, B=C+M) + CMY + CMYK;
+    // any inkset gets Paper + each single-ink solid.
+    const CONTROL_TOL = 0.75;
+    function controlPatchDefs(colorants) {
+      if (!colorants || colorants.length === 0) return [];
+      const has = c => colorants.includes(c);
+      const NM = { CYAN:'patch_cyan', MAGENTA:'patch_magenta', YELLOW:'patch_yellow', BLACK:'patch_black' };
+      const defs = [{ name: t('patch_paper'), recipe: {} }];
+      for (const c of colorants) defs.push({ name: NM[c] ? t(NM[c]) : c, recipe: { [c]: 100 } });
+      if (has('CYAN') && has('MAGENTA') && has('YELLOW')) {
+        defs.push({ name: t('patch_red'),   recipe: { MAGENTA:100, YELLOW:100 } });
+        defs.push({ name: t('patch_green'), recipe: { CYAN:100, YELLOW:100 } });
+        defs.push({ name: t('patch_blue'),  recipe: { CYAN:100, MAGENTA:100 } });
+        defs.push({ name: t('patch_cmy'),   recipe: { CYAN:100, MAGENTA:100, YELLOW:100 } });
+        if (has('BLACK')) defs.push({ name: t('patch_cmyk'), recipe: { CYAN:100, MAGENTA:100, YELLOW:100, BLACK:100 } });
+      }
+      return defs;
+    }
+    // Find control patches in a characterisation dataset → [{name,recipe,L,a,b}].
+    function findControlPatches(headers, rows, colorants) {
+      const defs = controlPatchDefs(colorants);
+      if (!defs.length) return [];
+      const colIdx = colorants.map(c => headers.indexOf(c));
+      const iL = headers.indexOf('LAB_L'), iA = headers.indexOf('LAB_A'), iB = headers.indexOf('LAB_B');
+      if (iL < 0 || iA < 0 || iB < 0 || colIdx.some(i => i < 0)) return [];
+      const out = [];
+      for (const def of defs) {
+        const row = rows.find(r => colorants.every((c, ci) => {
+          const want = def.recipe[c] ?? 0;
+          const got = parseFloat(r[colIdx[ci]]);
+          return isFinite(got) && Math.abs(got - want) <= CONTROL_TOL;
+        }));
+        if (!row) continue;
+        const L = parseFloat(row[iL]), a = parseFloat(row[iA]), b = parseFloat(row[iB]);
+        if (![L, a, b].every(isFinite)) continue;
+        out.push({ name: def.name, recipe: def.recipe, L, a, b });
+      }
+      return out;
+    }
+    // Find control patches among compare matches → [{name,recipe,m}].
+    function findControlPatchesInMatches(matches, displayColorants) {
+      const defs = controlPatchDefs(displayColorants);
+      if (!defs.length) return [];
+      const out = [];
+      for (const def of defs) {
+        const m = matches.find(mm => displayColorants.every((c, ci) => {
+          const want = def.recipe[c] ?? 0;
+          const got = parseFloat(mm.colorants[ci]);
+          return isFinite(got) && Math.abs(got - want) <= CONTROL_TOL;
+        }));
+        if (m) out.push({ name: def.name, recipe: def.recipe, m });
+      }
+      return out;
+    }
+
+    // Duplicate-patch repeatability over the ORIGINAL (pre-dedup) rows: groups rows
+    // by device-colorant key, and for every group with >1 member computes ΔE*ab of
+    // each replicate to the group's mean Lab. Returns null when no colorants/Lab.
+    function computeDupStats(headers, rows, colorants) {
+      if (!colorants || !colorants.length) return null;
+      const colIdx = colorants.map(c => headers.indexOf(c));
+      const iL = headers.indexOf('LAB_L'), iA = headers.indexOf('LAB_A'), iB = headers.indexOf('LAB_B');
+      if (colIdx.some(i => i < 0) || iL < 0 || iA < 0 || iB < 0) return null;
+      const groups = new Map();
+      for (const r of rows) {
+        const key = colIdx.map(i => (r[i] || '').trim()).join('\x00');
+        const L = parseFloat(r[iL]), a = parseFloat(r[iA]), b = parseFloat(r[iB]);
+        if (![L, a, b].every(isFinite)) continue;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push({ L, a, b });
+      }
+      let dupeRows = 0, groupsWithDupes = 0;
+      const des = [];
+      for (const g of groups.values()) {
+        if (g.length < 2) continue;
+        groupsWithDupes++;
+        dupeRows += g.length - 1;
+        const mL = mean(g.map(p => p.L)), mA = mean(g.map(p => p.a)), mB = mean(g.map(p => p.b));
+        for (const p of g) des.push(deltaEab(mL, mA, mB, p.L, p.a, p.b));
+      }
+      if (!dupeRows) return { dupeRows: 0, groups: 0, stats: null };
+      return { dupeRows, groups: groupsWithDupes, stats: deStatsOf(des) };
+    }
+
+    // Gather Lab points for slot A's Near-Neutral Survey from whichever source the
+    // slot holds: characterisation rows (LAB_* columns) or an ICC profile's evaluated
+    // device test set (_gamutState.a.cachedXYZ = {x:a*, y:b*, z:L*}).
+    function nearNeutralPoints() {
+      const a = state.a;
+      if (!a) return [];
+      if (a.dataType === 'icc') {
+        const xyz = _gamutState.a && _gamutState.a.cachedXYZ;
+        if (!xyz || !xyz.x) return [];
+        const out = [];
+        for (let i = 0; i < xyz.x.length; i++) out.push({ L: xyz.z[i], a: xyz.x[i], b: xyz.y[i] });
+        return out;
+      }
+      const h = a.headers || [];
+      const iL = h.indexOf('LAB_L'), iA = h.indexOf('LAB_A'), iB = h.indexOf('LAB_B');
+      if (iL < 0 || iA < 0 || iB < 0) return [];
+      return a.rows.map(r => ({ L: parseFloat(r[iL]), a: parseFloat(r[iA]), b: parseFloat(r[iB]) }));
+    }
+    // Near-neutral survey: distance-from-neutral for every patch is its chroma
+    // (ΔE*ab to (L,0,0) = √(a²+b²)). Returns { total, near[], thr } sorted by L*.
+    function computeNearNeutral(points, thr) {
+      const pts = (points || [])
+        .filter(p => [p.L, p.a, p.b].every(isFinite))
+        .map(p => ({ L: p.L, a: p.a, b: p.b, dNeu: Math.sqrt(p.a * p.a + p.b * p.b) }));
+      if (!pts.length) return null;
+      const near = pts.filter(p => p.dNeu <= thr).sort((x, y) => x.L - y.L);
+      return { total: pts.length, all: pts, near, thr };
+    }
+
+    // ── Feature 6: primaries/overprints sub-table for the Data Table (char data).
+    // Returns '' when no control patches are present. Collapsible (default open).
+    function buildDataPrimHTML(a) {
+      const patches = findControlPatches(a.headers, a.rows, a.colorants);
+      if (!patches.length) return '';
+      const PR = 'padding:4px 12px 4px 0;text-align:right;';
+      const TH = 'font-weight:bold;border-bottom:2px solid #ddd;color:#555;';
+      const VL = 'border-left:1px solid #ccc;padding-left:12px;';
+      const colHdrs = a.colorants.map(c => `<th style="${PR}${TH}">${escapeHtml(c)}</th>`).join('');
+      // Colorimetry columns mirror the main Data Table: L*a*b* at 3 dp, C* at 2 dp,
+      // h*(deg) at 1 dp, with the same headers.
+      const body = patches.map(p => {
+        const devCells = a.colorants.map(c => `<td style="${PR}">${(p.recipe[c] ?? 0).toFixed(0)}</td>`).join('');
+        const C = labChroma(p.a, p.b), h = labHueDeg(p.a, p.b);
+        const sw = `background:${labToRgb(p.L, p.a, p.b)};width:14px;height:14px;display:inline-block;border-radius:2px;vertical-align:middle;`;
+        return `<tr>
+          <td style="padding:4px 12px 4px 0;text-align:left;">${escapeHtml(p.name)}</td>
+          ${devCells}
+          <td style="${PR}${VL}">${p.L.toFixed(3)}</td><td style="${PR}">${p.a.toFixed(3)}</td><td style="${PR}">${p.b.toFixed(3)}</td>
+          <td style="${PR}">${C.toFixed(2)}</td><td style="${PR}">${h.toFixed(1)}</td>
+          <td style="padding:4px 6px;"><span style="${sw}"></span></td>
+        </tr>`;
+      }).join('');
+      return `
+        <div onclick="toggleGeneric('prim-wrap','prim-arrow')" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span data-i18n="primaries_overprints">Primaries &amp; Overprints</span><span id="prim-arrow">▶</span>
+        </div>
+        <div id="prim-wrap" style="display:none;overflow-x:auto;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:8px 0 8px 8px;">
+          <table style="border-collapse:collapse;font-size:12px;">
+            <thead><tr>
+              <th style="padding:4px 12px 4px 0;text-align:left;${TH}" data-i18n="patch">Patch</th>
+              ${colHdrs}
+              <th style="${PR}${TH}${VL}">L*</th><th style="${PR}${TH}">a*</th><th style="${PR}${TH}">b*</th>
+              <th style="${PR}${TH}">C*</th><th style="${PR}${TH}">h*(deg)</th><th style="${TH}"></th>
+            </tr></thead>
+            <tbody style="font-family:monospace;color:#333;">${body}</tbody>
+          </table>
+        </div>`;
+    }
+
+    // ── Feature 6: primaries/overprints sub-table for the Comparison Table.
+    function buildCmpPrimHTML() {
+      if (!_cmpData) return '';
+      const { matches, displayColorants, method, deRaw, dlRaw, dcRaw, dhRaw, dhAngleRaw } = _cmpData;
+      const patches = findControlPatchesInMatches(matches, displayColorants);
+      if (!patches.length) return '';
+      const PR = 'padding:4px 12px 4px 0;text-align:right;';
+      const TH = 'font-weight:bold;border-bottom:2px solid #ddd;color:#555;';
+      const VL = 'border-left:1px solid #ccc;padding-left:12px;';
+      const f = v => isFinite(v) ? Number(v).toFixed(2) : '—';
+      const colHdrs = displayColorants.map(c => `<th style="${PR}${TH}">${escapeHtml(c)}</th>`).join('');
+      // Colorimetry columns mirror the main Comparison Table: L*a*b* / C* / h*(deg)
+      // per side, all at 2 dp, with the same headers.
+      const labBlock = lab => {
+        const C = labChroma(lab.a, lab.b), h = labHueDeg(lab.a, lab.b);
+        return `<td style="${PR}${VL}">${f(lab.L)}</td><td style="${PR}">${f(lab.a)}</td><td style="${PR}">${f(lab.b)}</td><td style="${PR}">${f(C)}</td><td style="${PR}">${f(h)}</td>`;
+      };
+      // Difference columns identical to the full Comparison Table — pulled from
+      // the same precomputed _cmpData arrays, indexed by the match's position.
+      const dcols = [deRaw, dlRaw, dcRaw, dhRaw, dhAngleRaw];
+      const body = patches.map(({ name, recipe, m }) => {
+        const devCells = displayColorants.map(c => `<td style="${PR}">${(recipe[c] ?? 0).toFixed(0)}</td>`).join('');
+        const i = matches.indexOf(m);
+        const diffCells = dcols.map((arr, k) =>
+          `<td style="${PR}${k === 0 ? VL + 'font-weight:bold;' : ''}">${i >= 0 && arr && arr[i] != null ? arr[i] : '—'}</td>`).join('');
+        return `<tr>
+          <td style="padding:4px 12px 4px 0;text-align:left;">${escapeHtml(name)}</td>
+          ${devCells}
+          ${labBlock(m.aLab)}
+          ${labBlock(m.bLab)}
+          ${diffCells}
+        </tr>`;
+      }).join('');
+      const chSub = `<th style="${PR}${TH}${VL}">L*</th><th style="${PR}${TH}">a*</th><th style="${PR}${TH}">b*</th><th style="${PR}${TH}">C*</th><th style="${PR}${TH}">h*(deg)</th>`;
+      const diffSub = `<th style="${PR}${TH}${VL}">${fmtMethod(method)}</th><th style="${PR}${TH}">ΔL*</th><th style="${PR}${TH}">ΔC*</th><th style="${PR}${TH}">ΔH*</th><th style="${PR}${TH}">Δh*(deg)</th>`;
+      return `
+        <div onclick="toggleGeneric('cmp-prim-wrap','cmp-prim-arrow')" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span data-i18n="primaries_overprints">Primaries &amp; Overprints</span><span id="cmp-prim-arrow">▶</span>
+        </div>
+        <div id="cmp-prim-wrap" style="display:none;overflow-x:auto;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:8px 0 8px 8px;">
+          <table style="border-collapse:collapse;font-size:12px;">
+            <thead>
+              <tr>
+                <th rowspan="2" style="padding:4px 12px 4px 0;text-align:left;vertical-align:bottom;${TH}" data-i18n="patch">Patch</th>
+                <th colspan="${displayColorants.length}" style="padding:4px 0;text-align:center;${TH}" data-i18n="device_colorants_hdr">Device Colorants</th>
+                <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">${escapeHtml(_cmpData.a.name)}</th>
+                <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}">${escapeHtml(_cmpData.b.name)}</th>
+                <th colspan="5" style="padding:4px 0;text-align:center;${TH}${VL}" data-i18n="difference">Difference</th>
+              </tr>
+              <tr>
+                ${colHdrs}
+                ${chSub}
+                ${chSub}
+                ${diffSub}
+              </tr>
+            </thead>
+            <tbody style="font-family:monospace;color:#333;">${body}</tbody>
+          </table>
+        </div>`;
+    }
+
+    // ── Feature 3: percentile grid + per-channel ΔE breakdown, under the histogram.
+    function buildCmpExtraStatsHTML() {
+      if (!_cmpData) return '';
+      const { matches, deRaw, displayColorants, method } = _cmpData;
+      const overall = deStatsOf(deRaw.map(Number));
+      if (!overall) return '';
+      const PR = 'padding:3px 14px 3px 0;text-align:right;font-family:monospace;';
+      const TH = 'font-weight:bold;border-bottom:2px solid #ddd;color:#555;padding:3px 14px 3px 0;text-align:right;';
+      const VL = 'border-left:1px solid #ccc;padding-left:12px;';
+      const f = v => isFinite(v) ? v.toFixed(2) : '—';
+
+      const pct = `
+        <table style="border-collapse:collapse;font-size:12px;margin-top:4px;">
+          <thead><tr>
+            <th style="${TH}text-align:left;" data-i18n="stat_n">N</th>
+            <th style="${TH}" data-i18n="stat_mean">Mean</th>
+            <th style="${TH}" data-i18n="stat_median">Median</th>
+            <th style="${TH}" data-i18n="stat_p90">90th %ile</th>
+            <th style="${TH}" data-i18n="stat_p95">95th %ile</th>
+            <th style="${TH}" data-i18n="stat_max">Max</th>
+            <th style="${TH}" data-i18n="std_dev">Std Dev</th>
+          </tr></thead>
+          <tbody style="color:#333;"><tr>
+            <td style="${PR}text-align:left;">${overall.n}</td>
+            <td style="${PR}">${f(overall.mean)}</td>
+            <td style="${PR}">${f(overall.median)}</td>
+            <td style="${PR}">${f(overall.p90)}</td>
+            <td style="${PR}">${f(overall.p95)}</td>
+            <td style="${PR}">${f(overall.max)}</td>
+            <td style="${PR}">${f(overall.std)}</td>
+          </tr></tbody>
+        </table>`;
+
+      let perChan = '';
+      if (displayColorants.length) {
+        const cell = st => st
+          ? `<td style="${PR}">${f(st.mean)}</td><td style="${PR}">${f(st.p90)}</td><td style="${PR}">${f(st.max)}</td><td style="${PR}">${st.n}</td>`
+          : `<td style="${PR}" colspan="4">—</td>`;
+        const rows = displayColorants.map((c, ci) => {
+          const inc = [], exc = [], only = [];
+          matches.forEach((m, i) => {
+            const de = Number(deRaw[i]);
+            if (!isFinite(de)) return;
+            const vals = m.colorants.map(x => parseFloat(x));
+            const v = vals[ci];
+            if (!isFinite(v)) return;
+            if (v > 0) {
+              inc.push(de);
+              if (!vals.some((x, j) => j !== ci && isFinite(x) && x > 0)) only.push(de);
+            } else exc.push(de);
+          });
+          return `<tr>
+            <td style="padding:3px 14px 3px 0;text-align:left;font-weight:bold;">${escapeHtml(c)}</td>
+            ${cell(deStatsOf(inc))}<td style="${VL}"></td>${cell(deStatsOf(exc))}<td style="${VL}"></td>${cell(deStatsOf(only))}
+          </tr>`;
+        }).join('');
+        const grpHdr = `<th colspan="4" style="${TH}text-align:center;${VL}">`;
+        const subHdr = `<th style="${TH}" data-i18n="stat_mean">Mean</th><th style="${TH}" data-i18n="stat_p90">90th %ile</th><th style="${TH}" data-i18n="stat_max">Max</th><th style="${TH}" data-i18n="stat_n">N</th>`;
+        perChan = `
+          <div style="font-weight:bold;color:#555;font-size:12px;margin:16px 0 4px;" data-i18n="per_channel_de">Per-channel ΔE</div>
+          <div style="overflow-x:auto;"><table style="border-collapse:collapse;font-size:12px;">
+            <thead>
+              <tr>
+                <th rowspan="2" style="${TH}text-align:left;vertical-align:bottom;" data-i18n="device_colorants_hdr">Device Colorants</th>
+                ${grpHdr}<span data-i18n="chan_included">Included</span></th>
+                <th style="${VL}"></th>${grpHdr}<span data-i18n="chan_excluded">Excluded</span></th>
+                <th style="${VL}"></th>${grpHdr}<span data-i18n="chan_only">Only</span></th>
+              </tr>
+              <tr>${subHdr}<th style="${VL}"></th>${subHdr}<th style="${VL}"></th>${subHdr}</tr>
+            </thead>
+            <tbody style="color:#333;">${rows}</tbody>
+          </table></div>
+          <div style="font-size:11px;color:#888;margin-top:4px;" data-i18n="per_channel_hint">Included: patches using this ink (&gt;0). Excluded: patches without it. Only: this ink alone.</div>`;
+      }
+
+      return `
+        <div style="margin-top:16px;">
+          <div style="font-weight:bold;color:#555;font-size:12px;margin-bottom:2px;">${t('cmp_percentiles')} (${fmtMethod(method)})</div>
+          ${pct}
+          ${perChan}
+        </div>`;
+    }
+
+    // ── Feature 5a: Near-Neutral Survey (single dataset). Collapsible, default closed.
+    function buildNearNeutralHTML() {
+      return `
+        <div onclick="toggleNearNeutral()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span data-i18n="near_neutral_survey">Near-Neutral Survey</span><span id="nn-arrow">▶</span>
+        </div>
+        <div id="nn-wrap" style="display:none;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:12px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;margin-bottom:8px;">
+            <span data-i18n="nn_threshold">Threshold (ΔE*ab)</span>
+            <input type="number" id="nn-thr" min="0" step="0.5" value="${_nnThreshold}" onchange="onNnThrChange(this.value)" style="width:70px;padding:3px 6px;border:1px solid #bbb;border-radius:4px;font-size:13px;">
+            <span id="nn-summary" style="color:#333;"></span>
+          </div>
+          <div id="nn-plot" style="width:100%;max-width:780px;height:360px;"></div>
+        </div>`;
+    }
+    function toggleNearNeutral() {
+      const wrap = document.getElementById('nn-wrap'), arrow = document.getElementById('nn-arrow');
+      if (!wrap) return;
+      const hidden = wrap.style.display === 'none';
+      wrap.style.display = hidden ? '' : 'none';
+      if (arrow) arrow.textContent = hidden ? '▼' : '▶';
+      if (hidden) renderNearNeutral();
+    }
+    function onNnThrChange(val) {
+      let n = parseFloat(val);
+      if (!isFinite(n) || n < 0) n = 2;
+      _nnThreshold = n;
+      renderNearNeutral();
+    }
+    function renderNearNeutral() {
+      const div = document.getElementById('nn-plot');
+      const sumEl = document.getElementById('nn-summary');
+      if (!div || !window.Plotly || !state.a) return;
+      const wrap = document.getElementById('nn-wrap');
+      if (wrap && wrap.style.display === 'none') return;
+      const res = computeNearNeutral(nearNeutralPoints(), _nnThreshold);
+      if (!res) { Plotly.purge(div); if (sumEl) sumEl.textContent = ''; return; }
+      if (sumEl) sumEl.textContent = res.near.length
+        ? t('nn_summary', { near: res.near.length, total: res.total, thr: _nnThreshold })
+        : t('nn_none', { thr: _nnThreshold });
+
+      const isDark = document.body.classList.contains('dark');
+      const gridColor = isDark ? '#2e2f34' : '#eee';
+      const plotBg = isDark ? '#1e1f22' : '#fafafa';
+      const paperBg = isDark ? '#1a1b1e' : '#ffffff';
+      const fontColor = isDark ? '#bbb' : '#444';
+      const farColor = isDark ? '#55585f' : '#c8ccd2';
+      const nearColor = isDark ? '#4a90e2' : '#2f6fc0';
+      const nearSet = new Set(res.near);
+      const far = res.all.filter(p => !nearSet.has(p));
+      const traceFar = { type:'scatter', mode:'markers', x: far.map(p=>p.L), y: far.map(p=>p.dNeu),
+        name: t('nn_other'), marker:{ color: farColor, size:4 },
+        hovertemplate:'L* %{x:.1f}<br>C* %{y:.2f}<extra></extra>' };
+      const traceNear = { type:'scatter', mode:'markers', x: res.near.map(p=>p.L), y: res.near.map(p=>p.dNeu),
+        name: t('nn_near'), marker:{ color: nearColor, size:6 },
+        hovertemplate:'L* %{x:.1f}<br>C* %{y:.2f}<extra></extra>' };
+      const layout = {
+        margin:{ l:56, r:16, t:10, b:46 },
+        xaxis:{ title:{ text:'L*', font:{ color:fontColor }, standoff:4 }, range:[0,100],
+          zeroline:false, showgrid:true, gridcolor:gridColor, tickfont:{ color:fontColor } },
+        yaxis:{ title:{ text:t('nn_axis_dist'), font:{ color:fontColor }, standoff:4 },
+          rangemode:'tozero', showgrid:true, gridcolor:gridColor, tickfont:{ color:fontColor } },
+        shapes:[{ type:'line', x0:0, x1:100, y0:_nnThreshold, y1:_nnThreshold, xref:'x', yref:'y',
+          line:{ color:'#e67e22', width:1.5, dash:'dot' } }],
+        showlegend:true, legend:{ orientation:'h', x:0, y:1.12, font:{ color:fontColor } },
+        plot_bgcolor: plotBg, paper_bgcolor: paperBg, font:{ color:fontColor }
+      };
+      Plotly.react(div, [traceFar, traceNear], layout, { responsive:true, displayModeBar:false });
+    }
+
+    // ── Feature 5b: Comparison Plot — ΔE vs L* and ΔE vs distance-from-neutral.
+    function buildCmpPlotHTML() {
+      return `
+        <div onclick="toggleCmpPlot()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span data-i18n="comparison_plot">Comparison Plot</span><span id="cmp-plot-arrow">▶</span>
+        </div>
+        <div id="cmp-plot-wrap" style="display:none;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:12px;">
+          <div id="cmp-plot-l" style="width:100%;max-width:780px;height:320px;"></div>
+          <div id="cmp-plot-n" style="width:100%;max-width:780px;height:320px;margin-top:10px;"></div>
+        </div>`;
+    }
+    function toggleCmpPlot() {
+      const wrap = document.getElementById('cmp-plot-wrap'), arrow = document.getElementById('cmp-plot-arrow');
+      if (!wrap) return;
+      const hidden = wrap.style.display === 'none';
+      wrap.style.display = hidden ? '' : 'none';
+      if (arrow) arrow.textContent = hidden ? '▼' : '▶';
+      if (hidden) renderCmpPlot();
+    }
+    function renderCmpPlot() {
+      const dL = document.getElementById('cmp-plot-l'), dN = document.getElementById('cmp-plot-n');
+      if (!dL || !dN || !window.Plotly || !_cmpData) return;
+      const wrap = document.getElementById('cmp-plot-wrap');
+      if (wrap && wrap.style.display === 'none') return;
+      const { matches, deRaw, method } = _cmpData;
+      const Ls = [], Ns = [], Es = [];
+      matches.forEach((m, i) => {
+        const de = Number(deRaw[i]);
+        if (!isFinite(de) || !m.aLab || !m.bLab) return;
+        const avgL = (m.aLab.L + m.bLab.L) / 2;
+        const dNeu = (labChroma(m.aLab.a, m.aLab.b) + labChroma(m.bLab.a, m.bLab.b)) / 2;
+        if (!isFinite(avgL) || !isFinite(dNeu)) return;
+        Ls.push(avgL); Ns.push(dNeu); Es.push(de);
+      });
+      if (!Es.length) { Plotly.purge(dL); Plotly.purge(dN); return; }
+      const p90 = percentileSorted([...Es].sort((a, b) => a - b), 90);
+
+      const isDark = document.body.classList.contains('dark');
+      const gridColor = isDark ? '#2e2f34' : '#eee';
+      const plotBg = isDark ? '#1e1f22' : '#fafafa';
+      const paperBg = isDark ? '#1a1b1e' : '#ffffff';
+      const fontColor = isDark ? '#bbb' : '#444';
+      const dotColor = isDark ? '#e24a4a' : '#c0392b';
+      const deLabel = fmtMethod(method);
+      const mk = (xs, xTitle, xRange) => ({
+        data: [{ type:'scatter', mode:'markers', x: xs, y: Es, marker:{ color: dotColor, size:4 },
+          hovertemplate:`${xTitle} %{x:.1f}<br>${deLabel} %{y:.2f}<extra></extra>`, showlegend:false }],
+        layout: {
+          margin:{ l:56, r:16, t:10, b:46 },
+          xaxis:{ title:{ text:xTitle, font:{ color:fontColor }, standoff:4 }, range:xRange,
+            zeroline:false, showgrid:true, gridcolor:gridColor, tickfont:{ color:fontColor } },
+          yaxis:{ title:{ text:deLabel, font:{ color:fontColor }, standoff:4 }, rangemode:'tozero',
+            showgrid:true, gridcolor:gridColor, tickfont:{ color:fontColor } },
+          shapes:[{ type:'line', x0:0, x1:1, xref:'paper', y0:p90, y1:p90, yref:'y',
+            line:{ color:'#e67e22', width:1.5, dash:'dot' } }],
+          annotations:[{ xref:'paper', x:0.99, y:p90, yref:'y', text:t('cmp_plot_p90',{v:p90.toFixed(2)}),
+            showarrow:false, font:{ color:'#e67e22', size:11 }, yanchor:'bottom', xanchor:'right' }],
+          plot_bgcolor: plotBg, paper_bgcolor: paperBg, font:{ color:fontColor }
+        }
+      });
+      const gL = mk(Ls, 'L*', [0, 100]);
+      const gN = mk(Ns, t('nn_axis_dist'), undefined);
+      Plotly.react(dL, gL.data, gL.layout, { responsive:true, displayModeBar:false });
+      Plotly.react(dN, gN.data, gN.layout, { responsive:true, displayModeBar:false });
     }
 
     function extractSpectral(headers, row) {
@@ -7234,10 +8628,7 @@ or ICC profiles</span>
       }
 
       // Preserve open/closed state of collapsible sections across re-renders
-      const _openSections = new Set(['extract-wrap', 'cmp-table-wrap', 'est-wrap'].filter(id => {
-        const el = document.getElementById(id);
-        return el && el.style.display !== 'none';
-      }));
+      const _openSections = captureOpenSections();
 
       const measOnly = !!a.measurementOnly;
       const noModel = !!a.noModel; // CxF/X-4 spot ink: tables/plots/TV yes, model-based Estimate no
@@ -7310,6 +8701,7 @@ or ICC profiles</span>
             <button class="validate-btn" onclick="exportData()" data-i18n="export_btn">Export</button>
           </div>
         </div>`}
+        ${buildDataPrimHTML(a)}
         <div onclick="toggleCmpTable()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
           <span><span data-i18n="data_table">Data Table</span>: ${escapeHtml(a.name)}</span><span id="cmp-table-arrow">▶</span>
         </div>
@@ -7320,6 +8712,7 @@ or ICC profiles</span>
             <tbody id="exp-table-body" style="font-family:monospace;color:#333;"></tbody>
           </table>
         </div>
+        ${buildNearNeutralHTML()}
         ${measOnly ? '' : buildTvSectionHTML(false)}
         ${(measOnly || noModel) ? '' : `
         <div onclick="toggleEstimate()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
@@ -7330,12 +8723,7 @@ or ICC profiles</span>
         </div>`}`;
 
       // Restore previously open sections
-      _openSections.forEach(id => {
-        const wrap = document.getElementById(id);
-        const arrow = document.getElementById(id.replace('-wrap', '-arrow'));
-        if (wrap) wrap.style.display = '';
-        if (arrow) arrow.textContent = '▼';
-      });
+      restoreOpenSections(_openSections);
 
       renderExpTable();
       renderPlot();
@@ -7355,10 +8743,7 @@ or ICC profiles</span>
       const intentNames = [t('intent_perceptual'), t('intent_relative_colorimetric'), t('intent_saturation'), t('intent_absolute_colorimetric')];
       const intentsAvail = (info.intents || []).map(i => intentNames[i] || `Intent ${i}`).join(', ') || '—';
 
-      const _openSections = new Set(['icc-patches-wrap', 'est-wrap'].filter(id => {
-        const el = document.getElementById(id);
-        return el && el.style.display !== 'none';
-      }));
+      const _openSections = captureOpenSections();
 
       // Build device-patch table HTML (any device space we can generate a test
       // set for — CMYK via IT8.7/5, everything else via buildNclrPatches). Rows
@@ -7416,6 +8801,7 @@ or ICC profiles</span>
           </table>
         </div>
         ${patchTableHTML}
+        ${buildNearNeutralHTML()}
         <div onclick="toggleEstimate()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
           <span data-i18n="estimate">Estimate</span><span id="est-arrow">&#9658;</span>
         </div>
@@ -7424,13 +8810,7 @@ or ICC profiles</span>
         </div>
         ${buildTvSectionHTML(false)}`;
 
-      _openSections.forEach(id => {
-        const wrap = document.getElementById(id);
-        const arrowId = id === 'icc-patches-wrap' ? 'icc-patches-arrow' : id.replace('-wrap', '-arrow');
-        const arrow = document.getElementById(arrowId);
-        if (wrap) wrap.style.display = '';
-        if (arrow) arrow.textContent = '▼';
-      });
+      restoreOpenSections(_openSections);
 
       renderPlot();
       updateEstimate();
@@ -7854,6 +9234,7 @@ or ICC profiles</span>
             </span>
           </div>
           <div id="cmp-hist" style="width:100%;max-width:780px;height:360px;margin-top:8px;"></div>
+          ${buildCmpExtraStatsHTML()}
         </div>`;
     }
 
@@ -8109,6 +9490,7 @@ or ICC profiles</span>
       if (aIsIcc || bIsIcc) { runCompareWithIcc(a, b, aIsIcc, bIsIcc); return; }
 
       const resultEl = document.getElementById('result');
+      const _openSections = captureOpenSections();
 
       // When either dataset is measurement-only (no device colorants), per-patch ΔE by
       // device vector is undefined — match by sample label instead.
@@ -8229,6 +9611,7 @@ or ICC profiles</span>
           </div>
           <div id="validate-result" style="font-size:13px;color:#333;background:#f8f9fa;border:1px solid #ddd;border-radius:6px;padding:10px;min-height:60px;overflow-x:auto;"></div>
         </div>`}
+        ${buildCmpPrimHTML()}
         <div onclick="toggleCmpTable()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
           <span data-i18n="comparison_table">Comparison Table</span><span id="cmp-table-arrow">▶</span>
         </div>
@@ -8239,6 +9622,7 @@ or ICC profiles</span>
             <tbody id="cmp-table-body" style="font-family:monospace;color:#333;"></tbody>
           </table>
         </div>
+        ${buildCmpPlotHTML()}
         ${useLabel ? '' : buildTvSectionHTML(true)}`;
 
       renderCmpTable();
@@ -8249,11 +9633,13 @@ or ICC profiles</span>
         renderTvChart();
       }
       applyTranslations();
+      restoreOpenSections(_openSections);
     }
 
     // ICC-aware compare: handles ICC vs ICC, CSV vs ICC, ICC vs CSV.
     function runCompareWithIcc(a, b, aIsIcc, bIsIcc) {
       const resultEl = document.getElementById('result');
+      const _openSections = captureOpenSections();
       if (!window.Gamut) {
         resultEl.innerHTML = `<div style="padding:20px 16px;color:#c04040;font-size:13px;">WASM not loaded — call Gamut.preload() first.</div>`;
         return;
@@ -8398,6 +9784,7 @@ or ICC profiles</span>
       resultEl.innerHTML = `
         <p style="margin-bottom:8px;font-size:13px;color:#555;">${matches.length !== 1 ? t('match_count_pl',{n:matches.length}) : t('match_count',{n:matches.length})}</p>
         ${buildCmpStatsHTML(summaryBox)}
+        ${buildCmpPrimHTML()}
         <div onclick="toggleCmpTable()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
           <span data-i18n="comparison_table">Comparison Table</span><span id="cmp-table-arrow">▶</span>
         </div>
@@ -8407,6 +9794,7 @@ or ICC profiles</span>
             <tbody id="cmp-table-body" style="font-family:monospace;color:#333;"></tbody>
           </table>
         </div>
+        ${buildCmpPlotHTML()}
         ${buildTvSectionHTML(true)}`;
 
       renderCmpTable();
@@ -8414,6 +9802,7 @@ or ICC profiles</span>
       buildTvColorantCheckboxes();
       renderTvChart();
       applyTranslations();
+      restoreOpenSections(_openSections);
     }
 
     function togglePlot() {
@@ -11564,6 +12953,31 @@ or ICC profiles</span>
       if (sel) sel.value = _imageDetail;
     })();
   </script>
+
+  <!-- In-app user guide (slide-in pane) — help.html fetched once and embedded -->
+  <div id="guide-backdrop" onclick="closeGuide()"></div>
+  <aside id="guide" role="dialog" aria-modal="true" aria-labelledby="guide-title" aria-hidden="true" inert>
+    <div id="guide-head">
+      <span id="guide-title" data-i18n="guide_title">User Guide</span>
+      <div id="guide-search-wrap">
+        <input id="guide-search" type="search" autocomplete="off" spellcheck="false"
+               data-i18n-ph="guide_search_ph" placeholder="Search the guide…"
+               oninput="guideSearch(this.value)" onkeydown="guideSearchKey(event)">
+        <span id="guide-search-count"></span>
+        <button class="guide-icon-btn" onclick="guideSearchStep(-1)" data-i18n-title="guide_prev"
+                title="Previous match" aria-label="Previous match">&#8963;</button>
+        <button class="guide-icon-btn" onclick="guideSearchStep(1)" data-i18n-title="guide_next"
+                title="Next match" aria-label="Next match">&#8964;</button>
+      </div>
+      <a class="guide-icon-btn" href="help.html" target="_blank" rel="noopener"
+         data-i18n-title="guide_open_new" title="Open in a new tab" aria-label="Open in a new tab">&#8599;</a>
+      <button class="guide-icon-btn" onclick="closeGuide()" data-i18n-aria="close"
+              aria-label="Close" title="Close">&#10005;</button>
+    </div>
+    <div id="guide-body" tabindex="-1">
+      <div id="guide-loading" data-i18n="guide_loading">Loading the guide…</div>
+    </div>
+  </aside>
 
   <div id="file-viewer-overlay" onclick="closeFileViewer()"
     style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.4);">
