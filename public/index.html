@@ -11615,6 +11615,13 @@ or ICC profiles</span>
           if (_slotIsIcc(spec.slot)) {
             const icc = _iccState[spec.slot];
             const nC  = state[spec.slot].colorants.length;
+            // Client-side DoS guard: the ICC 2D-slice sweep is C(N,2)·2^(N-2)
+            // faces (≈860k at N=15) evaluated synchronously on the main thread,
+            // which freezes the tab for a crafted-but-valid high-channel NCLR
+            // profile. The 3D mesh path already enforces MAX_MODEL_COLORANTS=12;
+            // mirror it here so the slice can't bypass the cap. The point cloud
+            // (cachedXYZ) is still drawn for the slot.
+            if (nC > 12) return empty;
             const steps = Gamut.SLICE_FACE_STEPS[Math.min(nC, Gamut.SLICE_FACE_STEPS.length - 1)] || 4;
             result = await Gamut.buildIccSlice(icc.handleId, icc.renderingIntent, axisCode, value, steps);
           } else {

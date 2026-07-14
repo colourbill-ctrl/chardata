@@ -829,6 +829,14 @@ static std::string evalIccBatch(int handle, const std::string& patchesJson, int 
     return r.dump();
 }
 
+// Hard colorant ceiling for the boundary-sweep functions below. The 2-skeleton
+// face count is C(N,2)·2^(N-2); above 12 colorants it explodes (≈860k faces at
+// N=15) and the synchronous per-face CLUT eval freezes the caller's tab — a
+// client-side DoS reachable from a crafted-but-valid high-channel NCLR profile.
+// index.html enforces the same MAX_MODEL_COLORANTS=12 cap in JS; this is the
+// belt-and-suspenders so the guarantee does not depend on the caller.
+static constexpr int kMaxBoundaryColorants = 12;
+
 // ── buildIccGamutMesh ─────────────────────────────────────────────────────────
 // Same 2-skeleton sweep as buildGamutMesh, but evaluated via ICC CLUT.
 // Uses one batch cmsDoTransform call for the entire mesh.
@@ -844,6 +852,8 @@ static std::string buildIccGamutMesh(int handle, int intent, int steps) {
     if (!xf) return "{\"error\":\"transform failed\"}";
 
     int N = p.nColorants;
+    if (N > kMaxBoundaryColorants)
+        return "{\"error\":\"too many colorants for boundary sweep\"}";
     int S = steps;
 
     // Phase 1: collect all device-space sample points (flat buffer, N doubles each)
@@ -932,6 +942,8 @@ static std::string buildIccSlice(int handle, int intent, int axis, double value,
     if (!xf) return "{\"error\":\"transform failed\"}";
 
     int N = p.nColorants;
+    if (N > kMaxBoundaryColorants)
+        return "{\"error\":\"too many colorants for boundary sweep\"}";
     int S = steps;
     int gridSize = (S + 1) * (S + 1);
 
