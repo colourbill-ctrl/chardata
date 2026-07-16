@@ -442,23 +442,33 @@ For ICC profile slots, CharData synthesises a primary ramp by evaluating the pro
 
 ### 4.7 L\* Reversal
 
-The **L\* Reversal** section (collapsible, starts closed) is a quick QC check on each colorant's single-ink tint ramp. Adding more of one ink should only ever *darken* the print — as ink% rises, L\* should fall monotonically. Any step where L\* instead **rises** signals a reversal: an ink formulation, substrate, or measurement fault worth investigating.
+The **L\* Reversal** section (collapsible, starts closed) is a QC check on tone monotonicity *as a function of ink channels* (the method after Harold Boll). A well-behaved device gets **darker** as you add more of any one ink — no matter what the other inks are already set to. So for each ink channel, CharData holds every *other* channel fixed at each of its measured levels (a "background"), raises the one varying channel, and checks that L\* never **rises**. Any pair of patches within a background where more ink gives a *higher* L\* (a lighter result) is a **reversal** — flagging a measurement error, an ink-limit or trapping artefact, a mislabelled patch, or a badly built target.
 
-It appears below the Tone Value section and uses the same measured primary ramps (rows where only one colorant is non-zero). No polynomial model is needed, so it also covers CxF/X-4 spot-ink tint ramps.
+This is the full multi-ink scan, not just the single-ink primary ramps: over a CMYK target it examines tens of thousands of background ramps, whereas the primary ramps (all other inks at zero) are only one thin slice. All *pairs* within a background are compared — not just adjacent levels — so a gradual drift that only surfaces across several steps is still caught, and one anomalous patch is flagged against every cleaner one.
+
+It appears below the Tone Value section and works directly on the measured patches — no polynomial model is needed, so it also covers CxF/X-4 spot-ink tint ramps.
 
 #### Threshold (ΔL\*)
 
-A single control sets the sensitivity: a step is only flagged when L\* rises by more than this many ΔL\* units (default 0.5), so ordinary measurement noise near the paper or solid ends isn't reported. The value persists across sessions.
+A single control sets the sensitivity: a pair is only counted as a reversal when L\* rises by more than this many ΔL\* units (default 1.0), so ordinary measurement noise isn't reported. The value persists across sessions and updates every panel below live.
 
-#### Chart and table
+#### Per-channel summary
 
-The chart plots L\* against ink% for every colorant, drawn in each colorant's colour. Wherever a ramp turns the wrong way (L\* rising with ink), that segment is overdrawn in red and labelled **L\* reversal** in the legend. Below the chart, a table lists every flagged step — colorant, the ink range spanned (e.g. `40% → 50%`), and the ΔL\* rise — sorted worst first.
+A table summarises each ink channel: the number of distinct **Samples** (measured levels), and — over every uptick found — the **Mean**, standard deviation (**SD**) and **Max** ΔL\*, plus the count of reversals above the threshold (**# > ε**). A totals line reports the patch count, the number of background ramps examined, and the total reversals above the threshold. (`Max ΔL*` is the single largest reversal for that channel regardless of the threshold.)
 
-Repeat measurements at the same ink level are averaged to a single L\* before checking, so repeatability scatter between two identical-tint patches is never mistaken for a reversal. A clean, well-behaved dataset reports *"No L\* reversals — every ink ramp darkens monotonically."*
+#### Per-channel plots
+
+Below the summary, a small chart per channel plots device value against L\*, drawing one short segment (low→high, with endpoint dots) for each reversal, in the colorant's colour. A channel with no reversals shows framed axes and a centred ✓ so a clean channel reads as clean rather than blank.
+
+#### Ranked table
+
+A cross-channel table lists every reversal above the threshold, worst first: the channel, the full **ink vector** with the varying channel shown as `low → high` (e.g. `[100, 100, 0→100, 100]`), the L\* transition, and the ΔL\* rise. When more than one channel has reversals, colour-coded filter chips narrow the table to a single channel; long lists page with **Show more**. Channels with very many reversals list only the largest by ΔL\*.
+
+Repeat measurements at the same ink level are averaged to a single L\* before checking, so repeatability scatter between two identical-tint patches is never mistaken for a reversal. A clean, well-behaved dataset reports *"No L\* reversals above the threshold — every ink darkens monotonically across all backgrounds."*
 
 #### Availability
 
-L\* Reversal requires device-colorant data with at least one primary tone ramp. It is hidden for ICC profile slots and for measurement-only datasets (which have no device colorants to ramp).
+L\* Reversal requires device-colorant data. It is hidden for ICC profile slots and for measurement-only datasets (which have no device colorants to ramp).
 
 ### 4.8 Extract
 

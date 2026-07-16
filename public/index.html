@@ -1668,13 +1668,25 @@ or ICC profiles</span>
         nn_axis_dist:'Distance from neutral (ΔE*ab)',
         nn_near:'Near-neutral', nn_other:'Other patches',
         rev_heading:'L* Reversal',
-        rev_intro:'Adding ink to a single-ink tint ramp should only darken it. Each measured ramp is checked; any step where L* rises is flagged as a reversal.',
+        rev_intro:'Adding ink to any one channel should only darken the print — whatever the other inks are set to. Each ink channel is checked against every background of the other inks; any pair where more ink gives a higher L* (a lighter result) is a reversal, flagging a measurement error, ink-limit / trapping artefact, or mislabelled patch.',
         rev_threshold:'Threshold (ΔL*)',
-        rev_summary:'{n} reversal(s) across {cols} ink ramp(s).',
-        rev_none:'No L* reversals — every ink ramp darkens monotonically.',
+        rev_summary:'{n} reversal(s) above the threshold across {cols} ink channel(s).',
+        rev_none:'No L* reversals above the threshold — every ink darkens monotonically across all backgrounds.',
         rev_flag:'L* reversal',
         rev_axis_ink:'Ink %',
         rev_col_colorant:'Colorant', rev_col_range:'Ink range',
+        rev_col_channel:'Channel',
+        rev_col_ink:'Ink (low → high)',
+        rev_filter_all:'All',
+        rev_show_more:'Show more ({n})',
+        rev_stats_heading:'Per-channel summary',
+        rev_stats_samples:'Samples',
+        rev_stats_mean:'Mean ΔL*',
+        rev_stats_sd:'SD',
+        rev_stats_max:'Max ΔL*',
+        rev_stats_viol:'# > ε',
+        rev_stats_totals:'{pts} patches · {ramps} ramps examined · {rev} reversals',
+        rev_capped_note:'Channels with many reversals list only the largest {n} by ΔL*.',
         comparison_plot:'Comparison Plot',
         cmp_plot_p90:'P90 = {v}',
         cmp_percentiles:'Percentiles',
@@ -1814,14 +1826,26 @@ or ICC profiles</span>
         nn_near: 'Quasi-neutre',
         nn_other: 'Autres plages',
         rev_heading: 'Inversion de L*',
-        rev_intro: 'Ajouter de l’encre à une rampe de teinte à encre unique ne devrait que l’assombrir. Chaque rampe mesurée est vérifiée ; toute étape où L* augmente est signalée comme une inversion.',
+        rev_intro: 'Ajouter de l’encre à un seul canal ne devrait que foncer l’impression — quels que soient les réglages des autres encres. Chaque canal d’encre est vérifié sur tous les arrière-plans des autres encres ; toute paire où plus d’encre donne un L* plus élevé (un résultat plus clair) est une inversion, signalant une erreur de mesure, un artefact de limite d’encre / de trapping, ou un patch mal étiqueté.',
         rev_threshold: 'Seuil (ΔL*)',
-        rev_summary: '{n} inversion(s) sur {cols} rampe(s) d’encre.',
-        rev_none: 'Aucune inversion de L* — chaque rampe d’encre s’assombrit de façon monotone.',
+        rev_summary: '{n} inversion(s) au-dessus du seuil sur {cols} canal/canaux d’encre.',
+        rev_none: 'Aucune inversion de L* au-dessus du seuil — chaque encre fonce de façon monotone sur tous les arrière-plans.',
         rev_flag: 'Inversion de L*',
         rev_axis_ink: 'Encre %',
         rev_col_range: 'Plage d’encre',
         rev_col_colorant: 'Colorant',
+        rev_col_channel: 'Canal',
+        rev_col_ink: 'Encre (bas → haut)',
+        rev_filter_all: 'Tout',
+        rev_show_more: 'Afficher plus ({n})',
+        rev_stats_heading: 'Résumé par canal',
+        rev_stats_samples: 'Échantillons',
+        rev_stats_mean: 'Moyenne ΔL*',
+        rev_stats_sd: 'ÉT',
+        rev_stats_max: 'Max ΔL*',
+        rev_stats_viol: '# > ε',
+        rev_stats_totals: '{pts} patchs · {ramps} rampes examinées · {rev} inversions',
+        rev_capped_note: 'Les canaux avec de nombreuses inversions n’affichent que les {n} plus grandes par ΔL*.',
         comparison_plot: 'Graphique de comparaison',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Percentiles',
@@ -2058,14 +2082,26 @@ or ICC profiles</span>
         nn_near: 'Quasi-neutral',
         nn_other: 'Andere Felder',
         rev_heading: 'L*-Umkehr',
-        rev_intro: 'Mehr Farbe auf einer Einzelfarben-Tonrampe sollte diese nur abdunkeln. Jede gemessene Rampe wird geprüft; jeder Schritt, bei dem L* ansteigt, wird als Umkehr markiert.',
+        rev_intro: 'Mehr Farbe in einem einzelnen Kanal sollte den Druck nur abdunkeln — unabhängig davon, wie die anderen Farben eingestellt sind. Jeder Farbkanal wird gegen jeden Hintergrund der anderen Farben geprüft; jedes Paar, bei dem mehr Farbe ein höheres L* (ein helleres Ergebnis) ergibt, ist eine Umkehr und weist auf einen Messfehler, ein Farbauftrags-/Trapping-Artefakt oder einen falsch beschrifteten Patch hin.',
         rev_threshold: 'Schwellenwert (ΔL*)',
-        rev_summary: '{n} Umkehr(en) über {cols} Farbrampe(n).',
-        rev_none: 'Keine L*-Umkehr — jede Farbrampe dunkelt monoton ab.',
+        rev_summary: '{n} Umkehr(en) über dem Schwellenwert in {cols} Farbkanal/-kanälen.',
+        rev_none: 'Keine L*-Umkehr über dem Schwellenwert — jede Farbe dunkelt über alle Hintergründe monoton ab.',
         rev_flag: 'L*-Umkehr',
         rev_axis_ink: 'Farbe %',
         rev_col_range: 'Farbbereich',
         rev_col_colorant: 'Farbmittel',
+        rev_col_channel: 'Kanal',
+        rev_col_ink: 'Farbe (niedrig → hoch)',
+        rev_filter_all: 'Alle',
+        rev_show_more: 'Mehr anzeigen ({n})',
+        rev_stats_heading: 'Zusammenfassung pro Kanal',
+        rev_stats_samples: 'Stichproben',
+        rev_stats_mean: 'Mittel ΔL*',
+        rev_stats_sd: 'SD',
+        rev_stats_max: 'Max ΔL*',
+        rev_stats_viol: '# > ε',
+        rev_stats_totals: '{pts} Patches · {ramps} Rampen geprüft · {rev} Umkehrungen',
+        rev_capped_note: 'Kanäle mit vielen Umkehrungen zeigen nur die größten {n} nach ΔL*.',
         comparison_plot: 'Vergleichsdiagramm',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Perzentile',
@@ -2302,14 +2338,26 @@ or ICC profiles</span>
         nn_near: 'Quasi-neutro',
         nn_other: 'Altri campioni',
         rev_heading: 'Inversione L*',
-        rev_intro: 'Aggiungere inchiostro a una rampa di tinta a inchiostro singolo dovrebbe solo scurirla. Ogni rampa misurata viene controllata; ogni passo in cui L* aumenta è segnalato come inversione.',
+        rev_intro: 'Aggiungere inchiostro a un singolo canale dovrebbe solo scurire la stampa — indipendentemente da come sono impostati gli altri inchiostri. Ogni canale d’inchiostro è controllato rispetto a ogni sfondo degli altri inchiostri; ogni coppia in cui più inchiostro dà un L* più alto (un risultato più chiaro) è un’inversione, che segnala un errore di misura, un artefatto di limite d’inchiostro / trapping o un patch etichettato male.',
         rev_threshold: 'Soglia (ΔL*)',
-        rev_summary: '{n} inversione/i su {cols} rampa/e d’inchiostro.',
-        rev_none: 'Nessuna inversione di L* — ogni rampa d’inchiostro si scurisce in modo monotòno.',
+        rev_summary: '{n} inversione/i sopra la soglia su {cols} canale/i d’inchiostro.',
+        rev_none: 'Nessuna inversione di L* sopra la soglia — ogni inchiostro si scurisce in modo monotòno su tutti gli sfondi.',
         rev_flag: 'Inversione L*',
         rev_axis_ink: 'Inchiostro %',
         rev_col_range: 'Intervallo inchiostro',
         rev_col_colorant: 'Colorante',
+        rev_col_channel: 'Canale',
+        rev_col_ink: 'Inchiostro (basso → alto)',
+        rev_filter_all: 'Tutti',
+        rev_show_more: 'Mostra altri ({n})',
+        rev_stats_heading: 'Riepilogo per canale',
+        rev_stats_samples: 'Campioni',
+        rev_stats_mean: 'Media ΔL*',
+        rev_stats_sd: 'DS',
+        rev_stats_max: 'Max ΔL*',
+        rev_stats_viol: '# > ε',
+        rev_stats_totals: '{pts} patch · {ramps} rampe esaminate · {rev} inversioni',
+        rev_capped_note: 'I canali con molte inversioni mostrano solo le {n} maggiori per ΔL*.',
         comparison_plot: 'Grafico di confronto',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Percentili',
@@ -2546,14 +2594,26 @@ or ICC profiles</span>
         nn_near: 'Casi neutro',
         nn_other: 'Otros parches',
         rev_heading: 'Inversión de L*',
-        rev_intro: 'Añadir tinta a una rampa de tinte de una sola tinta solo debería oscurecerla. Se comprueba cada rampa medida; cualquier paso en el que L* aumente se marca como inversión.',
+        rev_intro: 'Añadir tinta a un solo canal solo debería oscurecer la impresión — sea cual sea el ajuste de las demás tintas. Cada canal de tinta se comprueba frente a cada fondo de las demás tintas; cualquier par en el que más tinta dé un L* más alto (un resultado más claro) es una inversión, que indica un error de medición, un artefacto de límite de tinta / atrapamiento o un parche mal etiquetado.',
         rev_threshold: 'Umbral (ΔL*)',
-        rev_summary: '{n} inversión(es) en {cols} rampa(s) de tinta.',
-        rev_none: 'Sin inversiones de L* — cada rampa de tinta se oscurece de forma monótona.',
+        rev_summary: '{n} inversión(es) por encima del umbral en {cols} canal(es) de tinta.',
+        rev_none: 'Sin inversiones de L* por encima del umbral — cada tinta se oscurece de forma monótona en todos los fondos.',
         rev_flag: 'Inversión de L*',
         rev_axis_ink: 'Tinta %',
         rev_col_range: 'Rango de tinta',
         rev_col_colorant: 'Colorante',
+        rev_col_channel: 'Canal',
+        rev_col_ink: 'Tinta (bajo → alto)',
+        rev_filter_all: 'Todos',
+        rev_show_more: 'Mostrar más ({n})',
+        rev_stats_heading: 'Resumen por canal',
+        rev_stats_samples: 'Muestras',
+        rev_stats_mean: 'Media ΔL*',
+        rev_stats_sd: 'DE',
+        rev_stats_max: 'Máx ΔL*',
+        rev_stats_viol: '# > ε',
+        rev_stats_totals: '{pts} parches · {ramps} rampas examinadas · {rev} inversiones',
+        rev_capped_note: 'Los canales con muchas inversiones muestran solo las {n} mayores por ΔL*.',
         comparison_plot: 'Gráfico de comparación',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Percentiles',
@@ -2790,14 +2850,26 @@ or ICC profiles</span>
         nn_near: 'Quase-neutro',
         nn_other: 'Outras amostras',
         rev_heading: 'Inversão de L*',
-        rev_intro: 'Adicionar tinta a uma rampa de tom de tinta única deve apenas escurecê-la. Cada rampa medida é verificada; qualquer passo em que L* aumente é assinalado como inversão.',
+        rev_intro: 'Adicionar tinta a um único canal deve apenas escurecer a impressão — independentemente de como as outras tintas estão definidas. Cada canal de tinta é verificado em relação a todos os fundos das outras tintas; qualquer par em que mais tinta dá um L* mais alto (um resultado mais claro) é uma inversão, sinalizando um erro de medição, um artefacto de limite de tinta / trapping ou um patch mal rotulado.',
         rev_threshold: 'Limiar (ΔL*)',
-        rev_summary: '{n} inversão(ões) em {cols} rampa(s) de tinta.',
-        rev_none: 'Sem inversões de L* — cada rampa de tinta escurece de forma monótona.',
+        rev_summary: '{n} inversão(ões) acima do limiar em {cols} canal/canais de tinta.',
+        rev_none: 'Sem inversões de L* acima do limiar — cada tinta escurece de forma monótona em todos os fundos.',
         rev_flag: 'Inversão de L*',
         rev_axis_ink: 'Tinta %',
         rev_col_range: 'Intervalo de tinta',
         rev_col_colorant: 'Corante',
+        rev_col_channel: 'Canal',
+        rev_col_ink: 'Tinta (baixo → alto)',
+        rev_filter_all: 'Todos',
+        rev_show_more: 'Mostrar mais ({n})',
+        rev_stats_heading: 'Resumo por canal',
+        rev_stats_samples: 'Amostras',
+        rev_stats_mean: 'Média ΔL*',
+        rev_stats_sd: 'DP',
+        rev_stats_max: 'Máx ΔL*',
+        rev_stats_viol: '# > ε',
+        rev_stats_totals: '{pts} patches · {ramps} rampas examinadas · {rev} inversões',
+        rev_capped_note: 'Os canais com muitas inversões mostram apenas as {n} maiores por ΔL*.',
         comparison_plot: 'Gráfico de comparação',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Percentis',
@@ -3034,14 +3106,26 @@ or ICC profiles</span>
         nn_near: 'Quase-neutro',
         nn_other: 'Outras amostras',
         rev_heading: 'Inversão de L*',
-        rev_intro: 'Adicionar tinta a uma rampa de tom de tinta única deve apenas escurecê-la. Cada rampa medida é verificada; qualquer passo em que L* aumente é sinalizado como inversão.',
+        rev_intro: 'Adicionar tinta a um único canal deve apenas escurecer a impressão — independentemente de como as outras tintas estão definidas. Cada canal de tinta é verificado em relação a todos os fundos das outras tintas; qualquer par em que mais tinta resulta em um L* mais alto (um resultado mais claro) é uma inversão, sinalizando um erro de medição, um artefato de limite de tinta / trapping ou um patch rotulado incorretamente.',
         rev_threshold: 'Limiar (ΔL*)',
-        rev_summary: '{n} inversão(ões) em {cols} rampa(s) de tinta.',
-        rev_none: 'Sem inversões de L* — cada rampa de tinta escurece de forma monótona.',
+        rev_summary: '{n} inversão(ões) acima do limiar em {cols} canal/canais de tinta.',
+        rev_none: 'Sem inversões de L* acima do limiar — cada tinta escurece de forma monótona em todos os fundos.',
         rev_flag: 'Inversão de L*',
         rev_axis_ink: 'Tinta %',
         rev_col_range: 'Faixa de tinta',
         rev_col_colorant: 'Corante',
+        rev_col_channel: 'Canal',
+        rev_col_ink: 'Tinta (baixo → alto)',
+        rev_filter_all: 'Todos',
+        rev_show_more: 'Mostrar mais ({n})',
+        rev_stats_heading: 'Resumo por canal',
+        rev_stats_samples: 'Amostras',
+        rev_stats_mean: 'Média ΔL*',
+        rev_stats_sd: 'DP',
+        rev_stats_max: 'Máx ΔL*',
+        rev_stats_viol: '# > ε',
+        rev_stats_totals: '{pts} patches · {ramps} rampas examinadas · {rev} inversões',
+        rev_capped_note: 'Os canais com muitas inversões mostram apenas as {n} maiores por ΔL*.',
         comparison_plot: 'Gráfico de comparação',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Percentis',
@@ -3278,14 +3362,26 @@ or ICC profiles</span>
         nn_near: '近中性',
         nn_other: '其他色块',
         rev_heading: 'L* 反转',
-        rev_intro: '在单墨色阶上增加墨量只应使其变暗。系统检查每条实测色阶；任何 L* 上升的步进都会被标记为反转。',
+        rev_intro: '在任一通道上增加墨量只应使打印结果变暗——无论其他墨的设置如何。每个墨通道都会针对其他墨的所有背景进行检查；任何在增加墨量后 L* 反而更高（结果更亮）的配对都是反转，提示测量错误、墨量限制／叠印假象或标注错误的色块。',
         rev_threshold: '阈值 (ΔL*)',
-        rev_summary: '{cols} 条墨色阶中有 {n} 处反转。',
-        rev_none: '无 L* 反转——每条墨色阶均单调变暗。',
+        rev_summary: '{cols} 个墨通道中有 {n} 处超过阈值的反转。',
+        rev_none: '无超过阈值的 L* 反转——每种墨在所有背景下均单调变暗。',
         rev_flag: 'L* 反转',
         rev_axis_ink: '墨量 %',
         rev_col_range: '墨量范围',
         rev_col_colorant: '着色剂',
+        rev_col_channel: '通道',
+        rev_col_ink: '墨量（低 → 高）',
+        rev_filter_all: '全部',
+        rev_show_more: '显示更多（{n}）',
+        rev_stats_heading: '各通道摘要',
+        rev_stats_samples: '样本数',
+        rev_stats_mean: '平均 ΔL*',
+        rev_stats_sd: '标准差',
+        rev_stats_max: '最大 ΔL*',
+        rev_stats_viol: '# > ε',
+        rev_stats_totals: '{pts} 个色块 · 检查 {ramps} 条色阶 · {rev} 处反转',
+        rev_capped_note: '反转较多的通道仅按 ΔL* 列出最大的 {n} 个。',
         comparison_plot: '对比图',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: '百分位数',
@@ -3522,14 +3618,26 @@ or ICC profiles</span>
         nn_near: '近中性',
         nn_other: '其他色塊',
         rev_heading: 'L* 反轉',
-        rev_intro: '在單墨色階上增加墨量只應使其變暗。系統檢查每條實測色階；任何 L* 上升的步進都會被標記為反轉。',
+        rev_intro: '在任一通道上增加墨量只應使列印結果變暗——無論其他墨的設定如何。每個墨通道都會針對其他墨的所有背景進行檢查；任何在增加墨量後 L* 反而更高（結果更亮）的配對都是反轉，提示測量錯誤、墨量限制／疊印假影或標註錯誤的色塊。',
         rev_threshold: '閾值 (ΔL*)',
-        rev_summary: '{cols} 條墨色階中有 {n} 處反轉。',
-        rev_none: '無 L* 反轉——每條墨色階均單調變暗。',
+        rev_summary: '{cols} 個墨通道中有 {n} 處超過閾值的反轉。',
+        rev_none: '無超過閾值的 L* 反轉——每種墨在所有背景下均單調變暗。',
         rev_flag: 'L* 反轉',
         rev_axis_ink: '墨量 %',
         rev_col_range: '墨量範圍',
         rev_col_colorant: '著色劑',
+        rev_col_channel: '通道',
+        rev_col_ink: '墨量（低 → 高）',
+        rev_filter_all: '全部',
+        rev_show_more: '顯示更多（{n}）',
+        rev_stats_heading: '各通道摘要',
+        rev_stats_samples: '樣本數',
+        rev_stats_mean: '平均 ΔL*',
+        rev_stats_sd: '標準差',
+        rev_stats_max: '最大 ΔL*',
+        rev_stats_viol: '# > ε',
+        rev_stats_totals: '{pts} 個色塊 · 檢查 {ramps} 條色階 · {rev} 處反轉',
+        rev_capped_note: '反轉較多的通道僅依 ΔL* 列出最大的 {n} 個。',
         comparison_plot: '對比圖',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: '百分位數',
@@ -3766,14 +3874,26 @@ or ICC profiles</span>
         nn_near: 'ニアニュートラル',
         nn_other: 'その他のパッチ',
         rev_heading: 'L* 反転',
-        rev_intro: '単色インクの階調ランプにインクを追加すると暗くなるだけのはずです。測定した各ランプを検査し、L* が上昇するステップを反転として示します。',
+        rev_intro: 'いずれか1つのチャンネルにインクを追加すると、他のインクの設定にかかわらず、印刷結果は暗くなるだけのはずです。各インクチャンネルは他のインクのあらゆる背景に対して検査され、インクを増やしたのに L* が高くなる（明るくなる）ペアはすべて反転とみなされ、測定誤差、インク制限／トラッピングによるアーティファクト、またはラベル誤りのパッチを示します。',
         rev_threshold: 'しきい値 (ΔL*)',
-        rev_summary: '{cols} 本のインクランプ中 {n} 件の反転。',
-        rev_none: 'L* 反転なし——各インクランプは単調に暗くなります。',
+        rev_summary: '{cols} 本のインクチャンネルでしきい値を超える反転が {n} 件。',
+        rev_none: 'しきい値を超える L* 反転なし——各インクはすべての背景で単調に暗くなります。',
         rev_flag: 'L* 反転',
         rev_axis_ink: 'インク %',
         rev_col_range: 'インク範囲',
         rev_col_colorant: '色材',
+        rev_col_channel: 'チャンネル',
+        rev_col_ink: 'インク（低 → 高）',
+        rev_filter_all: 'すべて',
+        rev_show_more: 'さらに表示（{n}）',
+        rev_stats_heading: 'チャンネル別サマリー',
+        rev_stats_samples: 'サンプル数',
+        rev_stats_mean: '平均 ΔL*',
+        rev_stats_sd: 'SD',
+        rev_stats_max: '最大 ΔL*',
+        rev_stats_viol: '# > ε',
+        rev_stats_totals: '{pts} パッチ · {ramps} ランプ検査 · {rev} 反転',
+        rev_capped_note: '反転の多いチャンネルは ΔL* が大きい上位 {n} 件のみ表示します。',
         comparison_plot: '比較プロット',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'パーセンタイル',
@@ -4010,14 +4130,26 @@ or ICC profiles</span>
         nn_near: '근중립',
         nn_other: '기타 패치',
         rev_heading: 'L* 반전',
-        rev_intro: '단일 잉크 계조 램프에 잉크를 더하면 어두워지기만 해야 합니다. 측정된 각 램프를 검사하여 L*가 상승하는 단계를 반전으로 표시합니다.',
+        rev_intro: '한 채널에만 잉크를 더하면 다른 잉크 설정과 관계없이 인쇄 결과가 어두워지기만 해야 합니다. 각 잉크 채널은 다른 잉크의 모든 배경에 대해 검사되며, 잉크를 늘렸는데 L*가 더 높아지는(더 밝아지는) 쌍은 모두 반전으로, 측정 오류, 잉크 제한/트래핑 아티팩트 또는 잘못 라벨링된 패치를 나타냅니다.',
         rev_threshold: '임계값 (ΔL*)',
-        rev_summary: '{cols}개 잉크 램프에서 {n}건의 반전.',
-        rev_none: 'L* 반전 없음 — 모든 잉크 램프가 단조롭게 어두워집니다.',
+        rev_summary: '{cols}개 잉크 채널에서 임계값을 초과하는 반전 {n}건.',
+        rev_none: '임계값을 초과하는 L* 반전 없음 — 모든 잉크가 모든 배경에서 단조롭게 어두워집니다.',
         rev_flag: 'L* 반전',
         rev_axis_ink: '잉크 %',
         rev_col_range: '잉크 범위',
         rev_col_colorant: '색료',
+        rev_col_channel: '채널',
+        rev_col_ink: '잉크 (낮음 → 높음)',
+        rev_filter_all: '전체',
+        rev_show_more: '더 보기 ({n})',
+        rev_stats_heading: '채널별 요약',
+        rev_stats_samples: '샘플 수',
+        rev_stats_mean: '평균 ΔL*',
+        rev_stats_sd: '표준편차',
+        rev_stats_max: '최대 ΔL*',
+        rev_stats_viol: '# > ε',
+        rev_stats_totals: '{pts}개 패치 · {ramps}개 램프 검사 · {rev}건 반전',
+        rev_capped_note: '반전이 많은 채널은 ΔL* 기준 상위 {n}개만 표시합니다.',
         comparison_plot: '비교 플롯',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: '백분위수',
@@ -4254,14 +4386,26 @@ or ICC profiles</span>
         nn_near: 'Nära-neutral',
         nn_other: 'Övriga rutor',
         rev_heading: 'L*-omvändning',
-        rev_intro: 'Att lägga till färg på en enfärgs-tonramp ska bara göra den mörkare. Varje uppmätt ramp kontrolleras; varje steg där L* stiger flaggas som en omvändning.',
+        rev_intro: 'Att lägga till färg i en enda kanal ska bara göra utskriften mörkare — oavsett hur de andra färgerna är inställda. Varje färgkanal kontrolleras mot varje bakgrund av de andra färgerna; varje par där mer färg ger ett högre L* (ett ljusare resultat) är en omvändning, vilket signalerar ett mätfel, en färgmängds-/trapping-artefakt eller en felmärkt ruta.',
         rev_threshold: 'Tröskel (ΔL*)',
-        rev_summary: '{n} omvändning(ar) över {cols} färgramp(er).',
-        rev_none: 'Inga L*-omvändningar — varje färgramp mörknar monotont.',
+        rev_summary: '{n} omvändning(ar) över tröskeln i {cols} färgkanal(er).',
+        rev_none: 'Inga L*-omvändningar över tröskeln — varje färg mörknar monotont över alla bakgrunder.',
         rev_flag: 'L*-omvändning',
         rev_axis_ink: 'Färg %',
         rev_col_range: 'Färgintervall',
         rev_col_colorant: 'Färgämne',
+        rev_col_channel: 'Kanal',
+        rev_col_ink: 'Färg (låg → hög)',
+        rev_filter_all: 'Alla',
+        rev_show_more: 'Visa fler ({n})',
+        rev_stats_heading: 'Sammanfattning per kanal',
+        rev_stats_samples: 'Prover',
+        rev_stats_mean: 'Medel ΔL*',
+        rev_stats_sd: 'SD',
+        rev_stats_max: 'Max ΔL*',
+        rev_stats_viol: '# > ε',
+        rev_stats_totals: '{pts} rutor · {ramps} ramper undersökta · {rev} omvändningar',
+        rev_capped_note: 'Kanaler med många omvändningar visar bara de {n} största efter ΔL*.',
         comparison_plot: 'Jämförelsediagram',
         cmp_plot_p90: 'P90 = {v}',
         cmp_percentiles: 'Percentiler',
@@ -7235,7 +7379,12 @@ or ICC profiles</span>
     // retained per method origin. See ANALYSIS-FEATURES-TODO.md for the roadmap
     // (gamut volume, B2A round-trip ΔE) that also derives from the same source.
     let _nnThreshold = 2; // Near-Neutral Survey threshold, ΔE*ab
-    let _revEpsilon = (() => { const v = parseFloat(localStorage.getItem('revEps')); return (isFinite(v) && v >= 0) ? v : 0.5; })(); // L* Reversal threshold, ΔL*
+    let _revEpsilon = (() => { const v = parseFloat(localStorage.getItem('revEps')); return (isFinite(v) && v >= 0) ? v : 1.0; })(); // L* Reversal threshold, ΔL* (PDF reference uses 1.0)
+    let _revLast = null;          // last computeReversals() result, so filter/paging don't recompute
+    let _revFilterCh = null;      // ranked-table channel filter (colorant index, or null = all)
+    let _revRowLimit = 50;        // ranked-table paging window
+    const REV_ROW_PAGE = 50;      // rows revealed per "Show more"
+    const REV_SEG_CAP = 512;      // emitted reversals per channel (largest ΔL* kept), matches profiletool
 
     function toggleGeneric(wrapId, arrowId) {
       const w = document.getElementById(wrapId), ar = document.getElementById(arrowId);
@@ -7671,67 +7820,198 @@ or ICC profiles</span>
       Plotly.react(div, [traceFar, traceNear], layout, { responsive:true, displayModeBar:false });
     }
 
-    // ── L* Reversal (char data only) ──────────────────────────────────────────
-    // A single-ink tint ramp should darken monotonically: adding ink can only
-    // lower L*. Any adjacent step on the measured ramp where L* *rises* by more
-    // than the ΔL* threshold is a reversal (an ink/substrate/measurement fault).
-    // Measured-data check — no polynomial model needed, so it also covers CxF/X-4
+    // ── L* Reversal — "as a function of ink channels" (char data only) ─────────
+    // A well-behaved device gets DARKER as you add more of any ONE ink, no matter
+    // what the OTHER inks are set to. So: for each ink channel, hold every other
+    // channel fixed at each measured level (a "background"), raise the varying
+    // channel, and the resulting L* should never RISE. Any pair (lower-ink,
+    // higher-ink) within a background whose L* went UP by more than the ΔL*
+    // threshold is a reversal — a measurement error, ink-limit / trapping artefact,
+    // mislabelled patch, or badly-built target.
+    //
+    // ALL PAIRS within a background (not just adjacent levels) are compared, so a
+    // gradual drift that only surfaces across several steps is still caught, and
+    // one anomalous patch is flagged against every cleaner one. This is the full
+    // multi-ink scan (algorithm after Harold Boll), NOT merely the single-ink
+    // primary ramps — over a CMYK target it examines tens of thousands of
+    // background ramps, whereas the primary ramps are only the all-others-zero
+    // slice. Measured-data check — no polynomial model, so it also covers CxF/X-4
     // spot-ink tint ramps. ICC / measurement-only slots are excluded.
-    // Method after Harold Boll.
     function computeReversals(epsilon) {
       const ds = state.a;
       if (!ds || ds.dataType === 'icc' || ds.measurementOnly) return null;
       if (!ds.colorants || !ds.colorants.length) return null;
-      const perColorant = [];
-      const allRevs = [];
-      for (const colorant of ds.colorants) {
-        const raw = tvGetPrimaryRows(ds, colorant, 'a')
-          .filter(r => isFinite(r.L) && isFinite(r.inkPct));
-        if (raw.length < 2) continue;
-        // Collapse repeat measurements at the same ink level to their mean L*, so
-        // repeatability noise between two same-ink% patches isn't misread as a
-        // tone reversal — a reversal requires the ink amount to actually increase.
-        const byInk = new Map();
-        for (const r of raw) {
-          const key = Math.round(r.inkPct * 100) / 100;
-          const g = byInk.get(key) || { inkPct: key, sum: 0, n: 0 };
-          g.sum += r.L; g.n++; byInk.set(key, g);
+      const { headers, rows, colorants } = ds;
+      const lIdx = headers.indexOf('LAB_L');
+      if (lIdx === -1) return null;
+      const N = colorants.length;
+      const colIdx = colorants.map(c => headers.indexOf(c));
+
+      // Gather every valid patch: full device vector + L* + source-row index.
+      const pts = [];
+      let devMax = 0;
+      for (let ri = 0; ri < rows.length; ri++) {
+        const row = rows[ri];
+        const L = parseFloat(row[lIdx]);
+        if (!isFinite(L)) continue;
+        const dev = new Array(N);
+        let ok = true;
+        for (let c = 0; c < N; c++) {
+          const ci = colIdx[c];
+          const v = ci === -1 ? 0 : parseFloat(row[ci]);
+          if (!isFinite(v)) { ok = false; break; }
+          dev[c] = v;
+          if (v > devMax) devMax = v;
         }
-        const rows = [...byInk.values()]
-          .map(g => ({ inkPct: g.inkPct, L: g.sum / g.n }))
-          .sort((a, b) => a.inkPct - b.inkPct);
-        if (rows.length < 2) continue;
+        if (ok) pts.push({ dev, L, ri });
+      }
+      if (pts.length < 2) return null;
+      const scale = devMax > 1.5 ? 100 : 1;         // device values are 0–100 (%) or 0–1
+      const FLOOR = 1e-4;                            // ignore sub-noise upticks
+      const q = v => Math.round(v * 100) / 100;      // quantise a device value for grouping
+
+      const perChannel = [];
+      let totalPairs = 0;
+      for (let vary = 0; vary < N; vary++) {
+        // Group patches by "background" = every OTHER channel's quantised value.
+        const groups = new Map();
+        for (const p of pts) {
+          let key = '';
+          for (let c = 0; c < N; c++) { if (c === vary) continue; key += q(p.dev[c]) + '|'; }
+          let g = groups.get(key);
+          if (!g) { g = []; groups.set(key, g); }
+          g.push(p);
+        }
+        const colorant = colorants[vary];
         const color = tvColorantColor(colorant, 'a');
-        const reversals = [];
-        for (let i = 0; i + 1 < rows.length; i++) {
-          const dL = rows[i + 1].L - rows[i].L; // L* change as ink increases
-          if (dL > epsilon) {
-            const rev = { colorant, color,
-              fromInk: rows[i].inkPct, toInk: rows[i + 1].inkPct,
-              fromL: rows[i].L, toL: rows[i + 1].L, dL };
-            reversals.push(rev);
-            allRevs.push(rev);
+        const reversals = [];       // above-epsilon, will be capped + ranked
+        const upDs = [];            // every uptick ΔL* (> FLOOR) — feeds the per-channel stats
+        const levelSet = new Set(); // distinct sampled levels of this channel
+        let pairsExamined = 0, nViol = 0;
+        for (const g of groups.values()) {
+          // Collapse repeat measurements at the same level to their mean L* (so
+          // repeatability noise between two same-ink patches isn't read as a
+          // reversal — a reversal needs the ink amount to actually increase).
+          const byLvl = new Map();
+          for (const p of g) {
+            const k = q(p.dev[vary]);
+            let e = byLvl.get(k);
+            if (!e) { e = { v: p.dev[vary], sum: 0, n: 0, rows: [] }; byLvl.set(k, e); }
+            e.sum += p.L; e.n++; e.rows.push(p.ri);
+          }
+          byLvl.forEach((_, k) => levelSet.add(k));
+          const seq = [...byLvl.values()]
+            .map(e => ({ v: e.v, L: e.sum / e.n, rows: e.rows }))
+            .sort((a, b) => a.v - b.v);
+          if (seq.length < 2) continue;
+          const ctxDev = g[0].dev.slice();          // the fixed-background ink vector
+          for (let a = 0; a < seq.length; a++) {
+            for (let b = a + 1; b < seq.length; b++) {
+              pairsExamined++;
+              const dL = seq[b].L - seq[a].L;        // L* change as ink increases
+              if (dL <= FLOOR) continue;             // monotone / sub-noise → fine
+              upDs.push(dL);
+              if (dL > epsilon) {
+                nViol++;
+                reversals.push({ chIdx: vary, colorant, color, ctxDev,
+                  fromInk: seq[a].v, toInk: seq[b].v, fromL: seq[a].L, toL: seq[b].L, dL,
+                  rows: seq[a].rows.concat(seq[b].rows) });
+              }
+            }
           }
         }
-        perColorant.push({ colorant, color, rows, reversals });
+        reversals.sort((x, y) => y.dL - x.dL);
+        const capped = reversals.length > REV_SEG_CAP;
+        if (capped) reversals.length = REV_SEG_CAP;
+        // Stats over ALL upticks (matches the PDF's per-channel distribution: the
+        // Max here is the largest reversal regardless of the display threshold).
+        let mean = 0, sd = 0, max = 0;
+        const nUp = upDs.length;
+        if (nUp) {
+          for (const d of upDs) { mean += d; if (d > max) max = d; }
+          mean /= nUp;
+          let ss = 0; for (const d of upDs) ss += (d - mean) * (d - mean);
+          sd = Math.sqrt(ss / nUp);
+        }
+        totalPairs += pairsExamined;
+        perChannel.push({ chIdx: vary, colorant, color, samples: levelSet.size,
+          pairsExamined, nUp, mean, sd, max, nViol, capped, reversals });
       }
+
+      const allRevs = [];
+      for (const ch of perChannel) for (const r of ch.reversals) allRevs.push(r);
       allRevs.sort((x, y) => y.dL - x.dL);
-      return { perColorant, allRevs };
+      const totalViol = perChannel.reduce((s, c) => s + c.nViol, 0);
+      return { perChannel, allRevs, scale,
+        totals: { points: pts.length, pairsExamined: totalPairs, reversals: totalViol } };
     }
+
+    // Compact device-value formatter (0–1 data → trimmed decimals; 0–100 → integer%).
+    function revFmtDev(v, scale) {
+      return scale === 1 ? String(+(+v).toFixed(3)) : String(Math.round(v));
+    }
+
+    // Render the ink transition for one reversal: the full background vector with
+    // the varying channel shown inline as "lo→hi" (e.g. [0→100, 100, 100, 100]).
+    function revInkTransition(rev, scale) {
+      const parts = rev.ctxDev.map((v, i) => i === rev.chIdx
+        ? `${revFmtDev(rev.fromInk, scale)}→${revFmtDev(rev.toInk, scale)}`
+        : revFmtDev(v, scale));
+      return '[' + parts.join(', ') + ']';
+    }
+
+    // One per-channel small-multiple: device value (x) vs L* (y), one short segment
+    // per reversal (low→high with endpoint dots). A CLEAN channel shows framed axes
+    // plus a centred ✓ so it reads as clean, not broken. All coordinates are numeric
+    // (no untrusted text in the SVG geometry).
+    function revChannelSvg(ch, scale, isDark) {
+      const W = 340, m = { l: 32, r: 10, t: 8, b: 26 };
+      const pw = W - m.l - m.r, ph = pw, H = ph + m.t + m.b;
+      const frameC = isDark ? '#3a3b40' : '#ccc';
+      const gridC  = isDark ? '#2e2f34' : '#eee';
+      const axC    = isDark ? '#9aa3af' : '#666';
+      const okC    = isDark ? '#3fae5a' : '#4caf50';
+      const cl = (v, lo, hi) => v < lo ? lo : v > hi ? hi : v;
+      const sx = x => (m.l + cl(x / scale, 0, 1) * pw).toFixed(1);
+      const sy = L => (m.t + ph - cl(L, 0, 100) / 100 * ph).toFixed(1);
+      let s = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;height:auto;" role="img">`;
+      s += `<rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}" fill="none" stroke="${frameC}"/>`;
+      for (const f of [0, .25, .5, .75, 1]) {
+        const gx = (m.l + f * pw).toFixed(1), gy = (m.t + f * ph).toFixed(1);
+        s += `<line x1="${gx}" y1="${m.t}" x2="${gx}" y2="${m.t + ph}" stroke="${gridC}"/>`;
+        s += `<line x1="${m.l}" y1="${gy}" x2="${m.l + pw}" y2="${gy}" stroke="${gridC}"/>`;
+      }
+      for (const r of ch.reversals) {
+        s += `<line x1="${sx(r.fromInk)}" y1="${sy(r.fromL)}" x2="${sx(r.toInk)}" y2="${sy(r.toL)}" stroke="${ch.color}" stroke-width="1.4"/>`;
+        s += `<circle cx="${sx(r.fromInk)}" cy="${sy(r.fromL)}" r="2" fill="${ch.color}"/>`;
+        s += `<circle cx="${sx(r.toInk)}" cy="${sy(r.toL)}" r="2.6" fill="${ch.color}"/>`;
+      }
+      s += `<text x="${m.l}" y="${m.t + ph + 12}" font-size="9" fill="${axC}" text-anchor="start">0</text>`;
+      s += `<text x="${m.l + pw}" y="${m.t + ph + 12}" font-size="9" fill="${axC}" text-anchor="end">${scale === 1 ? 1 : 100}</text>`;
+      s += `<text x="${m.l + pw / 2}" y="${m.t + ph + 22}" font-size="9" fill="${axC}" text-anchor="middle">${t('rev_axis_ink')}</text>`;
+      s += `<text x="${m.l - 4}" y="${m.t + ph}" font-size="9" fill="${axC}" text-anchor="end">0</text>`;
+      s += `<text x="${m.l - 4}" y="${m.t + 8}" font-size="9" fill="${axC}" text-anchor="end">100</text>`;
+      s += `<text transform="translate(10 ${m.t + ph / 2}) rotate(-90)" font-size="9" fill="${axC}" text-anchor="middle">L*</text>`;
+      if (!ch.reversals.length) s += `<text x="${m.l + pw / 2}" y="${m.t + ph / 2 + 5}" font-size="22" fill="${okC}" text-anchor="middle">✓</text>`;
+      return s + '</svg>';
+    }
+
     function buildReversalHTML() {
       return `
         <div onclick="toggleReversal()" style="cursor:pointer;padding:8px 14px;background:#f0f2f5;border:1px solid #ddd;border-radius:6px 6px 0 0;font-size:13px;font-weight:bold;color:#555;margin-top:16px;display:flex;justify-content:space-between;align-items:center;user-select:none;">
           <span data-i18n="rev_heading">L* Reversal</span><span id="rev-arrow">▶</span>
         </div>
         <div id="rev-wrap" style="display:none;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;padding:12px;">
-          <p id="rev-intro" data-i18n="rev_intro" style="font-size:12px;color:#666;margin:0 0 8px;">Adding ink to a single-ink tint ramp should only darken it. Each measured ramp is checked; any step where L* rises is flagged as a reversal.</p>
-          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;margin-bottom:8px;">
+          <p id="rev-intro" data-i18n="rev_intro" style="font-size:12px;color:#666;margin:0 0 8px;">Adding ink to any one channel should only darken the print.</p>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;margin-bottom:8px;flex-wrap:wrap;">
             <span data-i18n="rev_threshold">Threshold (ΔL*)</span>
             <input type="number" id="rev-eps" min="0" step="0.1" value="${_revEpsilon}" onchange="onRevEpsChange(this.value)" style="width:70px;padding:3px 6px;border:1px solid #bbb;border-radius:4px;font-size:13px;">
             <span id="rev-summary" style="color:#333;"></span>
           </div>
-          <div id="rev-plot" style="width:100%;max-width:780px;height:360px;"></div>
-          <div id="rev-table" style="margin-top:10px;overflow-x:auto;"></div>
+          <div id="rev-stats" style="overflow-x:auto;margin-bottom:10px;"></div>
+          <div id="rev-grid" style="display:flex;flex-wrap:wrap;gap:12px;"></div>
+          <div id="rev-filter" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;"></div>
+          <div id="rev-table" style="margin-top:8px;overflow-x:auto;"></div>
         </div>`;
     }
     function toggleReversal() {
@@ -7744,88 +8024,139 @@ or ICC profiles</span>
     }
     function onRevEpsChange(val) {
       let n = parseFloat(val);
-      if (!isFinite(n) || n < 0) n = 0.5;
+      if (!isFinite(n) || n < 0) n = 1.0;
       _revEpsilon = n;
       localStorage.setItem('revEps', String(n));
+      _revFilterCh = null; _revRowLimit = REV_ROW_PAGE;
       renderReversal();
     }
+    function onRevFilter(ch) {
+      _revFilterCh = ch; _revRowLimit = REV_ROW_PAGE;
+      if (_revLast) renderRevTable(_revLast, document.body.classList.contains('dark'));
+    }
+    function onRevShowMore() {
+      _revRowLimit += REV_ROW_PAGE;
+      if (_revLast) renderRevTable(_revLast, document.body.classList.contains('dark'));
+    }
+
     function renderReversal() {
-      const div = document.getElementById('rev-plot');
-      const sumEl = document.getElementById('rev-summary');
-      const tblEl = document.getElementById('rev-table');
-      if (!div || !window.Plotly || !state.a) return;
       const wrap = document.getElementById('rev-wrap');
-      if (wrap && wrap.style.display === 'none') return;
+      if (!wrap || wrap.style.display === 'none' || !state.a) return;
+      const statsEl = document.getElementById('rev-stats');
+      const gridEl  = document.getElementById('rev-grid');
+      const sumEl   = document.getElementById('rev-summary');
       const res = computeReversals(_revEpsilon);
-      if (!res || !res.perColorant.length) {
-        Plotly.purge(div); if (sumEl) sumEl.textContent = '';
-        if (tblEl) tblEl.innerHTML = ''; return;
+      _revLast = res;
+      if (!res || !res.perChannel.length) {
+        if (statsEl) statsEl.innerHTML = '';
+        if (gridEl)  gridEl.innerHTML = '';
+        if (sumEl)   sumEl.textContent = '';
+        const fEl = document.getElementById('rev-filter'), tEl = document.getElementById('rev-table');
+        if (fEl) fEl.innerHTML = ''; if (tEl) tEl.innerHTML = '';
+        return;
       }
-      const nRev = res.allRevs.length;
-      const nCols = res.perColorant.filter(c => c.reversals.length).length;
-      if (sumEl) sumEl.textContent = nRev
-        ? t('rev_summary', { n: nRev, cols: nCols })
-        : t('rev_none');
-
       const isDark = document.body.classList.contains('dark');
-      const gridColor = isDark ? '#2e2f34' : '#eee';
-      const plotBg = isDark ? '#1e1f22' : '#fafafa';
-      const paperBg = isDark ? '#1a1b1e' : '#ffffff';
-      const fontColor = isDark ? '#bbb' : '#444';
-      const flagColor = isDark ? '#ff6b6b' : '#e53935';
+      const nViol = res.totals.reversals;
+      const nCols = res.perChannel.filter(c => c.nViol > 0).length;
+      if (sumEl) sumEl.textContent = nViol ? t('rev_summary', { n: nViol, cols: nCols }) : t('rev_none');
 
-      const traces = [];
-      const flagX = [], flagY = [];
-      for (const c of res.perColorant) {
-        traces.push({ type:'scatter', mode:'lines+markers',
-          x: c.rows.map(r => r.inkPct), y: c.rows.map(r => r.L),
-          name: plotlyText(c.colorant), line:{ color:c.color, width:2 },
-          marker:{ color:c.color, size:5 },
-          hovertemplate:`${plotlyText(c.colorant)}<br>%{x:.0f}%%<br>L* %{y:.2f}<extra></extra>` });
-        for (const rv of c.reversals) {
-          flagX.push(rv.fromInk, rv.toInk, null);
-          flagY.push(rv.fromL, rv.toL, null);
-        }
-      }
-      if (flagX.length) {
-        traces.push({ type:'scatter', mode:'lines', x: flagX, y: flagY,
-          name: t('rev_flag'), line:{ color:flagColor, width:4 },
-          hoverinfo:'skip', connectgaps:false });
-      }
-      const layout = {
-        margin:{ l:56, r:16, t:10, b:46 },
-        xaxis:{ title:{ text:t('rev_axis_ink'), font:{ color:fontColor }, standoff:4 },
-          range:[0,100], zeroline:false, showgrid:true, gridcolor:gridColor, tickfont:{ color:fontColor } },
-        yaxis:{ title:{ text:'L*', font:{ color:fontColor }, standoff:4 },
-          showgrid:true, gridcolor:gridColor, tickfont:{ color:fontColor } },
-        showlegend:true, legend:{ orientation:'h', x:0, y:1.12, font:{ color:fontColor } },
-        plot_bgcolor: plotBg, paper_bgcolor: paperBg, font:{ color:fontColor }
-      };
-      Plotly.react(div, traces, layout, { responsive:true, displayModeBar:false });
-
-      // Ranked table of reversals (worst first)
-      if (tblEl) {
-        if (!res.allRevs.length) { tblEl.innerHTML = ''; return; }
+      // ── Per-channel summary-stats block (Samples · Mean · SD · Max ΔL* · #>ε) ──
+      if (statsEl) {
         const bd = isDark ? '#3a3b40' : '#ddd';
         const hb = isDark ? '#26272b' : '#f0f2f5';
         const hc = isDark ? '#cfd6e2' : '#555';
         const tc = isDark ? '#cfd6e2' : '#333';
-        let h = `<table style="border-collapse:collapse;font-size:12px;min-width:360px;">
-          <thead><tr>
-            <th style="text-align:left;padding:4px 10px;border-bottom:1px solid ${bd};background:${hb};color:${hc};">${escapeHtml(t('rev_col_colorant'))}</th>
-            <th style="text-align:right;padding:4px 10px;border-bottom:1px solid ${bd};background:${hb};color:${hc};">${escapeHtml(t('rev_col_range'))}</th>
-            <th style="text-align:right;padding:4px 10px;border-bottom:1px solid ${bd};background:${hb};color:${hc};">ΔL*</th>
-          </tr></thead><tbody>`;
-        for (const rv of res.allRevs) {
-          h += `<tr>
-            <td style="padding:4px 10px;border-bottom:1px solid ${bd};color:${tc};"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${rv.color};margin-right:6px;vertical-align:middle;"></span>${escapeHtml(rv.colorant)}</td>
-            <td style="padding:4px 10px;border-bottom:1px solid ${bd};color:${tc};text-align:right;white-space:nowrap;">${rv.fromInk.toFixed(0)}%&nbsp;→&nbsp;${rv.toInk.toFixed(0)}%</td>
-            <td style="padding:4px 10px;border-bottom:1px solid ${bd};color:${flagColor};text-align:right;font-weight:bold;">+${rv.dL.toFixed(2)}</td>
-          </tr>`;
+        const th = a => `<th style="text-align:${a};padding:4px 10px;border-bottom:1px solid ${bd};background:${hb};color:${hc};white-space:nowrap;">`;
+        const td = a => `<td style="text-align:${a};padding:4px 10px;border-bottom:1px solid ${bd};color:${tc};white-space:nowrap;">`;
+        let h = `<div style="font-size:11px;color:${hc};margin-bottom:4px;">${t('rev_stats_heading')}</div>`;
+        h += `<table style="border-collapse:collapse;font-size:12px;min-width:420px;"><thead><tr>`;
+        h += `${th('left')}${escapeHtml(t('rev_col_channel'))}</th>`;
+        h += `${th('right')}${escapeHtml(t('rev_stats_samples'))}</th>`;
+        h += `${th('right')}${t('rev_stats_mean')}</th>`;
+        h += `${th('right')}${t('rev_stats_sd')}</th>`;
+        h += `${th('right')}${t('rev_stats_max')}</th>`;
+        h += `${th('right')}${t('rev_stats_viol')}</th></tr></thead><tbody>`;
+        for (const c of res.perChannel) {
+          h += `<tr>${td('left')}<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c.color};margin-right:6px;vertical-align:middle;"></span>${escapeHtml(c.colorant)}</td>`;
+          h += `${td('right')}${c.samples}</td>`;
+          h += `${td('right')}${c.nUp ? c.mean.toFixed(3) : '—'}</td>`;
+          h += `${td('right')}${c.nUp ? c.sd.toFixed(3) : '—'}</td>`;
+          h += `${td('right')}${c.nUp ? c.max.toFixed(2) : '—'}</td>`;
+          h += `${td('right')}${c.nViol}${c.capped ? '+' : ''}</td></tr>`;
         }
-        h += '</tbody></table>';
-        tblEl.innerHTML = h;
+        h += `</tbody></table>`;
+        h += `<div style="font-size:11px;color:${hc};margin-top:4px;">${t('rev_stats_totals', { pts: res.totals.points, ramps: res.totals.pairsExamined, rev: nViol })}</div>`;
+        if (res.perChannel.some(c => c.capped)) h += `<div style="font-size:11px;color:${hc};margin-top:2px;">${t('rev_capped_note', { n: REV_SEG_CAP })}</div>`;
+        statsEl.innerHTML = h;
       }
+
+      // ── Per-channel small-multiple plots ──
+      if (gridEl) {
+        const cellBd = isDark ? '#3a3b40' : '#e5e5e5';
+        const cellHc = isDark ? '#cfd6e2' : '#555';
+        gridEl.innerHTML = res.perChannel.map(c => `
+          <div style="border:1px solid ${cellBd};border-radius:6px;padding:6px 8px;width:220px;box-sizing:border-box;">
+            <div style="font-size:12px;color:${cellHc};margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+              <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c.color};"></span>
+              <span style="color:${c.color};font-weight:bold;">${escapeHtml(c.colorant)}</span>
+              <span style="margin-left:auto;">${c.nViol}${c.capped ? '+' : ''}</span>
+            </div>
+            ${revChannelSvg(c, res.scale, isDark)}
+          </div>`).join('');
+      }
+
+      renderRevTable(res, isDark);
+    }
+
+    // The ranked cross-channel reversal table + colour-filter chips. Split out so
+    // the filter/paging controls re-render without recomputing the whole scan.
+    function renderRevTable(res, isDark) {
+      const filterEl = document.getElementById('rev-filter');
+      const tblEl = document.getElementById('rev-table');
+      if (!tblEl) return;
+      const withRevs = res.perChannel.filter(c => c.reversals.length);
+      // Colour filter: All + one chip per channel that has reversals (only if >1).
+      if (filterEl) {
+        if (withRevs.length > 1) {
+          const chip = (active, onclick, inner) =>
+            `<button type="button" onclick="${onclick}" style="cursor:pointer;font-size:12px;padding:3px 9px;border-radius:12px;border:1px solid ${active ? '#4a90e2' : (isDark ? '#3a3b40' : '#ccc')};background:${active ? '#4a90e2' : 'transparent'};color:${active ? '#fff' : (isDark ? '#cfd6e2' : '#555')};display:inline-flex;align-items:center;gap:5px;">${inner}</button>`;
+          let f = chip(_revFilterCh == null, 'onRevFilter(null)', escapeHtml(t('rev_filter_all')));
+          for (const c of withRevs) {
+            f += chip(_revFilterCh === c.chIdx, `onRevFilter(${c.chIdx})`,
+              `<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c.color};"></span>${escapeHtml(c.colorant)}`);
+          }
+          filterEl.innerHTML = f;
+        } else {
+          filterEl.innerHTML = '';
+        }
+      }
+
+      let rowsAll = res.allRevs;
+      if (_revFilterCh != null) rowsAll = rowsAll.filter(r => r.chIdx === _revFilterCh);
+      if (!rowsAll.length) { tblEl.innerHTML = ''; return; }
+      const shownRows = rowsAll.slice(0, _revRowLimit);
+      const bd = isDark ? '#3a3b40' : '#ddd';
+      const hb = isDark ? '#26272b' : '#f0f2f5';
+      const hc = isDark ? '#cfd6e2' : '#555';
+      const tc = isDark ? '#cfd6e2' : '#333';
+      const flagColor = isDark ? '#ff6b6b' : '#e53935';
+      const th = a => `<th style="text-align:${a};padding:4px 10px;border-bottom:1px solid ${bd};background:${hb};color:${hc};white-space:nowrap;">`;
+      const td = a => `<td style="text-align:${a};padding:4px 10px;border-bottom:1px solid ${bd};color:${tc};">`;
+      let h = `<table style="border-collapse:collapse;font-size:12px;min-width:420px;"><thead><tr>`;
+      h += `${th('right')}#</th>${th('left')}${escapeHtml(t('rev_col_channel'))}</th>`;
+      h += `${th('left')}${escapeHtml(t('rev_col_ink'))}</th>${th('right')}L*</th>${th('right')}ΔL*</th></tr></thead><tbody>`;
+      shownRows.forEach((r, i) => {
+        h += `<tr>${td('right')}${i + 1}</td>`;
+        h += `${td('left')}<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${r.color};margin-right:6px;vertical-align:middle;"></span>${escapeHtml(r.colorant)}</td>`;
+        h += `<td style="padding:4px 10px;border-bottom:1px solid ${bd};color:${tc};font-family:monospace;white-space:nowrap;">${escapeHtml(revInkTransition(r, res.scale))}</td>`;
+        h += `<td style="padding:4px 10px;border-bottom:1px solid ${bd};color:${tc};text-align:right;font-family:monospace;white-space:nowrap;">${r.fromL.toFixed(2)}&nbsp;→&nbsp;${r.toL.toFixed(2)}</td>`;
+        h += `<td style="padding:4px 10px;border-bottom:1px solid ${bd};color:${flagColor};text-align:right;font-weight:bold;">+${r.dL.toFixed(2)}</td></tr>`;
+      });
+      h += `</tbody></table>`;
+      if (rowsAll.length > shownRows.length) {
+        h += `<button type="button" onclick="onRevShowMore()" style="cursor:pointer;margin-top:8px;font-size:12px;padding:4px 12px;border-radius:4px;border:1px solid ${isDark ? '#3a3b40' : '#ccc'};background:transparent;color:${hc};">${t('rev_show_more', { n: rowsAll.length - shownRows.length })}</button>`;
+      }
+      tblEl.innerHTML = h;
     }
 
     // ── Feature 5b: Comparison Plot — ΔE vs L* and ΔE vs distance-from-neutral.
