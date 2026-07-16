@@ -7677,7 +7677,7 @@ or ICC profiles</span>
     // than the ΔL* threshold is a reversal (an ink/substrate/measurement fault).
     // Measured-data check — no polynomial model needed, so it also covers CxF/X-4
     // spot-ink tint ramps. ICC / measurement-only slots are excluded.
-    // Method after Harold Boll (InkReversalL).
+    // Method after Harold Boll.
     function computeReversals(epsilon) {
       const ds = state.a;
       if (!ds || ds.dataType === 'icc' || ds.measurementOnly) return null;
