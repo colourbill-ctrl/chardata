@@ -1382,7 +1382,7 @@ or ICC profiles</span>
         <label><input type="radio" name="slice-axis" value="L" checked onchange="setSliceAxis('L')"> L*</label>
         <label><input type="radio" name="slice-axis" value="a" onchange="setSliceAxis('a')"> a*</label>
         <label><input type="radio" name="slice-axis" value="b" onchange="setSliceAxis('b')"> b*</label>
-        <span style="margin-left:8px;font-weight:bold;" data-i18n="val">Value:</span>
+        <span id="slice-value-label" style="margin-left:8px;font-weight:bold;">L*:</span>
         <input type="range" id="slice-value-r" min="0" max="100" value="50" oninput="setSliceValue(+this.value)">
         <input type="number" id="slice-value-n" min="0" max="100" value="50" onchange="setSliceValue(+this.value)">
         <span style="margin-left:8px;font-weight:bold;" data-i18n="thickness">Thickness:</span>
@@ -11739,8 +11739,17 @@ or ICC profiles</span>
       }
     }
 
+    // The slice-value label mirrors the chosen axis (L*/a*/b*) rather than a generic
+    // "Value:" — these are locale-independent colorimetric symbols, same as the axis
+    // radios, so no i18n key is needed.
+    function updateSliceValueLabel() {
+      const el = document.getElementById('slice-value-label');
+      if (el) el.textContent = (_sliceState.axis === 'a' ? 'a*' : _sliceState.axis === 'b' ? 'b*' : 'L*') + ':';
+    }
+
     function setSliceAxis(axis) {
       _sliceState.axis = axis;
+      updateSliceValueLabel();
       // Reset value to midpoint of new axis range
       let lo = Infinity, hi = -Infinity;
       ['a', 'b'].forEach(slot => {
